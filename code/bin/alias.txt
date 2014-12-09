@@ -1,0 +1,89 @@
+;= Shortcuts to ease out the repetitive tasks in windows
+;=
+;= @echo off
+; = Invoke it like this:
+;= 1. D:\Windows\System32\cmd.exe /k setenv.bat
+;= 2. doskey /MACROFILE="%APPDIR%\code\bin\alias.txt"
+;= rem Call DOSKEY and use this file as the macrofile
+;= %SystemRoot%\system32\doskey /listsize=1000 /macrofile=%0%
+;= rem In batch mode, jump to the end of the file
+;= goto end
+;= rem ******************************************************************
+;= rem *   Filename: aliases.bat
+;= rem *    Version: 1.0
+;= rem *     Author: Ben Burnett <me@cs.wisc.edu>
+;= rem *    Purpose: Simple, but useful aliases; this can be done by
+;= rem *             other means--of course--but this is dead simple and
+;= rem *             works on EVERY Windows machine on the planet.
+;= rem *    History:
+;= rem * 26/11/2012: File Created
+;= rem ******************************************************************
+
+
+
+
+
+
+
+gitclean = git gc --aggressive --prune
+gitamend = git commit --amend --no-edit
+re=pushd %XDATDOCSDIR%\code\bin && doskey /Macrofile=alias.txt && popd
+..=cd..
+...=cd..\..
+....=cd..\..\..
+
+idle = %XDATDOCSDIR%\code\bin\idle.lnk
+mv=move $*
+al=pushd %XDATDOCSDIR%\code\bin && gvim alias.txt && popd
+cfg=gvim %XDATDOCSDIR%\pycrm.cfg
+g=gvim $*
+z=start /w %VIM_EXE_DIR%\gvim.exe $*
+ff=@echo "Finding for file name" && where /T /R . *$**
+ffe=@echo "Finding for file name" && where /T /R . $*
+fs=findstr /i /s /n $*
+ls=dir /x $*
+lw=dir /w $*
+la=dir /x /a $*
+cp=copy $*
+mv=move $*
+cd=pushd $*
+
+
+gds=pushd b:\desktop
+ghome = pushd %HOMEPATH%
+ggoogle = pushd "%PROGRAMFILES%\Google\google_appengine"
+gff = pushd %XDATDOCSDIR%\FrequentFliers
+gydl = pushd "B:\\YoutubeVideosDownloaded\\"
+
+
+
+
+recent=dir /s /b /a:-d /t:w /o:-d|less
+
+fip=@echo "Finding inside .py files" && findstr /i /s /n $* *.py
+fit=@echo "Finding inside .txt files" && findstr /i /s /n $* *.txt
+fih=@echo "Finding inside .html files" && findstr /i /s /n $* *.html
+fia=@echo "Finding inside all files" && findstr /i /s /n $* *.*
+fic=@echo "Finding inside all files" && findstr /i /s /n $* *.py *.html *.js *.css
+
+q=exit
+
+
+;= :end
+;= rem ******************************************************************
+;= rem * EOF - Don't remove the following line.  It clears out the ';'
+;= rem * macro. Were using it because there is no support for comments
+;= rem * in a DOSKEY macro file.
+;= rem ******************************************************************
+;=
+
+gcloudlogin = gcloud auth login --no-launch-browser
+
+
+;======================================================
+gsew = pushd %XDATDOCSDIR%
+golivesew = pushd %XDATDOCSDIR% && appcfg.py update . --email="ashishthedev@gmail.com" --version="live" --noauth_local_webserver --oauth2 $*
+
+godevsew = pushd %XDATDOCSDIR% && appcfg.py update . --email="ashishthedev@gmail.com" --version="dev" --noauth_local_webserver --oauth2 $*
+
+rollbacksew = pushd %XDATDOCSDIR%\ && appcfg.py rollback . --email="ashishthedev@gmail.com" --version="live" $*
