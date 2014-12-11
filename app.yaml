@@ -4,6 +4,10 @@ runtime: go
 api_version: go1
 
 handlers:
+- url: /favicon.ico
+  static_files: static/img/favicon.ico
+  upload: static/img/favicon.ico
+
 - url: /faq
   static_files: templates/faq.html
   upload: templates/faq.html

@@ -5,14 +5,17 @@ import (
 	"appengine/user"
 	"fmt"
 	"net/http"
+	"html/template"
 )
 
 type urlStruct struct {
 	handler func(w http.ResponseWriter, r *http.Request)
 	path    string
+	templatePath string
 }
 
 var urlMaps map[string]urlStruct
+var templates = make(map[string]*template.Template)
 
 func init() {
 	urlMaps = map[string]urlStruct{
@@ -25,8 +28,15 @@ func init() {
 		"/rrk/submit-daily-production": urlStruct{
 			handler:      rrkSubmitDailyProductionHandler,
 			path:         "/rrk/submit-daily-production",
-			templatePath: "/templates/rrk_daily_production.html",
+			templatePath: "templates/rrk_daily_production.html",
 		},
+	}
+
+	for _, urlBlob := range urlMaps {
+		templatePath := urlBlob.templatePath
+		if templatePath != ""{
+			templates[templatePath] = template.Must(template.ParseFiles(templatePath))
+		}
 	}
 
 	for path, urlBlob := range urlMaps {
@@ -35,9 +45,10 @@ func init() {
 }
 
 func rrkSubmitDailyProductionHandler(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	u := user.Current(c)
-	fmt.Fprintf(w, "<h1>Welcom to rrk, %v</h1>!", u)
+	urlPath := r.URL.Path
+	template:=templates[urlMaps[urlPath].templatePath]
+	template.Execute(w, nil)
+	return
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
