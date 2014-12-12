@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Submit Roorkee Daily Production</title>
+    <title>Roorkee Daily Production</title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/js/controllers.js"></script>
 
@@ -29,31 +29,34 @@
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container">
-      <input required class="center-block" title="Date of production" type="date" ng-model="dateValue" />
+      <input required class="center-block" autofocus="true" title="Date of production" type="date" ng-model="dateValue" />
+      <br>
       <!-- TODO: Show day Monday/Tuesday/... next to the date to avoid potential
       reporting mistakes -->
-      <div class="well">
-        <div ng-repeat="item in items">
-          <div class="panel panel-success">
-            <div class="panel-heading">
-              <div class="panel-title">
-                <span ng-bind="item.modelName"></span>
+      <div ng-show="items.length > 0">
+        <div class="well">
+          <div ng-repeat="item in items">
+            <div class="panel panel-success">
+              <div class="panel-heading">
+                <div class="panel-title">
+                  <span ng-bind="item.modelName"></span>
+                </div>
+              </div>
+              <div class="panel-body">
+                <span ng-bind="item.quantity"></span>
+                <span ng-bind="item.unit"></span>
+                <span ng-bind="item.remarks"></span>
+                <span ng-show="item">
+                  <button ng-click="removeEntry($index)" class="btn btn-sm btn-danger pull-right">X</button>
+                </span>
               </div>
             </div>
-            <div class="panel-body">
-              <span ng-bind="item.quantity"></span>
-              <span ng-bind="item.unit"></span>
-              <span ng-bind="item.remarks"></span>
-              <span ng-hide="!item">
-                <button ng-click="removeEntry($index)" class="btn btn-sm
-                  btn-danger pull-right">Remove</button>
-              </span>
-            </div>
           </div>
+        <button type="submit" ng-click="submitTodaysLog()" class="center-block btn btn-success">Submit the log</button>
         </div>
       </div>
       <hr>
-      <form role="form">
+      <form role="form" ng-submit="addSingleEntry()">
         <div class="row">
           <div class="form-group">
             <div class="col-xs-5">
@@ -70,13 +73,9 @@
             </div>
           </div> <!-- form-group -->
         </div> <!-- row -->
-        <button type="button" class="col-xs-12 center-block btn btn-info"
-          ng-click="addSingleEntry()">Add</button>
+        <button type="submit" class="col-xs-12 center-block btn btn-info">Add Entry</button>
         <br>
         <hr>
-      </form>
-      <form role="form" ng-submit="submitTodaysLog()">
-        <button type="submit" class="center-block btn btn-success">Submit</button>
       </form>
     </div> <!-- container -->
   </body>

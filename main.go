@@ -4,8 +4,9 @@ import (
 	"appengine"
 	"appengine/user"
 	"fmt"
-	"net/http"
 	"html/template"
+	"log"
+	"net/http"
 )
 
 type urlStruct struct {
@@ -13,10 +14,15 @@ type urlStruct struct {
 	templatePath string
 }
 
+type apiStruct struct {
+	handler func(w http.ResponseWriter, r *http.Request)
+}
+
 var urlMaps map[string]urlStruct
+var apiMaps map[string]apiStruct
 var templates = make(map[string]*template.Template)
 
-func init() {
+func initUrlMaps() {
 	urlMaps = map[string]urlStruct{
 		"/": urlStruct{
 			handler:      rootHandler,
@@ -35,12 +41,32 @@ func init() {
 			templates[templatePath] = template.Must(template.ParseFiles(templatePath))
 		}
 	}
+}
 
+func initApiMaps() {
+	apiMaps = map[string]apiStruct{
+		"/api/rrkDailyProdEmailSendApi": apiStruct{
+			handler: rrkDailyProdEmailSendApiHandler,
+		},
+	}
+}
+
+func init() {
+	initApiMaps()
+	initUrlMaps()
 	for path, urlBlob := range urlMaps {
 		http.HandleFunc(path, urlBlob.handler)
 	}
 }
 
+func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	log.Println("Inside rrkDailyProdEmailSendApiHandler()")
+	return
+}
 func rrkSubmitDailyProductionHandler(w http.ResponseWriter, r *http.Request) {
 	urlPath := r.URL.Path
 	template:=templates[urlMaps[urlPath].templatePath]
