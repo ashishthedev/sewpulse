@@ -24,7 +24,11 @@
   </head>
   <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailyProdController">
     <div class="well">
-      <img src="/static/img/sew72.png"/>
+      <div class="row">
+        <div class="span4"></div>
+        <div class="span4"><img class="center-block" src="/static/img/sew57.png" /></div>
+        <div class="span4"></div>
+      </div>
       <h1 class="text-center">RRK Daily Production</h1>
     </div>
     <div class="container">
@@ -33,22 +37,27 @@
         <br>
         <hr>
         <div class="row">
-          <div class="col-xs-6 col-lg-4">
-            <input type="text"   class="form-control" ng-model="modelName" placeholder="Model Name..."/>
+          <div class="form-group">
+            <div class="col-xs-5">
+              <input required type="text"   class="form-control" ng-model="modelName" placeholder="Model Name..."/>
+            </div>
+            <div class="col-xs-4">
+              <input required type="number" class="form-control" ng-model="quantity" placeholder="Quantity..."/>
+            </div>
+            <div class="col-xs-3">
+              <input required type="text" class="form-control" ng-model="units" placeholder="pc or kg..."/>
+            </div>
+          <div class="col-xs-12">
+            <textarea type="text"   class="form-control" ng-model="remarks" placeholder="Remarks if any..."></textarea>
           </div>
-          <div class="col-xs-6 col-lg-4">
-            <input type="number" class="form-control" ng-model="quantity" placeholder="Quantity"/>
-          </div>
-          <div class="col-xs-12 col-lg-8">
-            <input type="text"   class="form-control" ng-model="remarks" placeholder="Remarks if any..."/>
-          </div>
-        </div>
-        <input type="button" class="col-xs-12 col-lg-8" value="Add"/>
+          </div> <!-- form-group -->
+        </div> <!-- row -->
+        <button type="button" class="col-xs-12 center-block btn btn-info">Add</button>
         <br>
         <hr>
-        <input type="submit"/>
+        <button type="submit" class="center-block btn btn-success">Submit</button>
       </form>
-    </div>
+    </div> <!-- container -->
   </body>
 </html>
 

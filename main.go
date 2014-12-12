@@ -10,7 +10,6 @@ import (
 
 type urlStruct struct {
 	handler func(w http.ResponseWriter, r *http.Request)
-	path    string
 	templatePath string
 }
 
@@ -21,13 +20,11 @@ func init() {
 	urlMaps = map[string]urlStruct{
 		"/": urlStruct{
 			handler:      rootHandler,
-			path:         "/",
 			templatePath: "templates/home.html",
 		},
 
-		"/rrk/submit-daily-production": urlStruct{
+		"/rrk/daily-production": urlStruct{
 			handler:      rrkSubmitDailyProductionHandler,
-			path:         "/rrk/submit-daily-production",
 			templatePath: "templates/rrk_daily_production.html",
 		},
 	}
