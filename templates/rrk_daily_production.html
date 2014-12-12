@@ -24,40 +24,60 @@
   </head>
   <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailyProdController">
     <div class="well">
-      <div class="row">
-        <div class="span4"></div>
-        <div class="span4"><img class="center-block" src="/static/img/sew57.png" /></div>
-        <div class="span4"></div>
-      </div>
+      <img class="center-block" src="/static/img/sew57.png" />
       <h1 class="text-center">RRK Daily Production</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container">
-      <form role="form" action="/api/rrkDailyProdEmailSendApi">
-        <input required type="date" ng-model="dateValue" />
-        <br>
-        <hr>
+      <input required class="center-block" title="Date of production" type="date" ng-model="dateValue" />
+      <!-- TODO: Show day Monday/Tuesday/... next to the date to avoid potential
+      reporting mistakes -->
+      <div class="well">
+        <div ng-repeat="item in items">
+          <div class="panel panel-success">
+            <div class="panel-heading">
+              <div class="panel-title">
+                <span ng-bind="item.modelName"></span>
+              </div>
+            </div>
+            <div class="panel-body">
+              <span ng-bind="item.quantity"></span>
+              <span ng-bind="item.unit"></span>
+              <span ng-bind="item.remarks"></span>
+              <span ng-hide="!item">
+                <button ng-click="removeEntry($index)" class="btn btn-sm
+                  btn-danger pull-right">Remove</button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <form role="form">
         <div class="row">
           <div class="form-group">
             <div class="col-xs-5">
-              <input required type="text"   class="form-control" ng-model="modelName" placeholder="Model Name..."/>
+              <input required type="text"   class="form-control" ng-model="entry.modelName" placeholder="Model Name..."/>
             </div>
             <div class="col-xs-4">
-              <input required type="number" class="form-control" ng-model="quantity" placeholder="Quantity..."/>
+              <input required type="number" class="form-control" ng-model="entry.quantity" placeholder="Quantity..."/>
             </div>
             <div class="col-xs-3">
-              <input required type="text" class="form-control" ng-model="units" placeholder="pc or kg..."/>
+              <input required type="text" class="form-control" ng-model="entry.unit" placeholder="pc or kg..."/>
             </div>
-          <div class="col-xs-12">
-            <textarea type="text"   class="form-control" ng-model="remarks" placeholder="Remarks if any..."></textarea>
-          </div>
+            <div class="col-xs-12">
+              <textarea type="text"   class="form-control" ng-model="entry.remarks" placeholder="Remarks if any..."></textarea>
+            </div>
           </div> <!-- form-group -->
         </div> <!-- row -->
-        <button type="button" class="col-xs-12 center-block btn btn-info">Add</button>
+        <button type="button" class="col-xs-12 center-block btn btn-info"
+          ng-click="addSingleEntry()">Add</button>
         <br>
         <hr>
+      </form>
+      <form role="form" ng-submit="submitTodaysLog()">
         <button type="submit" class="center-block btn btn-success">Submit</button>
       </form>
     </div> <!-- container -->
   </body>
 </html>
-
