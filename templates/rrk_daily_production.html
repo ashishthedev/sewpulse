@@ -29,10 +29,11 @@
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container">
-      <input required class="center-block" autofocus="true" title="Date of production" type="date" ng-model="dateValue" />
-      <br>
       <!-- TODO: Show day Monday/Tuesday/... next to the date to avoid potential
       reporting mistakes -->
+      <div ng-hide="isLogSubmitted">
+      <input required class="center-block" autofocus="true" title="Date of production" type="date" ng-model="dateValue" />
+      <br>
       <div ng-show="items.length > 0">
         <div class="well">
           <div ng-repeat="item in items">
@@ -52,7 +53,10 @@
               </div>
             </div>
           </div>
-        <button type="submit" ng-click="submitTodaysLog()" class="center-block btn btn-success">Submit the log</button>
+          <button type="submit" ng-click="submitTodaysLog()" class="center-block btn btn-success">Submit the log</button>
+          <!--
+          TODO: show an alert
+          -->
         </div>
       </div>
       <hr>
@@ -77,6 +81,14 @@
         <br>
         <hr>
       </form>
+    </div>
+    <div ng-show="isLogSubmitted">
+      <div class="alert alert-success" role="alert">
+        <div class="center-block">
+          Thanks. The log has been submitted successfully.
+        </div>
+      </div>
+    </div>
     </div> <!-- container -->
   </body>
 </html>

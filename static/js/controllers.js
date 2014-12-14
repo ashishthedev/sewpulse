@@ -12,20 +12,23 @@ appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scop
   }
 
   $scope.submitTodaysLog = function() {
-    $scope.statusNote = "Sending...";
+    $scope.statusNote = "Submitting...";
     var api = "/api/rrkDailyProdEmailSendApi";
     var postData = $scope.items;
     $http.post(api, postData).success(function(data, status, headers, config) {
       $scope.statusNote = "";
+      $scope.isLogSubmitted = true;
     }).error(function(data, status, headers, config){
-      $scope.statusNote = "There was an error. Thats all there is to it. Please try again after some time";
+      $scope.statusNote = status + ": " + data;
+      $scope.isLogSubmitted = false;
     });
   }
 
   $scope.dateValue =  new Date();
-  $scope.entry = {modelName:"Premier Plus", quantity:5, unit:"pc", remarks:"none"};
+  $scope.entry = {modelName:"Premier Plus", quantity:5, unit:"pc", remarks:"remarks"};
   $scope.items = [];
   $scope.statusNote = "";
+  $scope.isLogSubmitted = false;
 
 }]);
 
