@@ -32,7 +32,8 @@
       <!-- TODO: Show day Monday/Tuesday/... next to the date to avoid potential
       reporting mistakes -->
       <div ng-hide="isLogSubmitted">
-        <input required class="center-block" autofocus="true" title="Date of production" type="date" ng-model="dateValue" />
+        <input required class="center-block" autofocus="true" title="Date of
+        production" type="date" ng-model="dateValue" ng-change="DateChanged()" />
         <br>
         <div ng-show="items.length > 0">
           <div class="well">

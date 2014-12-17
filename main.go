@@ -81,24 +81,27 @@ type JSONValues struct {
 
 var (
 	DaysMsg = map[string]string{
-		"ON_TIME":     "Logged On Time",
-		"ONE_DAY_OLD": "Logged after 1 day",
-		"X_DAYS_OLD":  "Logged after %d days",
+		"ON_TIME":     "Submitted on same day",
+		"ONE_DAY_OLD": "Submitted after 1 day",
+		"X_DAYS_OLD":  "Submitted after %d days",
 	}
 )
 
-func LogMsgShownForLogTime(logTime time.Time) string {
-	now := time.Now()
-	duration := now.Sub(logTime)
-	dayDiff := int64(now.Day() - logTime.Day())
+func LogMsgShownForLogTime(logTime time.Time, nowTime time.Time) string {
+	l := logTime
+	n := nowTime
+	newLogTime := time.Date(l.Year(), l.Month(), l.Day(), 0, 0, 0, 0, time.UTC)
+	newNow := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
+	duration := newNow.Sub(newLogTime)
 	hrsDiff := int64(duration.Hours())
-	if (dayDiff == 0) && (hrsDiff < 48) {
+
+	if hrsDiff == 0 {
 		return DaysMsg["ON_TIME"]
-	} else if dayDiff == 1 {
+	} else if hrsDiff == 24 {
 		return DaysMsg["ONE_DAY_OLD"]
 	} else {
 		noOfDays := hrsDiff / 24
-		return fmt.Sprintf(DaysMsg["X_DAYS_OLD"], noOfDays+1)
+		return fmt.Sprintf(DaysMsg["X_DAYS_OLD"], noOfDays)
 	}
 	panic("Should not reach here")
 }
@@ -118,7 +121,7 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 
 	logTime := time.Unix(jsonValues.DateTimeAsUTCMilliSeconds/1000, 0)
 	logDateYYYYMMMDD := logTime.Format("2006-Jan-02")
-	logMsg := LogMsgShownForLogTime(logTime)
+	logMsg := LogMsgShownForLogTime(logTime, time.Now())
 
 	htmlTable := fmt.Sprintf(`
 	<table border=1 cellpadding=5>

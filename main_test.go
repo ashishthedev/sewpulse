@@ -28,7 +28,7 @@ func TestReportedDays(t *testing.T) {
 	for _, n := range newTests {
 		tenPM := time.Date(2014, 12, 16, 22, 0, 0, 0, time.UTC) //10:00pm
 		newTime := tenPM.Add(time.Duration(n.minutesBefore) * time.Minute)
-		resultMsg := LogMsgShownForLogTime(newTime)
+		resultMsg := LogMsgShownForLogTime(newTime, tenPM)
 		if resultMsg != n.expectedLogMsg {
 			t.Fatalf("LogMsgShownForLogTime for %d minutes earlier\nTest#%d:\ntenPM=%v\nnewTime=%v\nGot = %s\nExpected = %s", n.minutesBefore, n.id, tenPM, newTime, resultMsg, n.expectedLogMsg)
 		}

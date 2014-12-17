@@ -11,6 +11,12 @@ appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scop
     $scope.items.splice(l, 0, angular.copy($scope.entry));
   }
 
+  $scope.DateChanged = function() {
+    var today = new Date();
+    if (today < $scope.dateValue) {
+      $scope.dateValue = today;
+    }
+  }
   $scope.submitTodaysLog = function() {
     $scope.statusNote = "Submitting...";
     var api = "/api/rrkDailyProdEmailSendApi";
