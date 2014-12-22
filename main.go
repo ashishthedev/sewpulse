@@ -74,7 +74,7 @@ type ProducedItem struct {
 	Remarks   string
 }
 
-type JSONValues struct {
+type ProducedItemsJSONValues struct {
 	DateTimeAsUTCMilliSeconds int64
 	Items                     []ProducedItem
 }
@@ -111,15 +111,15 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var jsonValues JSONValues
+	var producedItemsAsJson ProducedItemsJSONValues
 	dec := json.NewDecoder(r.Body)
-	if err := dec.Decode(&jsonValues); err != nil {
+	if err := dec.Decode(&producedItemsAsJson); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	myDebug(r, fmt.Sprintf("%#v", jsonValues))
+	myDebug(r, fmt.Sprintf("%#v", producedItemsAsJson))
 
-	logTime := time.Unix(jsonValues.DateTimeAsUTCMilliSeconds/1000, 0)
+	logTime := time.Unix(producedItemsAsJson.DateTimeAsUTCMilliSeconds/1000, 0)
 	logDateYYYYMMMDD := logTime.Format("2006-Jan-02")
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
 
@@ -143,7 +143,7 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	</th> </tr> 
 	`, logDateYYYYMMMDD, logMsg)
 
-	for _, pi := range jsonValues.Items {
+	for _, pi := range producedItemsAsJson.Items {
 		htmlTable +=
 			fmt.Sprintf(`
 		<tr>
@@ -158,6 +158,7 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	finalHTML := fmt.Sprintf("<html><head></head><body>%s</body></html>", htmlTable)
 
 	bccAddr := Reverse("moc.liamg@dnanatodhsihsa")
+	//TODO: send it depending on host - dev or live?
 	toAddr := Reverse("moc.liamg@ztigihba")
 
 	c := appengine.NewContext(r)
@@ -182,7 +183,11 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 func rrkSubmitDailyProductionHandler(w http.ResponseWriter, r *http.Request) {
 	urlPath := r.URL.Path
 	template := templates[urlMaps[urlPath].templatePath]
-	template.Execute(w, nil)
+	err := template.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	return
 }
 

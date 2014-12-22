@@ -37,27 +37,39 @@
         <br>
         <div ng-show="items.length > 0">
           <div class="well">
-            <div ng-repeat="item in items">
-              <div class="panel panel-success">
-                <div class="panel-heading">
-                  <div class="panel-title">
-                    <span ng-bind="item.modelName"></span>
-                  </div>
-                </div>
-                <div class="panel-body">
-                  <span ng-bind="item.quantity"></span>
-                  <span ng-bind="item.unit"></span>
-                  <span ng-bind="item.remarks"></span>
-                  <span ng-show="item">
-                    <button ng-click="removeEntry($index)" class="btn btn-sm btn-danger pull-right">X</button>
-                  </span>
-                </div>
-              </div>
+            <div class="panel panel-success">
+              <table class="table panel-body">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Units</th>
+                    <th>Remarks</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tfoot>
+                  <tr>
+                    <td></td>
+                    <td>Total:</td>
+                    <td><span ng-bind="totalQuantityProduced"></span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+                <tr ng-repeat="item in items">
+                  <td><span ng-bind="$index + 1"></span><span>.</span></td>
+                  <td><span ng-bind="item.modelName"></span></td>
+                  <td><span ng-bind="item.quantity"></span></td>
+                  <td><span ng-bind="item.unit"></span></td>
+                  <td><span ng-bind="item.remarks"></span></td>
+                  <td><button ng-click="removeEntry($index)" class="btn btn-sm btn-danger pull-right">X</button></td>
+                </tr>
+              </table>
             </div>
             <button type="submit" ng-click="submitTodaysLog()" class="center-block btn btn-success">Submit the log</button>
-            <!--
-            TODO: show an alert
-            -->
           </div>
         </div>
         <hr>
