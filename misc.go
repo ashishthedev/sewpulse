@@ -2,6 +2,7 @@ package sewpulse
 
 import (
 	"appengine"
+	"appengine/user"
 	"net/http"
 )
 
@@ -19,3 +20,15 @@ func Reverse(s string) string {
 	return string(runes)
 }
 
+func IsUserAdminOrDev(r *http.Request) bool {
+	if appengine.IsDevAppServer() {
+		return true
+	}
+	c := appengine.NewContext(r)
+	if u := user.Current(c); u != nil {
+		return u.Admin
+	}
+	return false
+}
+
+//A related operation is the need to get the hostname part of a URL to the application. You can use the appengine.DefaultVersionHostname function for this purpose.

@@ -117,11 +117,15 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	myDebug(r, fmt.Sprintf("%#v", producedItemsAsJson))
 
 	logTime := time.Unix(producedItemsAsJson.DateTimeAsUTCMilliSeconds/1000, 0)
 	logDateYYYYMMMDD := logTime.Format("2006-Jan-02")
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
+
+	totalQuantityProduced := 0
+	for _, pi := range producedItemsAsJson.Items {
+		totalQuantityProduced += pi.Quantity
+	}
 
 	htmlTable := fmt.Sprintf(`
 	<table border=1 cellpadding=5>
@@ -129,6 +133,7 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	<u><h1>%s</h1></u>
 	<u><h3>%s</h3></u>
 	</caption>
+	<thead>
 	<tr bgcolor=#838468> <th>
 	<font color='#000000'> Product </font>
 	</th>
@@ -141,7 +146,18 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	<th>
 	<font color='#000000'> Remarks </font>
 	</th> </tr> 
-	`, logDateYYYYMMMDD, logMsg)
+	</thead>
+	<tfoot>
+		<tr>
+			<td>Total:</td>
+			<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
+		</tr>
+	</tfoot>
+	`,
+	logDateYYYYMMMDD,
+	logMsg,
+	totalQuantityProduced,
+)
 
 	for _, pi := range producedItemsAsJson.Items {
 		htmlTable +=
