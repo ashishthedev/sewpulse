@@ -171,7 +171,7 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		Sender:   u.String() + "<" + u.Email + ">",
 		To:       []string{toAddr},
 		Bcc:      []string{bccAddr},
-		Subject:  fmt.Sprintf("[SEWPULSE][RRKDP] %s", logDateYYYYMMMDD),
+		Subject:  fmt.Sprintf("%s [SEWPULSE][RRKDP]", logDateYYYYMMMDD),
 		HTMLBody: finalHTML,
 	}
 
