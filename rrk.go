@@ -138,10 +138,10 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		</tr>
 	</tfoot>
 	`,
-	logDateYYYYMMMDD,
-	logMsg,
-	totalQuantityProduced,
-)
+		logDateYYYYMMMDD,
+		logMsg,
+		totalQuantityProduced,
+	)
 
 	for _, pi := range producedItemsAsJson.Items {
 		htmlTable +=
@@ -158,8 +158,12 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	finalHTML := fmt.Sprintf("<html><head></head><body>%s</body></html>", htmlTable)
 
 	bccAddr := Reverse("moc.liamg@dnanatodhsihsa")
-	//TODO: send it depending on host - dev or live?
-	toAddr := Reverse("moc.liamg@ztigihba")
+	toAddr := ""
+	if IsLocalHostedOrOnDevBranch(r) {
+		toAddr = Reverse("moc.liamg@dnanatodhsihsa")
+	} else {
+		toAddr = Reverse("moc.liamg@ztigihba")
+	}
 
 	c := appengine.NewContext(r)
 	u := user.Current(c)

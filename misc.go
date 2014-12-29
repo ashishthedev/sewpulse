@@ -4,6 +4,7 @@ import (
 	"appengine"
 	"appengine/user"
 	"net/http"
+	"strings"
 )
 
 func myDebug(r *http.Request, s string) {
@@ -20,6 +21,16 @@ func Reverse(s string) string {
 	return string(runes)
 }
 
+func IsLocalHostedOrOnDevBranch(r *http.Request) bool {
+	if appengine.IsDevAppServer() {
+		return true
+	}
+	if strings.ToLower(r.URL.Host[:4]) == "dev." {
+		return true
+	}
+	return false
+}
+
 func IsUserAdminOrDev(r *http.Request) bool {
 	if appengine.IsDevAppServer() {
 		return true
@@ -30,5 +41,3 @@ func IsUserAdminOrDev(r *http.Request) bool {
 	}
 	return false
 }
-
-//A related operation is the need to get the hostname part of a URL to the application. You can use the appengine.DefaultVersionHostname function for this purpose.

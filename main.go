@@ -27,7 +27,6 @@ func initRootUrlMaps() {
 			handler:      rootHandler,
 			templatePath: "templates/home.html",
 		},
-
 	}
 
 	for _, urlBlob := range urlMaps {
@@ -44,12 +43,6 @@ func initRootUrlMaps() {
 }
 
 func initRootApiMaps() {
-	//apiMaps = map[string]apiStruct{
-	//	},
-	//}
-	//for path, apiBlob := range apiMaps {
-	//	http.HandleFunc(path, apiBlob.handler)
-	//}
 	return
 }
 
@@ -58,8 +51,6 @@ func init() {
 	initRootUrlMaps()
 	return
 }
-
-
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
@@ -75,5 +66,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "Hello, %v!", u)
+
 	return
 }
