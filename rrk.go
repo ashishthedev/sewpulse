@@ -17,6 +17,10 @@ func initRRKUrlMaps() {
 			handler:      rrkSubmitDailyProductionHandler,
 			templatePath: "templates/rrk_daily_production.html",
 		},
+		"/rrk": urlStruct{
+			handler:      rrkHomePageHandler,
+			templatePath: "templates/rrk.html",
+		},
 	}
 
 	for _, urlBlob := range urlMaps {
@@ -184,6 +188,16 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func rrkHomePageHandler(w http.ResponseWriter, r *http.Request) {
+	urlPath := r.URL.Path
+	template := templates[urlMaps[urlPath].templatePath]
+	err := template.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	return
+}
 func rrkSubmitDailyProductionHandler(w http.ResponseWriter, r *http.Request) {
 	urlPath := r.URL.Path
 	template := templates[urlMaps[urlPath].templatePath]
