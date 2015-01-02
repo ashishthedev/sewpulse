@@ -54,4 +54,3 @@ appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scop
   $scope.totalQuantityProduced = 0;
 
 }]);
-

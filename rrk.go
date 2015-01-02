@@ -14,24 +14,17 @@ import (
 func initRRKUrlMaps() {
 	urlMaps = map[string]urlStruct{
 		"/rrk/daily-production": urlStruct{
-			handler:      rrkSubmitDailyProductionHandler,
+			handler:      rrkGeneralPageHander,
 			templatePath: "templates/rrk_daily_production.html",
 		},
 		"/rrk": urlStruct{
-			handler:      rrkHomePageHandler,
+			handler:      rrkGeneralPageHander,
 			templatePath: "templates/rrk.html",
 		},
 	}
 
-	for _, urlBlob := range urlMaps {
-		//Making sure templatePath exists and caching them
-		templatePath := urlBlob.templatePath
-		if templatePath != "" {
-			templates[templatePath] = template.Must(template.ParseFiles(templatePath))
-		}
-	}
-
 	for path, urlBlob := range urlMaps {
+		templates[path] = template.Must(template.ParseFiles(urlBlob.templatePath))
 		http.HandleFunc(path, urlBlob.handler)
 	}
 	return
@@ -43,15 +36,16 @@ func initRRKApiMaps() {
 			handler: rrkDailyProdEmailSendApiHandler,
 		},
 	}
+
+	for path, apiBlob := range apiMaps {
+		http.HandleFunc(path, apiBlob.handler)
+	}
 	return
 }
 
 func init() {
 	initRRKApiMaps()
 	initRRKUrlMaps()
-	for path, apiBlob := range apiMaps {
-		http.HandleFunc(path, apiBlob.handler)
-	}
 	return
 }
 
@@ -68,32 +62,6 @@ type ProducedItemsJSONValues struct {
 	Items                     []ProducedItem
 }
 
-var (
-	DaysMsg = map[string]string{
-		"ON_TIME":     "Submitted on same day",
-		"ONE_DAY_OLD": "Submitted after 1 day",
-		"X_DAYS_OLD":  "Submitted after %d days",
-	}
-)
-
-func LogMsgShownForLogTime(logTime time.Time, nowTime time.Time) string {
-	l := logTime
-	n := nowTime
-	newLogTime := time.Date(l.Year(), l.Month(), l.Day(), 0, 0, 0, 0, time.UTC)
-	newNow := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
-	duration := newNow.Sub(newLogTime)
-	hrsDiff := int64(duration.Hours())
-
-	if hrsDiff == 0 {
-		return DaysMsg["ON_TIME"]
-	} else if hrsDiff == 24 {
-		return DaysMsg["ONE_DAY_OLD"]
-	} else {
-		noOfDays := hrsDiff / 24
-		return fmt.Sprintf(DaysMsg["X_DAYS_OLD"], noOfDays)
-	}
-	panic("Should not reach here")
-}
 func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -107,8 +75,9 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logTime := time.Unix(producedItemsAsJson.DateTimeAsUTCMilliSeconds/1000, 0)
-	logDateYYYYMMMDD := logTime.Format("2006-Jan-02")
+	submissionDateTimeAsUTC := producedItemsAsJson.DateTimeAsUTCMilliSeconds
+	logTime := time.Unix(submissionDateTimeAsUTC/1000, 0)
+	logDateDDMMYY := DDMMYYFromUTC(submissionDateTimeAsUTC)
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
 
 	totalQuantityProduced := 0
@@ -138,7 +107,7 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		</tr>
 	</tfoot>
 	`,
-		logDateYYYYMMMDD,
+		logDateDDMMYY,
 		logMsg,
 		totalQuantityProduced,
 	)
@@ -172,7 +141,7 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		Sender:   u.String() + "<" + u.Email + ">",
 		To:       []string{toAddr},
 		Bcc:      []string{bccAddr},
-		Subject:  fmt.Sprintf("%s [SEWPULSE][RRKDP]", logDateYYYYMMMDD),
+		Subject:  fmt.Sprintf("%s: %v pc [SEWPULSE][RRKDP]", logDateDDMMYY, totalQuantityProduced),
 		HTMLBody: finalHTML,
 	}
 
@@ -185,19 +154,10 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func rrkHomePageHandler(w http.ResponseWriter, r *http.Request) {
+func rrkGeneralPageHander(w http.ResponseWriter, r *http.Request) {
 	urlPath := r.URL.Path
-	template := templates[urlMaps[urlPath].templatePath]
-	err := template.Execute(w, nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	return
-}
-func rrkSubmitDailyProductionHandler(w http.ResponseWriter, r *http.Request) {
-	urlPath := r.URL.Path
-	template := templates[urlMaps[urlPath].templatePath]
+	//TODO: if urlPath ends in / strip it off
+	template := templates[urlPath]
 	err := template.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

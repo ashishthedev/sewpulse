@@ -31,9 +31,7 @@ func initRootUrlMaps() {
 
 	for _, urlBlob := range urlMaps {
 		templatePath := urlBlob.templatePath
-		if templatePath != "" {
-			templates[templatePath] = template.Must(template.ParseFiles(templatePath))
-		}
+		templates[templatePath] = template.Must(template.ParseFiles(templatePath))
 	}
 
 	for path, urlBlob := range urlMaps {

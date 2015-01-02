@@ -1,0 +1,122 @@
+<html>
+  <head>
+    <title>Roorkee Daily Cash</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/js/rrkDailyCashController.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="application-name" content="FAQ" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+  </head>
+  <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailyCashController">
+    <div class="well">
+      <img class="center-block" src="/static/img/sew57.png" />
+      <h1 class="text-center">RRK Daily Cash</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <!-- TODO: Show day Monday/Tuesday/... next to the date to avoid potential
+      reporting mistakes -->
+      <div ng-hide="isLogSubmitted">
+        <form role="form" class="form-horizontal ">
+          <div class="row">
+            <div class="form-group">
+              <div class="col-xs-offset-1 col-xs-5">
+                <input required class="form-control" title="Date of cash transaction" type="date" ng-model="dateValue" ng-change="DateChanged()" />
+              </div>
+              <div class="col-xs-5">
+                <input required class="form-control" autofocus="true" title="Opening Balance" type="number" placeholder="Opening balance..." ng-model="openingBalance" ng-change="OpeningBalanceChanged()" />
+              </div>
+            </div>
+          </div>
+        </form>
+        <br>
+        <div ng-show="(items.length > 0) && (openingBalance)" class="well">
+          <div class="panel panel-success">
+            <table class="table table-striped table-condensed panel-body">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Bill#</th>
+                  <th>Amount</th>
+                  <th>Description</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <td>Closing:</td>
+                  <td></td>
+                  <td><b><span ng-bind="closingBalance"></span></b></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+              <tr>
+                <td><span>Opening</span></td>
+                <td></td>
+                <td><span ng-bind="openingBalance"></span></td>
+                <td></td>
+                <td><button ng-click="removeEntry($index)" class="btn btn-sm btn-danger pull-right">X</button></td>
+              </tr>
+              <tr ng-repeat="item in items">
+                <td><span ng-bind="$index + 1"></span><span>.</span></td>
+                <td><span ng-bind="item.billNumber"></span></td>
+                <td><span ng-bind="item.amount"></span></td>
+                <td><span ng-bind="item.description"></span></td>
+                <td><button ng-click="removeEntry($index)" class="btn btn-sm btn-danger pull-right">X</button></td>
+              </tr>
+            </table>
+          </div>
+          <button ng-show="openingBalance" type="submit" ng-click="submitTodaysLog()" class="center-block btn btn-success">Submit the log</button>
+        </div>
+        <form ng-show="openingBalance" role="form" class="form-horizontal" ng-submit="addSingleCashTx()">
+        <hr>
+          <div class="row">
+            <div class="form-group">
+              <div class="col-xs-4">
+                <input required type="text" class="form-control" ng-model="entry.billNumber" placeholder="Bill# ..."/>
+              </div>
+              <div class="col-xs-4">
+                <select class="form-control" ng-model="entry.nature">
+                  <option value="Spent">Spent</option>
+                  <option value="Received">Received</option>
+                </select>
+              </div>
+              <div class="col-xs-4">
+                <input required type="number"   class="form-control" ng-model="entry.amount" placeholder="Amount..."/>
+              </div>
+              <div class="col-xs-12">
+                <textarea required type="text"   class="form-control" ng-model="entry.description" placeholder="Description of transaction..." ></textarea>
+              </div>
+            </div> <!-- form-group -->
+          </div> <!-- row -->
+          <button type="submit" class="col-xs-12 center-block btn btn-info">Add Entry</button>
+          <br>
+          <hr>
+        </form>
+      </div>
+      <div ng-show="isLogSubmitted">
+        <div class="alert alert-success" role="alert">
+          <div class="text-center">
+            Thanks. The log has been submitted successfully.
+          </div>
+        </div>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>
