@@ -28,7 +28,7 @@
       <h1 class="text-center">RRK Daily Production</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
-    <div class="container">
+    <div class="container-fluid">
       <!-- TODO: Show day Monday/Tuesday/... next to the date to avoid potential
       reporting mistakes -->
       <div ng-hide="isLogSubmitted">
@@ -38,11 +38,12 @@
         <div ng-show="items.length > 0">
           <div class="well">
             <div class="panel panel-success">
-              <table class="table panel-body">
+              <table class="table table-striped panel-body">
                 <thead>
                   <tr>
                     <th>#</th>
                     <th>Item</th>
+                    <th>Line</th>
                     <th>Qty</th>
                     <th>Units</th>
                     <th>Remarks</th>
@@ -57,11 +58,13 @@
                     <td></td>
                     <td></td>
                     <td></td>
+                    <td></td>
                   </tr>
                 </tfoot>
                 <tr ng-repeat="item in items">
                   <td><span ng-bind="$index + 1"></span><span>.</span></td>
                   <td><span ng-bind="item.modelName"></span></td>
+                  <td><span ng-bind="item.assemblyLineName"></span></td>
                   <td><span ng-bind="item.quantity"></span></td>
                   <td><span ng-bind="item.unit"></span></td>
                   <td><span ng-bind="item.remarks"></span></td>
@@ -73,16 +76,22 @@
           </div>
         </div>
         <hr>
-        <form role="form" ng-submit="addSingleEntry()">
+        <form role="form" class="form-horizontal" ng-submit="addSingleEntry()">
           <div class="row">
             <div class="form-group">
-              <div class="col-xs-5">
+              <div class="col-xs-6 col-sm-4">
                 <input required type="text"   class="form-control" ng-model="entry.modelName" placeholder="Model Name..."/>
               </div>
-              <div class="col-xs-4">
+              <div class="col-xs-6 col-sm-3">
+                <select class="form-control" ng-model="entry.assemblyLineName">
+                  <option value="Line1">Line1</option>
+                  <option value="Line2">Line2</option>
+                </select>
+              </div>
+              <div class="col-xs-6  col-sm-3">
                 <input required type="number" class="form-control" ng-model="entry.quantity" placeholder="Quantity..."/>
               </div>
-              <div class="col-xs-3">
+              <div class="col-xs-6 col-sm-2">
                 <input required type="text" class="form-control" ng-model="entry.unit" placeholder="pc or kg..."/>
               </div>
               <div class="col-xs-12">

@@ -56,10 +56,11 @@ func init() {
 }
 
 type ProducedItem struct {
-	ModelName string
-	Quantity  int
-	Unit      string
-	Remarks   string
+	ModelName        string
+	Quantity         int
+	Unit             string
+	AssemblyLineName string
+	Remarks          string
 }
 
 type ProducedItemsJSONValues struct {
@@ -122,22 +123,17 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	<u><h3>%s</h3></u>
 	</caption>
 	<thead>
-	<tr bgcolor=#838468> <th>
-	<font color='#000000'> Product </font>
-	</th>
-	<th>
-	<font color='#000000'> Quantity </font>
-	</th>
-	<th>
-	<font color='#000000'> Units </font>
-	</th>
-	<th>
-	<font color='#000000'> Remarks </font>
-	</th> </tr> 
+	<tr bgcolor=#838468>
+	<th><font color='#000000'> Product </font></th>
+	<th><font color='#000000'> Line </font></th>
+	<th><font color='#000000'> Quantity </font></th>
+	<th><font color='#000000'> Units </font></th>
+	<th><font color='#000000'> Remarks </font></th>
+	</tr>
 	</thead>
 	<tfoot>
 		<tr>
-			<td>Total:</td>
+			<td colspan=2>Total:</td>
 			<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
 		</tr>
 	</tfoot>
@@ -152,10 +148,11 @@ func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf(`
 		<tr>
 		<td>%s</td>
+		<td>%s</td>
 		<td>%d</td>
 		<td>%s</td>
 		<td>%s</td>
-		</tr>`, pi.ModelName, pi.Quantity, pi.Unit, pi.Remarks)
+		</tr>`, pi.ModelName, pi.AssemblyLineName, pi.Quantity, pi.Unit, pi.Remarks)
 	}
 	htmlTable += "</table>"
 

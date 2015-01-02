@@ -47,7 +47,7 @@ appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scop
   }
 
   $scope.dateValue =  new Date();
-  $scope.entry = {modelName:"Premier Plus", quantity:5, unit:"pc", remarks:"remarks"};
+  $scope.entry = {modelName:"Premium Plus", quantity:5, assemblyLineName: "Line1", unit:"pc"};
   $scope.items = [];
   $scope.statusNote = "";
   $scope.isLogSubmitted = false;

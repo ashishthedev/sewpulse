@@ -65,7 +65,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusFound)
 		return
 	}
-	fmt.Fprintf(w, "Hello, %v!", u)
+	fmt.Fprintf(w, "<html><body>Hello, <h4>%v</h4></body></html>", u)
 
 	return
 }
