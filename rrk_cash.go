@@ -51,11 +51,11 @@ type CashTransaction struct {
 }
 
 type cashTxsJSONFormat struct {
-  DateOfTransactionAsUTC int64
+	DateOfTransactionAsUTC  int64
 	SubmissionDateTimeAsUTC int64
-	OpeningBalance                      int64
-	ClosingBalance                      int64
-	Items                             []CashTransaction
+	OpeningBalance          int64
+	ClosingBalance          int64
+	Items                   []CashTransaction
 }
 
 func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
@@ -78,15 +78,14 @@ func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
 	dateOfTxAsDDMMYY := DDMMYYFromUTC(cashTxsAsJson.DateOfTransactionAsUTC)
 
-
 	openingBalance := cashTxsAsJson.OpeningBalance
 	closingBalance := openingBalance
 	for _, ct := range cashTxsAsJson.Items {
 		closingBalance += ct.Amount
 	}
-	
-	if closingBalance != cashTxsAsJson.ClosingBalance{
-		http.Error(w, fmt.Sprintf("Application error: Closing Balance is not consistent on client and server. %v != %v", closingBalance, cashTxsAsJson.ClosingBalance) , http.StatusInternalServerError)
+
+	if closingBalance != cashTxsAsJson.ClosingBalance {
+		http.Error(w, fmt.Sprintf("Application error: Closing Balance is not consistent on client and server. %v != %v", closingBalance, cashTxsAsJson.ClosingBalance), http.StatusInternalServerError)
 		return
 	}
 
@@ -117,8 +116,8 @@ func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 		closingBalance,
 	)
 
-		htmlTable +=
-			fmt.Sprintf(`
+	htmlTable +=
+		fmt.Sprintf(`
 		<tr>
 		<td colspan=2>%v</td>
 		<td>%v</td>
