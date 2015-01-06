@@ -28,7 +28,10 @@
     </div>
     <div class="container-fluid">
       <div ng-hide="isLogSubmitted">
-        <input required class="center-block" autofocus="true" title="Date of assembly" type="date" ng-model="dateValue" ng-change="DateChanged()" />
+        <div class="row">
+          <input required class="center-block" autofocus="true" title="Date of assembly" type="date" ng-model="dateValue" ng-change="DateChanged()" />
+          <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
+        </div>
         <br>
         <div ng-show="items.length > 0">
           <div class="well">

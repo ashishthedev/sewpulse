@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Roorkee Daily Production</title>
+    <title>Roorkee Daily Polish</title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/js/controllers.js"></script>
 
@@ -25,15 +25,15 @@
   <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailyProdController">
     <div class="well">
       <img class="center-block" src="/static/img/sew57.png" />
-      <h1 class="text-center">RRK Daily Production</h1>
+      <h1 class="text-center">RRK Daily Polish</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
       <!-- TODO: Show day Monday/Tuesday/... next to the date to avoid potential
       reporting mistakes -->
       <div ng-hide="isLogSubmitted">
-        <input required class="center-block" autofocus="true" title="Date of
-        production" type="date" ng-model="dateValue" ng-change="DateChanged()" />
+        <input required class="center-block" autofocus="true" title="Date of polish" type="date" ng-model="dateValue" ng-change="DateChanged()" />
+        <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
         <br>
         <div ng-show="items.length > 0">
           <div class="well">

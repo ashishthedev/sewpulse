@@ -1,6 +1,25 @@
 ﻿var appMod = angular.module('ngSEWPulseApp', []);
 
 appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scope, $http) {
+  function UpdateDateDiffAsText() {
+    var today = new Date();
+    var diff = Math.floor(today.getTime() - $scope.dateValue.getTime());
+    var day = 1000 * 60 * 60 * 24;
+
+    var days = Math.floor(diff/day);
+
+    var dateDiffFromTodayAsText = ""
+    if (days == 0) {
+      dateDiffFromTodayAsText = "Today";
+    }
+    else if (days ==1) {
+      dateDiffFromTodayAsText = "1 day old";
+    } else {
+      dateDiffFromTodayAsText = days + " days old";
+    }
+    $scope.dateDiffFromTodayAsText = dateDiffFromTodayAsText;
+  }
+
 
   function UpdateTotalQty() {
     var t = 0;
@@ -27,6 +46,7 @@ appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scop
     if (today < $scope.dateValue) {
       $scope.dateValue = today;
     }
+    UpdateDateDiffAsText();
   }
 
   $scope.submitTodaysLog = function() {
@@ -47,6 +67,7 @@ appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scop
   }
 
   $scope.dateValue =  new Date();
+  UpdateDateDiffAsText();
   $scope.entry = {modelName:"Premium Plus", quantity:5, assemblyLineName: "Line1", unit:"pc"};
   $scope.items = [];
   $scope.statusNote = "";

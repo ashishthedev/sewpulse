@@ -81,9 +81,7 @@ func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 
 	openingBalance := cashTxsAsJson.OpeningBalance
 	closingBalance := openingBalance
-	myDebug(r, "Going through loop now")
 	for _, ct := range cashTxsAsJson.Items {
-		myDebug(r, fmt.Sprintf("%v", ct.Amount))
 		closingBalance += ct.Amount
 	}
 	
