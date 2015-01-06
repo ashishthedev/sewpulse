@@ -1,6 +1,6 @@
 ﻿var appMod = angular.module('ngSEWPulseApp', []);
 
-appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scope, $http) {
+appMod.controller('ngRRKDailyPolishController', ['$scope', '$http', function($scope, $http) {
   function UpdateTotalQty() {
     var t = 0;
     for (var i=0; i < $scope.items.length; i++) {
@@ -31,7 +31,7 @@ appMod.controller('ngRRKDailyProdController', ['$scope', '$http', function($scop
 
   $scope.submitTodaysLog = function() {
     $scope.statusNote = "Submitting...";
-    var api = "/api/rrkDailyProdEmailSendApi";
+    var api = "/api/rrkDailyPolishEmailSendApi";
     var postData = {
       "dateTimeAsUTCMilliSeconds": $scope.dateValue.getTime(),
       "items": $scope.items,

@@ -13,9 +13,9 @@ import (
 
 func initRRKUrlMaps() {
 	urlMaps = map[string]urlStruct{
-		"/rrk/daily-production": urlStruct{
+		"/rrk/daily-polish": urlStruct{
 			handler:      rrkGeneralPageHander,
-			templatePath: "templates/rrk_daily_production.html",
+			templatePath: "templates/rrk_daily_polish.html",
 		},
 		"/rrk/daily-assembly": urlStruct{
 			handler:      rrkGeneralPageHander,
@@ -36,8 +36,8 @@ func initRRKUrlMaps() {
 
 func initRRKApiMaps() {
 	apiMaps = map[string]apiStruct{
-		"/api/rrkDailyProdEmailSendApi": apiStruct{
-			handler: rrkDailyProdEmailSendApiHandler,
+		"/api/rrkDailyPolishEmailSendApi": apiStruct{
+			handler: rrkDailyPolishEmailSendApiHandler,
 		},
 		"/api/rrkDailyAssemblyEmailSendApi": apiStruct{
 			handler: rrkDailyAssemblyEmailSendApiHandler,
@@ -161,7 +161,7 @@ func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request)
 	return
 }
 
-func rrkDailyProdEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
+func rrkDailyPolishEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
