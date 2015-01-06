@@ -1,0 +1,111 @@
+<html>
+  <head>
+    <title>Roorkee Daily Assembly</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/js/rrkDailyAssemblyController.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+  </head>
+  <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailyAssemblyController">
+    <div class="well">
+      <img class="center-block" src="/static/img/sew57.png" />
+      <h1 class="text-center">RRK Daily Assembly</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <div ng-hide="isLogSubmitted">
+        <input required class="center-block" autofocus="true" title="Date of assembly" type="date" ng-model="dateValue" ng-change="DateChanged()" />
+        <br>
+        <div ng-show="items.length > 0">
+          <div class="well">
+            <div class="panel panel-success">
+              <table class="table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Line</th>
+                    <th>Qty</th>
+                    <th>Units</th>
+                    <th>Remarks</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tfoot>
+                  <tr>
+                    <td></td>
+                    <td>Total:</td>
+                    <td></td>
+                    <td><span ng-bind="totalQuantityProduced"></span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+                <tr ng-repeat="item in items">
+                  <td><span ng-bind="$index + 1"></span><span>.</span></td>
+                  <td><span ng-bind="item.modelName"></span></td>
+                  <td><span ng-bind="item.assemblyLineName"></span></td>
+                  <td><span ng-bind="item.quantity"></span></td>
+                  <td><span ng-bind="item.unit"></span></td>
+                  <td><span ng-bind="item.remarks"></span></td>
+                  <td><button ng-click="removeEntry($index)" class="btn btn-sm btn-danger pull-right">X</button></td>
+                </tr>
+              </table>
+            </div>
+            <button type="submit" ng-click="submitTodaysLog()" class="center-block btn btn-success">Submit the log</button>
+          </div>
+        </div>
+        <hr>
+        <form role="form" class="form-horizontal" ng-submit="addSingleEntry()">
+          <div class="row">
+            <div class="form-group">
+              <div class="col-xs-6 col-sm-4">
+                <input required type="text"   class="form-control" ng-model="entry.modelName" placeholder="Model Name..."/>
+              </div>
+              <div class="col-xs-6 col-sm-3">
+                <select class="form-control" ng-model="entry.assemblyLineName">
+                  <option value="Line1">Line1</option>
+                  <option value="Line2">Line2</option>
+                </select>
+              </div>
+              <div class="col-xs-6  col-sm-3">
+                <input required type="number" class="form-control" ng-model="entry.quantity" placeholder="Quantity..."/>
+              </div>
+              <div class="col-xs-6 col-sm-2">
+                <input required type="text" class="form-control" ng-model="entry.unit" placeholder="pc or kg..."/>
+              </div>
+              <div class="col-xs-12">
+                <textarea type="text"   class="form-control" ng-model="entry.remarks" placeholder="Remarks if any..."></textarea>
+              </div>
+            </div> <!-- form-group -->
+          </div> <!-- row -->
+          <button type="submit" class="col-xs-12 center-block btn btn-info">Add Entry</button>
+          <br>
+          <hr>
+        </form>
+      </div>
+      <div ng-show="isLogSubmitted">
+        <div class="alert alert-success" role="alert">
+          <div class="text-center">
+            Thanks. The log has been submitted successfully.
+          </div>
+        </div>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>
