@@ -31,6 +31,21 @@ func Reverse(s string) string {
 	return string(runes)
 }
 
+func BranchName(r *http.Request) string {
+	if appengine.IsDevAppServer() {
+		return "localhost"
+	}
+	host := r.URL.Host
+	if host == "" {
+		panic("Host is empty. A lot depends upon the host of the URL")
+	}
+	s := strings.Split(strings.ToLower(host), ".")[0]
+	if len(s) > 0 {
+		return s
+	}
+	return host
+}
+
 func IsLocalHostedOrOnDevBranch(r *http.Request) bool {
 	if appengine.IsDevAppServer() {
 		return true

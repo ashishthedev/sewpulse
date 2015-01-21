@@ -1,6 +1,25 @@
 ﻿var appMod = angular.module('ngSEWPulseApp', []);
 
 appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scope, $http) {
+  function UpdateOpeningBalance() {
+    var api = "/api/rrkDailyCashOpeningBalance";
+    var postData = null;
+    $scope.statusNote = "Fetching opening balance ...";
+    $http.post(api, postData).success(function(data, status, headers, config) {
+      $scope.statusNote = "";
+      if (data.Initialized == true) {
+        $scope.openingBalanceReadOnly = true;
+        $scope.openingBalance = parseInt(data.OpeningBalance);
+      } else {
+        $scope.openingBalanceReadOnly = false;
+      }
+      console.log(data);
+      UpdateTotalAmount(); //Not necessary incidentally as of now but still doing to remain consistent with logic.
+    }).error(function(data, status, headers, config){
+      $scope.statusNote = status + ": " + data;
+    });
+  }
+
   function UpdateTotalAmount() {
     var t = $scope.openingBalance;
     for (var i=0; i < $scope.items.length; i++) {
@@ -60,11 +79,14 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
     });
   }
 
+  $scope.openingBalanceReadOnly = true;
+  console.log("Initializing openingBalanceReadOnly to TRUE");
   $scope.dateValue =  new Date();
   UpdateDateDiffAsText($scope);
   $scope.entry = {nature:"Spent"};
   $scope.items = [];
   $scope.statusNote = "";
   $scope.isLogSubmitted = false;
+  UpdateOpeningBalance();
 
 }]);

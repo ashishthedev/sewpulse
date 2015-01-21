@@ -40,7 +40,10 @@
                 <input required class="form-control" title="Date of cash transaction" type="date" ng-model="dateValue" ng-change="DateChanged()" />
               </div>
               <div class="col-xs-5">
-                <input required class="form-control" autofocus="true" title="Opening Balance" type="number" placeholder="Opening balance..." ng-model="openingBalance" ng-change="OpeningBalanceChanged()" />
+                <div class="input-group">
+                  <span class="input-group-addon">&#8377;</span>
+                  <input required class="form-control" ng-readonly="openingBalanceReadOnly" title="Opening Balance" type="number" placeholder="Opening balance..." ng-model="openingBalance" ng-change="OpeningBalanceChanged()" />
+                </div>
               </div>
             </div>
           </div>
@@ -91,7 +94,10 @@
           <div class="row">
             <div class="form-group">
               <div class="col-xs-4">
-                <input required type="text" class="form-control" ng-model="entry.billNumber" placeholder="Bill# ..."/>
+                  <div class="input-group">
+                    <span class="input-group-addon">#</span>
+                <input required type="text" class="form-control" ng-model="entry.billNumber" autofocus=true placeholder="Bill no..."/>
+              </div>
               </div>
               <div class="col-xs-4">
                 <select class="form-control" ng-model="entry.nature">
@@ -100,7 +106,10 @@
                 </select>
               </div>
               <div class="col-xs-4">
-                <input required type="number"   class="form-control" ng-model="entry.amount" placeholder="Amount..."/>
+                  <div class="input-group">
+                    <span class="input-group-addon">&#8377;</span>
+                    <input required type="number" class="form-control" ng-model="entry.amount" placeholder="Amount..."/>
+                  </div>
               </div>
               <div class="col-xs-12">
                 <textarea required type="text"   class="form-control" ng-model="entry.description" placeholder="Description of transaction..." ></textarea>

@@ -2,6 +2,7 @@ package sewpulse
 
 import (
 	"appengine"
+	"appengine/datastore"
 	"appengine/mail"
 	"appengine/user"
 	"encoding/json"
@@ -30,6 +31,9 @@ func initRRKDailyCashApiMaps() {
 		"/api/rrkDailyCashEmailApi": apiStruct{
 			handler: rrkDailyCashEmailApiHandler,
 		},
+		"/api/rrkDailyCashOpeningBalance": apiStruct{
+			handler: rrkDailyCashGetOpeningBalanceHandler,
+		},
 	}
 
 	for path, apiBlob := range apiMaps {
@@ -56,6 +60,56 @@ type cashTxsJSONFormat struct {
 	OpeningBalance          int64
 	ClosingBalance          int64
 	Items                   []CashTransaction
+}
+
+type CashGAERollingCounter struct {
+	Amount                 int64
+	DateOfTransactionAsUTC int64
+	SetByUserName          string
+}
+
+func AncestoryKey(r *http.Request) *datastore.Key {
+	c := appengine.NewContext(r)
+	myDebug(r, "BranchName is: >"+BranchName(r)+"<")
+	return datastore.NewKey(c, "ANCESTOR_KEY", BranchName(r), 0, nil)
+}
+
+func CashRollingCounterKey(r *http.Request) *datastore.Key {
+	c := appengine.NewContext(r)
+	return datastore.NewKey(c, "CashGAERollingCounter", "cashCounter", 0, AncestoryKey(r))
+}
+
+func GetPreviousCashRollingCounter(r *http.Request) (*CashGAERollingCounter, error) {
+	c := appengine.NewContext(r)
+	k := CashRollingCounterKey(r)
+	e := new(CashGAERollingCounter)
+	if err := datastore.Get(c, k, e); err != nil {
+		return e, err
+	}
+	return e, nil
+}
+
+func rrkDailyCashGetOpeningBalanceHandler(w http.ResponseWriter, r *http.Request) {
+	type JsonOpeningBal struct {
+		Initialized    bool
+		OpeningBalance int64
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, fmt.Sprintf("%v Method Not Allowed", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+	cashRollingCounter, err := GetPreviousCashRollingCounter(r)
+	if err != nil {
+		if err == datastore.ErrNoSuchEntity {
+			json.NewEncoder(w).Encode(JsonOpeningBal{Initialized: false, OpeningBalance: 0})
+			return
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(JsonOpeningBal{Initialized: true, OpeningBalance: cashRollingCounter.Amount})
 }
 
 func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +140,19 @@ func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 
 	if closingBalance != cashTxsAsJson.ClosingBalance {
 		http.Error(w, fmt.Sprintf("Application error: Closing Balance is not consistent on client and server. %v != %v", closingBalance, cashTxsAsJson.ClosingBalance), http.StatusInternalServerError)
+		return
+	}
+
+	c := appengine.NewContext(r)
+	cashGAERollingCounter := CashGAERollingCounter{
+		Amount:                 closingBalance,
+		DateOfTransactionAsUTC: cashTxsAsJson.DateOfTransactionAsUTC,
+		SetByUserName:          user.Current(c).String(),
+	}
+
+	cashGAERollingCounterKey := CashRollingCounterKey(r)
+	if _, err := datastore.Put(c, cashGAERollingCounterKey, &cashGAERollingCounter); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -148,7 +215,6 @@ func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 		toAddr = Reverse("moc.liamg@ztigihba")
 	}
 
-	c := appengine.NewContext(r)
 	u := user.Current(c)
 	msg := &mail.Message{
 		Sender:   u.String() + "<" + u.Email + ">",
