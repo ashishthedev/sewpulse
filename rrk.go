@@ -2,12 +2,14 @@ package sewpulse
 
 import (
 	"appengine"
+	"appengine/datastore"
 	"appengine/mail"
 	"appengine/user"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -42,6 +44,12 @@ func initRRKApiMaps() {
 		"/api/rrkDailyAssemblyEmailSendApi": apiStruct{
 			handler: rrkDailyAssemblyEmailSendApiHandler,
 		},
+		"/api/rrkGetModelApi": apiStruct{
+			handler: rrkGetModelApiHandler,
+		},
+		"/api/rrkAddModelNameApi": apiStruct{
+			handler: rrkAddModelNameApiHandler,
+		},
 	}
 
 	for path, apiBlob := range apiMaps {
@@ -69,16 +77,119 @@ type ProducedItemsJSONValues struct {
 	Items                     []ProducedItem
 }
 
+type ModelSet struct {
+	ModelNames []string
+}
+
+func GetModelSetKey(r *http.Request) *datastore.Key {
+	//TODO: Once the implementation matures, remove this data from datastore
+	return SEWNewKey("ModelSet", "modelSetKey", 0, r)
+}
+
+func GetModelsFromServer(r *http.Request) (*ModelSet, error) {
+	c := appengine.NewContext(r)
+	k := GetModelSetKey(r)
+	e := new(ModelSet)
+	if err := datastore.Get(c, k, e); err != nil {
+		return e, err
+	}
+	return e, nil
+}
+
+func SaveModelsToServer(r *http.Request, modelSet *ModelSet) error {
+	if _, err := datastore.Put(appengine.NewContext(r), GetModelSetKey(r), modelSet); err != nil {
+		return err
+	}
+	return nil
+}
+
+func RemoveDuplicates(xs *[]string) {
+	found := make(map[string]bool)
+	j := 0
+	for i, x := range *xs {
+		if !found[x] {
+			found[x] = true
+			(*xs)[j] = (*xs)[i]
+			j++
+		}
+	}
+	*xs = (*xs)[:j]
+}
+
+func rrkAddModelNameApiHandler(w http.ResponseWriter, r *http.Request) {
+	type NewModel struct {
+		NewModelName string
+	}
+	newModel := new(NewModel)
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(newModel); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	modelSet, err := GetModelsFromServer(r)
+	if err != nil {
+		if err == datastore.ErrNoSuchEntity {
+			modelSet = &ModelSet{ModelNames: []string{}}
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	newModelName := newModel.NewModelName
+
+	//Check for pre-existence of model with this name.
+	for _, x := range modelSet.ModelNames {
+		if x == newModelName {
+			myDebug(r, fmt.Sprintf("Model already exists. Not creating a new one with name %s ", newModelName))
+			return
+		}
+	}
+
+	myDebug(r, fmt.Sprintf("Adding a new model with name %s ", newModelName))
+
+	modelSet.ModelNames = append(modelSet.ModelNames, newModelName)
+	RemoveDuplicates(&modelSet.ModelNames)
+
+	var ss sort.StringSlice = modelSet.ModelNames
+	ss.Sort()
+
+	if err := SaveModelsToServer(r, modelSet); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func rrkGetModelApiHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	//TODO: Generate model sets by querying the server.
+	modelSet, err := GetModelsFromServer(r)
+	if err != nil {
+		if err == datastore.ErrNoSuchEntity {
+			json.NewEncoder(w).Encode(ModelSet{ModelNames: []string{}}) //TODO: See if the string can be made client specific and not sent from server.
+			return
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(modelSet)
+}
+
 func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var producedItemsAsJson ProducedItemsJSONValues
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&producedItemsAsJson); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -108,10 +219,10 @@ func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request)
 	</tr>
 	</thead>
 	<tfoot>
-		<tr>
-			<td colspan=2>Total:</td>
-			<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
-		</tr>
+	<tr>
+	<td colspan=2>Total:</td>
+	<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
+	</tr>
 	</tfoot>
 	`,
 		logDateDDMMYY,
@@ -122,13 +233,13 @@ func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request)
 	for _, pi := range producedItemsAsJson.Items {
 		htmlTable +=
 			fmt.Sprintf(`
-		<tr>
-		<td>%s</td>
-		<td>%s</td>
-		<td>%d</td>
-		<td>%s</td>
-		<td>%s</td>
-		</tr>`, pi.ModelName, pi.AssemblyLineName, pi.Quantity, pi.Unit, pi.Remarks)
+	<tr>
+	<td>%s</td>
+	<td>%s</td>
+	<td>%d</td>
+	<td>%s</td>
+	<td>%s</td>
+	</tr>`, pi.ModelName, pi.AssemblyLineName, pi.Quantity, pi.Unit, pi.Remarks)
 	}
 	htmlTable += "</table>"
 
@@ -163,14 +274,14 @@ func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request)
 
 func rrkDailyPolishEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var producedItemsAsJson ProducedItemsJSONValues
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&producedItemsAsJson); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -200,10 +311,10 @@ func rrkDailyPolishEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	</tr>
 	</thead>
 	<tfoot>
-		<tr>
-			<td colspan=2>Total:</td>
-			<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
-		</tr>
+	<tr>
+	<td colspan=2>Total:</td>
+	<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
+	</tr>
 	</tfoot>
 	`,
 		logDateDDMMYY,
@@ -214,13 +325,13 @@ func rrkDailyPolishEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	for _, pi := range producedItemsAsJson.Items {
 		htmlTable +=
 			fmt.Sprintf(`
-		<tr>
-		<td>%s</td>
-		<td>%s</td>
-		<td>%d</td>
-		<td>%s</td>
-		<td>%s</td>
-		</tr>`, pi.ModelName, pi.AssemblyLineName, pi.Quantity, pi.Unit, pi.Remarks)
+	<tr>
+	<td>%s</td>
+	<td>%s</td>
+	<td>%d</td>
+	<td>%s</td>
+	<td>%s</td>
+	</tr>`, pi.ModelName, pi.AssemblyLineName, pi.Quantity, pi.Unit, pi.Remarks)
 	}
 	htmlTable += "</table>"
 

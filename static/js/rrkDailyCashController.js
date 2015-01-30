@@ -13,7 +13,6 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
       } else {
         $scope.openingBalanceReadOnly = false;
       }
-      console.log(data);
       UpdateTotalAmount(); //Not necessary incidentally as of now but still doing to remain consistent with logic.
     }).error(function(data, status, headers, config){
       $scope.statusNote = status + ": " + data;
@@ -80,7 +79,6 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
   }
 
   $scope.openingBalanceReadOnly = true;
-  console.log("Initializing openingBalanceReadOnly to TRUE");
   $scope.dateValue =  new Date();
   UpdateDateDiffAsText($scope);
   $scope.entry = {nature:"Spent"};

@@ -2,6 +2,7 @@ package sewpulse
 
 import (
 	"appengine"
+	"appengine/datastore"
 	"appengine/user"
 	"fmt"
 	"net/http"
@@ -92,4 +93,16 @@ func LogMsgShownForLogTime(logTime time.Time, nowTime time.Time) string {
 		return fmt.Sprintf(DaysMsg["X_DAYS_OLD"], noOfDays)
 	}
 	panic("Should not reach here")
+}
+
+func SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *datastore.Key {
+	c := appengine.NewContext(r)
+	//This is the only place datastore.NewKey should appear as we are creating a silo for
+	//each hosted version. Any operation done in this app should only be limited
+	//to only that silo. For ex/- demo.sew.appspot.com should only effect "demo"
+	//silo and not the live version data.
+
+	myDebug(r, "BranchName is: >"+BranchName(r)+"<")
+	ancestorKey := datastore.NewKey(c, "ANCESTOR_KEY", BranchName(r), 0, nil)
+	return datastore.NewKey(c, kind, stringId, numericID, ancestorKey)
 }

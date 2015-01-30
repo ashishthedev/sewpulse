@@ -68,15 +68,8 @@ type CashGAERollingCounter struct {
 	SetByUserName          string
 }
 
-func AncestoryKey(r *http.Request) *datastore.Key {
-	c := appengine.NewContext(r)
-	myDebug(r, "BranchName is: >"+BranchName(r)+"<")
-	return datastore.NewKey(c, "ANCESTOR_KEY", BranchName(r), 0, nil)
-}
-
 func CashRollingCounterKey(r *http.Request) *datastore.Key {
-	c := appengine.NewContext(r)
-	return datastore.NewKey(c, "CashGAERollingCounter", "cashCounter", 0, AncestoryKey(r))
+	return SEWNewKey("CashGAERollingCounter", "cashCounter", 0, r)
 }
 
 func GetPreviousCashRollingCounter(r *http.Request) (*CashGAERollingCounter, error) {
@@ -96,7 +89,7 @@ func rrkDailyCashGetOpeningBalanceHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if r.Method != "POST" {
-		http.Error(w, fmt.Sprintf("%v Method Not Allowed", r.Method), http.StatusMethodNotAllowed)
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	cashRollingCounter, err := GetPreviousCashRollingCounter(r)
@@ -114,14 +107,14 @@ func rrkDailyCashGetOpeningBalanceHandler(w http.ResponseWriter, r *http.Request
 
 func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var cashTxsAsJson cashTxsJSONFormat
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&cashTxsAsJson); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -132,7 +125,7 @@ func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
 	dateOfTxAsDDMMYY := DDMMYYFromUTC(cashTxsAsJson.DateOfTransactionAsUTC)
 
-	openingBalance := cashTxsAsJson.OpeningBalance
+	openingBalance := cashTxsAsJson.OpeningBalance //TODO: Do not read cash opening balance from jSon. Read from server.
 	closingBalance := openingBalance
 	for _, ct := range cashTxsAsJson.Items {
 		closingBalance += ct.Amount
