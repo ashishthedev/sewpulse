@@ -1,0 +1,118 @@
+<html>
+  <head>
+    <title>Roorkee Daily Sale</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/rrkDailySaleController.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+  </head>
+  <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailySaleController">
+    <div class="well">
+      <img class="center-block" src="/static/img/sew57.png" />
+      <h1 class="text-center">RRK Daily Sale</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <div ng-hide="isLogSubmitted">
+        <div class="row">
+          <input required class="center-block" autofocus="true" title="Date of Sale" type="date" ng-model="dateValue" ng-change="DateChanged()" />
+          <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
+        </div>
+        <br>
+        <div ng-show="items.length > 0">
+          <div class="well">
+            <div class="panel panel-success">
+              <table class="table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Bill#</th>
+                    <th>Model</th>
+                    <th>Qty</th>
+                    <th>Amt</th>
+                    <th>Comp</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tfoot>
+                  <tr>
+                    <td></td>
+                    <td>Total:</td>
+                    <td></td>
+                    <td><span ng-bind="totalQuantitySold"></span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+                <tr ng-repeat="item in items">
+                  <td><span ng-bind="$index + 1"></span><span>.</span></td>
+                  <td><span ng-bind="item.billNumber"></span></td>
+                  <td><span ng-bind="item.modelName"></span></td>
+                  <td><span ng-bind="item.quantity"></span></td>
+                  <td><span ng-bind="item.amount"></span></td>
+                  <td><span ng-bind="item.customerName"></span></td>
+                  <td><button ng-click="removeEntry($index)" class="btn btn-sm btn-danger pull-right">X</button></td>
+                </tr>
+              </table>
+            </div>
+            <button type="submit" ng-click="submitTodaysLog()" class="center-block btn btn-success">Submit the log</button>
+          </div>
+        </div>
+        <hr>
+        <form role="form" class="form-horizontal" ng-submit="addSingleEntry()">
+          <div class="row">
+            <div class="form-group">
+              <div class="col-xs-6 col-sm-3">
+                <div class="input-group">
+                  <span class="input-group-addon">#</span>
+                  <input required type="text" class="form-control" ng-model="entry.billNumber" autofocus=true placeholder="Bill no..."/>
+                </div>
+              </div>
+              <div class="col-xs-6 col-sm-3">
+                <select class="form-control" ng-options="model for model in models" ng-model="entry.modelName"></select>
+              </div>
+              <div class="col-xs-6 col-sm-3">
+                <input required type="number" class="form-control" ng-model="entry.quantity" placeholder="Quantity..."/>
+              </div>
+              <div class="col-xs-6 col-sm-3">
+                <div class="input-group">
+                  <span class="input-group-addon">&#8377;</span>
+                  <input required type="number" class="form-control" ng-model="entry.amount" placeholder="Amount..."/>
+                </div>
+              </div>
+              <div class="col-xs-12">
+                <textarea required type="text"   class="form-control" ng-model="entry.customerName" placeholder="Company name..."></textarea>
+              </div>
+            </div> <!-- form-group -->
+          </div> <!-- row -->
+          <button type="submit" class="col-xs-12 center-block btn btn-info">Add Entry</button>
+          <br>
+          <hr>
+        </form>
+      </div>
+      <div ng-show="isLogSubmitted">
+        <div class="alert alert-success" role="alert">
+          <div class="text-center">
+            Thanks. The log has been submitted successfully.
+          </div>
+        </div>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>

@@ -23,6 +23,10 @@ func initRRKUrlMaps() {
 			handler:      rrkGeneralPageHander,
 			templatePath: "templates/rrk_daily_assembly.html",
 		},
+		"/rrk/daily-sale": urlStruct{
+			handler:      rrkGeneralPageHander,
+			templatePath: "templates/rrk_daily_sale.html",
+		},
 		"/rrk": urlStruct{
 			handler:      rrkGeneralPageHander,
 			templatePath: "templates/rrk.html",
@@ -44,6 +48,9 @@ func initRRKApiMaps() {
 		"/api/rrkDailyAssemblyEmailSendApi": apiStruct{
 			handler: rrkDailyAssemblyEmailSendApiHandler,
 		},
+		"/api/rrkDailySaleEmailSendApi": apiStruct{
+			handler: rrkDailySaleEmailSendApiHandler,
+		},
 		"/api/rrkGetModelApi": apiStruct{
 			handler: rrkGetModelApiHandler,
 		},
@@ -62,6 +69,19 @@ func init() {
 	initRRKApiMaps()
 	initRRKUrlMaps()
 	return
+}
+
+type SoldItem struct {
+	BillNumber   string
+	ModelName    string
+	Quantity     int
+	Amount       int
+	CustomerName string
+}
+
+type SoldItemsJSONValues struct {
+	DateTimeAsUTCMilliSeconds int64
+	Items                     []SoldItem
 }
 
 type ProducedItem struct {
@@ -178,6 +198,99 @@ func rrkGetModelApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	json.NewEncoder(w).Encode(modelSet)
+}
+
+func rrkDailySaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var soldItemsAsJson SoldItemsJSONValues
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&soldItemsAsJson); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	submissionDateTimeAsUTC := soldItemsAsJson.DateTimeAsUTCMilliSeconds
+	logTime := time.Unix(submissionDateTimeAsUTC/1000, 0)
+	logDateDDMMYY := DDMMYYFromUTC(submissionDateTimeAsUTC)
+	logMsg := LogMsgShownForLogTime(logTime, time.Now())
+
+	totalQuantitySold := 0
+	for _, si := range soldItemsAsJson.Items {
+		totalQuantitySold += si.Quantity
+	}
+
+	htmlTable := fmt.Sprintf(`
+	<table border=1 cellpadding=5>
+	<caption>
+	<u><h1>%s</h1></u>
+	<u><h3>%s</h3></u>
+	</caption>
+	<thead>
+	<tr bgcolor=#838468>
+
+	<th><font color='#000000'> Bill# </font></th>
+	<th><font color='#000000'> Model </font></th>
+	<th><font color='#000000'> Qty </font></th>
+	<th><font color='#000000'> Amount </font></th>
+	<th><font color='#000000'> Company </font></th>
+	</tr>
+	</thead>
+	<tfoot>
+	<tr>
+	<td colspan=2>Total:</td>
+	<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
+	</tr>
+	</tfoot>
+	`,
+		logDateDDMMYY,
+		logMsg,
+		totalQuantitySold,
+	)
+
+	for _, si := range soldItemsAsJson.Items {
+		htmlTable +=
+			fmt.Sprintf(`
+		<tr>
+		<td>%s</td>
+		<td>%s</td>
+		<td>%d</td>
+		<td>%d</td>
+		<td>%s</td>
+		</tr>`, si.BillNumber, si.ModelName, si.Quantity, si.Amount, si.CustomerName)
+	}
+	htmlTable += "</table>"
+
+	finalHTML := fmt.Sprintf("<html><head></head><body>%s</body></html>", htmlTable)
+
+	bccAddr := Reverse("moc.liamg@dnanatodhsihsa")
+	toAddr := ""
+	if IsLocalHostedOrOnDevBranch(r) {
+		toAddr = Reverse("moc.liamg@dnanatodhsihsa")
+	} else {
+		toAddr = Reverse("moc.liamg@ztigihba")
+	}
+
+	c := appengine.NewContext(r)
+	u := user.Current(c)
+	msg := &mail.Message{
+		Sender:   u.String() + "<" + u.Email + ">",
+		To:       []string{toAddr},
+		Bcc:      []string{bccAddr},
+		Subject:  fmt.Sprintf("%s: %v pc sold [SEWPULSE][RRKDS]", logDateDDMMYY, totalQuantitySold),
+		HTMLBody: finalHTML,
+	}
+
+	if err := mail.Send(c, msg); err != nil {
+		c.Errorf("Couldn't send email: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	return
 }
 
 func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
@@ -366,7 +479,6 @@ func rrkDailyPolishEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 
 func rrkGeneralPageHander(w http.ResponseWriter, r *http.Request) {
 	urlPath := r.URL.Path
-	//TODO: if urlPath ends in / strip it off
 	template := templates[urlPath]
 	err := template.Execute(w, nil)
 	if err != nil {

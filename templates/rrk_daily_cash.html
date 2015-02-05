@@ -91,31 +91,31 @@
         </div>
         <form ng-show="openingBalance" role="form" class="form-horizontal" ng-submit="addSingleCashTx()">
         <hr>
-          <div class="row">
-            <div class="form-group">
-              <div class="col-xs-4">
-                  <div class="input-group">
-                    <span class="input-group-addon">#</span>
+        <div class="row">
+          <div class="form-group">
+            <div class="col-xs-4">
+              <div class="input-group">
+                <span class="input-group-addon">#</span>
                 <input required type="text" class="form-control" ng-model="entry.billNumber" autofocus=true placeholder="Bill no..."/>
               </div>
+            </div>
+            <div class="col-xs-4">
+              <select class="form-control" ng-model="entry.nature">
+                <option value="Spent">Spent</option>
+                <option value="Received">Received</option>
+              </select>
+            </div>
+            <div class="col-xs-4">
+              <div class="input-group">
+                <span class="input-group-addon">&#8377;</span>
+                <input required type="number" class="form-control" ng-model="entry.amount" placeholder="Amount..."/>
               </div>
-              <div class="col-xs-4">
-                <select class="form-control" ng-model="entry.nature">
-                  <option value="Spent">Spent</option>
-                  <option value="Received">Received</option>
-                </select>
-              </div>
-              <div class="col-xs-4">
-                  <div class="input-group">
-                    <span class="input-group-addon">&#8377;</span>
-                    <input required type="number" class="form-control" ng-model="entry.amount" placeholder="Amount..."/>
-                  </div>
-              </div>
-              <div class="col-xs-12">
-                <textarea required type="text"   class="form-control" ng-model="entry.description" placeholder="Description of transaction..." ></textarea>
-              </div>
-            </div> <!-- form-group -->
-          </div> <!-- row -->
+            </div>
+            <div class="col-xs-12">
+              <textarea required type="text"   class="form-control" ng-model="entry.description" placeholder="Description of transaction..." ></textarea>
+            </div>
+          </div> <!-- form-group -->
+        </div> <!-- row -->
           <button type="submit" class="col-xs-12 center-block btn btn-info">Add Entry</button>
           <br>
           <hr>
