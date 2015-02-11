@@ -1,8 +1,8 @@
 ﻿var appMod = angular.module('ngSEWPulseApp', []);
 
 appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scope, $http) {
-  function UpdateOpeningBalance() {
-    var api = "/api/rrkDailyCashOpeningBalance";
+  function FetchOpeningBalance() {
+    var api = "/api/rrkDailyCashOpeningBalanceApi";
     var postData = null;
     $scope.statusNote = "Fetching opening balance ...";
     $http.post(api, postData).success(function(data, status, headers, config) {
@@ -13,13 +13,34 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
       } else {
         $scope.openingBalanceReadOnly = false;
       }
-      UpdateTotalAmount(); //Not necessary incidentally as of now but still doing to remain consistent with logic.
+      UpdateUITotalAmount(); //Not necessary incidentally as of now but still doing to remain consistent with logic.
     }).error(function(data, status, headers, config){
       $scope.statusNote = status + ": " + data;
     });
   }
 
-  function UpdateTotalAmount() {
+  function FetchUnsettledAdvances() {
+    //Update Unsettled Advances
+    $scope.statusNote = "Fetching unsettled advances ...";
+    var api = "/api/rrkDailyCashGetUnsettledAdvancesApi";
+    var postData = null;
+    $http.post(api, postData).success(function(data, status, headers, config) {
+      $scope.statusNote = "";
+      $scope.unsettledAdvances = data.Items;
+      if ($scope.unsettledAdvances != null) {
+        for(var i=0; i<$scope.unsettledAdvances.length; i++){
+          var x = $scope.unsettledAdvances[i];
+          x.Amount = Math.abs(x.Amount);
+          x.DateDDMMMYY = DateUTCToDDMMMYY(x.DateUTC);
+        }
+      }
+
+    }).error(function(data, status, headers, config){
+      $scope.statusNote = status + ": " + data;
+    });
+  }
+
+  function UpdateUITotalAmount() {
     var t = $scope.openingBalance;
     for (var i=0; i < $scope.items.length; i++) {
       t += parseInt($scope.items[i].amount);
@@ -27,11 +48,26 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
     $scope.closingBalance = t;
   }
 
-  $scope.OpeningBalanceChanged = UpdateTotalAmount;
+  $scope.OpeningBalanceChanged = UpdateUITotalAmount;
 
   $scope.removeEntry = function(index) {
     $scope.items.splice(index, 1);
-    UpdateTotalAmount();
+    UpdateUITotalAmount();
+  }
+
+  $scope.SettleAccountForEntry = function(index) {
+    settleThisEntry = $scope.unsettledAdvances[index];
+    //Update Unsettled Advances
+    var api = "/api/rrkDailyCashSettleAccForOneEntryApi";
+    var postData = settleThisEntry;
+    $scope.statusNote = "Settling the account ...";
+    $http.post(api, postData).success(function(data, status, headers, config) {
+      $scope.statusNote = "";
+      FetchOpeningBalance();
+      FetchUnsettledAdvances();
+    }).error(function(data, status, headers, config){
+      $scope.statusNote = status + ": " + data;
+    });
   }
 
   $scope.DateChanged = function() {
@@ -46,6 +82,7 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
     var copyOfEntry = angular.copy($scope.entry);
     var nature = copyOfEntry.nature;
     var amount = copyOfEntry.amount;
+    copyOfEntry.DateUTC = $scope.dateValue.getTime();
     if (nature != "Received") {
       copyOfEntry.amount = -1 * Math.abs(amount);
     }
@@ -54,7 +91,7 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
     }
     var l = $scope.items.length;
     $scope.items.splice(l, 0, copyOfEntry);
-    UpdateTotalAmount();
+    UpdateUITotalAmount();
     $scope.entry.amount = 0;
   }
 
@@ -85,6 +122,7 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
   $scope.items = [];
   $scope.statusNote = "";
   $scope.isLogSubmitted = false;
-  UpdateOpeningBalance();
+  FetchOpeningBalance();
+  FetchUnsettledAdvances();
 
 }]);

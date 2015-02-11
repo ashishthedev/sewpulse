@@ -16,19 +16,19 @@ import (
 func initRRKUrlMaps() {
 	urlMaps = map[string]urlStruct{
 		"/rrk/daily-polish": urlStruct{
-			handler:      rrkGeneralPageHander,
+			handler:      generalPageHander,
 			templatePath: "templates/rrk_daily_polish.html",
 		},
 		"/rrk/daily-assembly": urlStruct{
-			handler:      rrkGeneralPageHander,
+			handler:      generalPageHander,
 			templatePath: "templates/rrk_daily_assembly.html",
 		},
 		"/rrk/daily-sale": urlStruct{
-			handler:      rrkGeneralPageHander,
+			handler:      generalPageHander,
 			templatePath: "templates/rrk_daily_sale.html",
 		},
 		"/rrk": urlStruct{
-			handler:      rrkGeneralPageHander,
+			handler:      generalPageHander,
 			templatePath: "templates/rrk.html",
 		},
 	}
@@ -103,6 +103,7 @@ type ModelSet struct {
 
 func GetModelSetKey(r *http.Request) *datastore.Key {
 	//TODO: Once the implementation matures, remove this data from datastore
+	// and read from BOM
 	return SEWNewKey("ModelSet", "modelSetKey", 0, r)
 }
 
@@ -474,16 +475,5 @@ func rrkDailyPolishEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	return
-}
-
-func rrkGeneralPageHander(w http.ResponseWriter, r *http.Request) {
-	urlPath := r.URL.Path
-	template := templates[urlPath]
-	err := template.Execute(w, nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	return
 }

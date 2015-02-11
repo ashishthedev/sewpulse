@@ -19,8 +19,10 @@ func DDMMYYFromUTC(utc int64) string {
 }
 
 func myDebug(r *http.Request, s string) {
+	line := "________________________"
+	s1 := "\n" + line + "\n" + s + "\n" + line
 	c := appengine.NewContext(r)
-	c.Debugf(s)
+	c.Debugf(s1)
 	return
 }
 
@@ -102,7 +104,6 @@ func SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *
 	//to only that silo. For ex/- demo.sew.appspot.com should only effect "demo"
 	//silo and not the live version data.
 
-	myDebug(r, "BranchName is: >"+BranchName(r)+"<")
 	ancestorKey := datastore.NewKey(c, "ANCESTOR_KEY", BranchName(r), 0, nil)
 	return datastore.NewKey(c, kind, stringId, numericID, ancestorKey)
 }

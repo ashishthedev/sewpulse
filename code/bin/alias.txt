@@ -84,11 +84,11 @@ gcloudlogin = gcloud auth login --no-launch-browser
 
 ;======================================================
 gsew = pushd %XDATDOCSDIR%
-golivesew = pushd %XDATDOCSDIR% && appcfg.py update . --email="ashishthedev@gmail.com" --version="live" --noauth_local_webserver --oauth2 $*
+golivesew = pushd %XDATDOCSDIR% && goapp test && appcfg.py update . --email="ashishthedev@gmail.com" --version="live" --noauth_local_webserver --oauth2 $*
 
-godevsew = pushd %XDATDOCSDIR% && appcfg.py update . --email="ashishthedev@gmail.com" --version="dev" --noauth_local_webserver --oauth2 $*
+godevsew = pushd %XDATDOCSDIR% && goapp test && appcfg.py update . --email="ashishthedev@gmail.com" --version="dev" --noauth_local_webserver --oauth2 $*
 
-godemosew = pushd %XDATDOCSDIR% && appcfg.py update . --email="ashishthedev@gmail.com" --version="demo" --noauth_local_webserver --oauth2 $*
+godemosew = pushd %XDATDOCSDIR% && goapp test && appcfg.py update . --email="ashishthedev@gmail.com" --version="demo" --noauth_local_webserver --oauth2 $*
 
 
 rollbacksew = pushd %XDATDOCSDIR%\ && appcfg.py rollback . --email="ashishthedev@gmail.com" --version="live" $*

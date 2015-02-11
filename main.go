@@ -24,14 +24,14 @@ var templates = make(map[string]*template.Template)
 func initRootUrlMaps() {
 	urlMaps = map[string]urlStruct{
 		"/": urlStruct{
-			handler:      rootHandler,
+			handler:      generalPageHander,
 			templatePath: "templates/home.html",
 		},
 	}
 
-	for _, urlBlob := range urlMaps {
+	for path, urlBlob := range urlMaps {
 		templatePath := urlBlob.templatePath
-		templates[templatePath] = template.Must(template.ParseFiles(templatePath))
+		templates[path] = template.Must(template.ParseFiles(templatePath))
 	}
 
 	for path, urlBlob := range urlMaps {
@@ -65,5 +65,16 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "<html><body>Hello, <h4>%v</h4></body></html>", u)
 
+	return
+}
+
+func generalPageHander(w http.ResponseWriter, r *http.Request) {
+	urlPath := r.URL.Path
+	template := templates[urlPath]
+	err := template.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	return
 }

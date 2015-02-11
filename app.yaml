@@ -16,7 +16,7 @@ handlers:
 - url: /faq
   static_files: templates/faq.html
   upload: templates/faq.html
-  login: required
+  login: admin
 
 - url: /rrk/a/.*
   script: _go_app

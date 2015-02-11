@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <title>Rrk Unsettled Advance</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/rrkAdminViewUnsettledAdvanceController.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+  </head>
+  <body ng-app="ngSEWPulseApp" ng-controller="ngRRKAdminUnsettledAdvanceController">
+    <div class="well">
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+      <h1 class="text-center">RRK Unsettled Advance</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <div ng-show="CashInHand">
+        <table class="table table-striped table-condensed">
+          <thead>
+            <tr>
+              <th>Nature</th>
+              <th>Bill#</th>
+              <th>Amt</th>
+              <th>Date</th>
+              <th>Desc</th>
+            </tr>
+          </thead>
+          <tr>
+            <td>Cash In Hand</td>
+            <td></td>
+            <td>
+              <span id="result">
+                <b><span>&#8377;</span> <span ng-bind="CashInHand"></span></b>
+              </span>
+            </td>
+            <td></td>
+          </tr>
+          <tr ng-repeat="item in unsettledAdvances">
+            <td>Unsettled Advance</td>
+            <td>#<span ng-bind="item.BillNumber"></span></td>
+            <td>
+              <span class="text-warning">
+                <span>&#8377;</span> <span ng-bind="item.Amount"></span>
+              </span>
+            </td>
+            <td><span ng-bind="item.DateDDMMMYY"></span></td>
+            <td><span ng-bind="item.Description"></span></td>
+          </tr>
+        </table>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>
