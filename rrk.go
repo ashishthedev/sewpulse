@@ -104,7 +104,8 @@ type ModelSet struct {
 func GetModelSetKey(r *http.Request) *datastore.Key {
 	//TODO: Once the implementation matures, remove this data from datastore
 	// and read from BOM
-	return SEWNewKey("ModelSet", "modelSetKey", 0, r)
+	//TODO: Change it to COMMON_SEWNewkey later as it belongs to both the comps.
+	return RRK_SEWNewKey("ModelSet", "modelSetKey", 0, r)
 }
 
 func GetModelsFromServer(r *http.Request) (*ModelSet, error) {
@@ -187,11 +188,10 @@ func rrkGetModelApiHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	//TODO: Generate model sets by querying the server.
 	modelSet, err := GetModelsFromServer(r)
 	if err != nil {
 		if err == datastore.ErrNoSuchEntity {
-			json.NewEncoder(w).Encode(ModelSet{ModelNames: []string{}}) //TODO: See if the string can be made client specific and not sent from server.
+			json.NewEncoder(w).Encode(ModelSet{ModelNames: []string{}})
 			return
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

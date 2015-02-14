@@ -33,6 +33,22 @@
   font-weight: bold;
 }
 
+.sm-addon {
+    min-width:100px;
+    text-align:right;
+}
+
+.md-addon {
+    min-width:200px;
+    text-align:right;
+}
+
+.lg-addon {
+    min-width:300px;
+    text-align:right;
+}
+
+
 .footer {
   position: absolute;
   bottom: 0;

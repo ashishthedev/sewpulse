@@ -97,7 +97,7 @@ func LogMsgShownForLogTime(logTime time.Time, nowTime time.Time) string {
 	panic("Should not reach here")
 }
 
-func SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *datastore.Key {
+func _SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *datastore.Key {
 	c := appengine.NewContext(r)
 	//This is the only place datastore.NewKey should appear as we are creating a silo for
 	//each hosted version. Any operation done in this app should only be limited
@@ -106,4 +106,19 @@ func SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *
 
 	ancestorKey := datastore.NewKey(c, "ANCESTOR_KEY", BranchName(r), 0, nil)
 	return datastore.NewKey(c, kind, stringId, numericID, ancestorKey)
+}
+
+func GZB_SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *datastore.Key {
+	GZB_PREFIX := "GZB_"
+	return _SEWNewKey(kind, GZB_PREFIX+stringId, numericID, r)
+}
+
+func RRK_SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *datastore.Key {
+	RRK_PREFIX := ""
+	return _SEWNewKey(kind, RRK_PREFIX+stringId, numericID, r)
+}
+
+func Common_SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *datastore.Key {
+	COMMON_PREFIX := "CMN_"
+	return _SEWNewKey(kind, COMMON_PREFIX+stringId, numericID, r)
 }

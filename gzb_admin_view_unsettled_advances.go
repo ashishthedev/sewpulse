@@ -7,11 +7,11 @@ import (
 	"net/http"
 )
 
-func initRRKAdminUrlMaps() {
+func initGZBAdminViewUnsettledAdvanceUrlMaps() {
 	urlMaps := map[string]urlStruct{
-		"/rrk/a": urlStruct{
-			handler:      rrkAdminHandler,
-			templatePath: "templates/admin/rrk_admin.html",
+		"/gzb/a/view-unsettled-advance": urlStruct{
+			handler:      gzbAdminViewUnsettledAdvanceHandler,
+			templatePath: "templates/admin/gzb_admin_view_unsettled_advance.html",
 		},
 	}
 
@@ -26,17 +26,17 @@ func initRRKAdminUrlMaps() {
 	return
 }
 
-func initRRKAdminApiMaps() {
+func initGZBAdminViewUnsettledAdvanceApiMaps() {
 	return
 }
 
 func init() {
-	initRRKAdminUrlMaps()
-	initRRKAdminApiMaps()
+	initGZBAdminViewUnsettledAdvanceUrlMaps()
+	initGZBAdminViewUnsettledAdvanceApiMaps()
 	return
 }
 
-func rrkAdminHandler(w http.ResponseWriter, r *http.Request) {
+func gzbAdminViewUnsettledAdvanceHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	u := user.Current(c)
 	if u == nil {
@@ -49,7 +49,6 @@ func rrkAdminHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusFound)
 		return
 	}
-	// TODO: Check if the user is an admin
 	// TODO: Report if it was a failed attempt
 	urlPath := r.URL.Path
 	myDebug(r, urlPath)

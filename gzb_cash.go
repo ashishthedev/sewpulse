@@ -3,7 +3,6 @@ package sewpulse
 import (
 	"appengine"
 	"appengine/datastore"
-	"appengine/mail"
 	"appengine/user"
 	"encoding/json"
 	"errors"
@@ -14,11 +13,11 @@ import (
 	"time"
 )
 
-func initRRKDailyCashUrlMaps() {
+func initGZBDailyCashUrlMaps() {
 	urlMaps = map[string]urlStruct{
-		"/rrk/daily-cash": urlStruct{
+		"/gzb/daily-cash": urlStruct{
 			handler:      generalPageHander,
-			templatePath: "templates/rrk_daily_cash.html",
+			templatePath: "templates/gzb_daily_cash.html",
 		},
 	}
 
@@ -28,19 +27,19 @@ func initRRKDailyCashUrlMaps() {
 	}
 }
 
-func initRRKDailyCashApiMaps() {
+func initGZBDailyCashApiMaps() {
 	apiMaps = map[string]apiStruct{
-		"/api/rrkDailyCashEmailApi": apiStruct{
-			handler: rrkDailyCashEmailApiHandler,
+		"/api/gzbDailyCashEmailApi": apiStruct{
+			handler: gzbDailyCashEmailApiHandler,
 		},
-		"/api/rrkDailyCashOpeningBalanceApi": apiStruct{
-			handler: rrkDailyCashGetOpeningBalanceHandler,
+		"/api/gzbDailyCashOpeningBalanceApi": apiStruct{
+			handler: gzbDailyCashGetOpeningBalanceHandler,
 		},
-		"/api/rrkDailyCashGetUnsettledAdvancesApi": apiStruct{
-			handler: rrkDailyCashGetUnsettledAdvancesHandler,
+		"/api/gzbDailyCashGetUnsettledAdvancesApi": apiStruct{
+			handler: gzbDailyCashGetUnsettledAdvancesHandler,
 		},
-		"/api/rrkDailyCashSettleAccForOneEntryApi": apiStruct{
-			handler: rrkDailyCashSettleAccForOneEntryApiHandler,
+		"/api/gzbDailyCashSettleAccForOneEntryApi": apiStruct{
+			handler: gzbDailyCashSettleAccForOneEntryApiHandler,
 		},
 	}
 
@@ -50,45 +49,24 @@ func initRRKDailyCashApiMaps() {
 }
 
 func init() {
-	initRRKDailyCashApiMaps()
-	initRRKDailyCashUrlMaps()
+	initGZBDailyCashApiMaps()
+	initGZBDailyCashUrlMaps()
 	return
 }
 
-type CashTransaction struct {
-	BillNumber  string
-	Amount      int64
-	Nature      string
-	Description string
-	DateUTC     int64
-}
-
-type cashTxsJSONFormat struct {
-	DateOfTransactionAsUTC  int64
-	SubmissionDateTimeAsUTC int64
-	OpeningBalance          int64
-	ClosingBalance          int64
-	Items                   []CashTransaction
-}
-
-type CashGAERollingCounter struct {
-	Amount                 int64
-	DateOfTransactionAsUTC int64
-	SetByUserName          string
-}
-
-type RRKUnsettledAdvances struct {
+type GZBUnsettledAdvances struct {
+	//TODO: RRKUnsettledAdvances is just like GZBUnsettledAdvance. Fix it if found more clarity.
 	Items []CashTransaction
 }
 
-func RRKUnsettledAdvancesKey(r *http.Request) *datastore.Key {
-	return RRK_SEWNewKey("RRKUnsettledAdvances", "UnsettledAdvances", 0, r)
+func GZBUnsettledAdvancesKey(r *http.Request) *datastore.Key {
+	return GZB_SEWNewKey("UnsettledAdvances", "UnsettledAdvances", 0, r)
 }
 
-func GetPreviousRRKUnsettledAdvances(r *http.Request) (*RRKUnsettledAdvances, error) {
+func GZBGetPreviousUnsettledAdvances(r *http.Request) (*GZBUnsettledAdvances, error) {
 	c := appengine.NewContext(r)
-	k := RRKUnsettledAdvancesKey(r)
-	e := new(RRKUnsettledAdvances)
+	k := GZBUnsettledAdvancesKey(r)
+	e := new(GZBUnsettledAdvances)
 	if err := datastore.Get(c, k, e); err != nil {
 		if err == datastore.ErrNoSuchEntity {
 			e.Items = []CashTransaction{}
@@ -99,19 +77,19 @@ func GetPreviousRRKUnsettledAdvances(r *http.Request) (*RRKUnsettledAdvances, er
 	return e, nil
 }
 
-func CashRollingCounterKey(r *http.Request) *datastore.Key {
-	return RRK_SEWNewKey("CashGAERollingCounter", "cashCounter", 0, r)
+func GZBCashRollingCounterKey(r *http.Request) *datastore.Key {
+	return GZB_SEWNewKey("CashGAERollingCounter", "cashCounter", 0, r)
 }
 
-func GetPreviousCashRollingCounter(r *http.Request) (*CashGAERollingCounter, error) {
+func GZBGetPreviousCashRollingCounter(r *http.Request) (*CashGAERollingCounter, error) {
 	c := appengine.NewContext(r)
-	k := CashRollingCounterKey(r)
+	k := GZBCashRollingCounterKey(r)
 	e := new(CashGAERollingCounter)
 	err := datastore.Get(c, k, e)
 	return e, err
 }
 
-func rrkDailyCashSettleAccForOneEntryApiHandler(w http.ResponseWriter, r *http.Request) {
+func gzbDailyCashSettleAccForOneEntryApiHandler(w http.ResponseWriter, r *http.Request) {
 	var ctx CashTransaction
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&ctx); err != nil {
@@ -119,7 +97,7 @@ func rrkDailyCashSettleAccForOneEntryApiHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	prevUnsettledAdv, err := GetPreviousRRKUnsettledAdvances(r)
+	prevUnsettledAdv, err := GZBGetPreviousUnsettledAdvances(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -132,24 +110,23 @@ func rrkDailyCashSettleAccForOneEntryApiHandler(w http.ResponseWriter, r *http.R
 			err := datastore.RunInTransaction(c, func(c appengine.Context) error {
 				var err1 error
 				//1. Delete this entry
-				e := &RRKUnsettledAdvances{Items: append(prevUnsettledAdv.Items[:i], prevUnsettledAdv.Items[i+1:]...)}
-				k := RRKUnsettledAdvancesKey(r)
+				e := &GZBUnsettledAdvances{Items: append(prevUnsettledAdv.Items[:i], prevUnsettledAdv.Items[i+1:]...)}
+				k := GZBUnsettledAdvancesKey(r)
 				if _, err1 := datastore.Put(c, k, e); err1 != nil {
 					return err1
 				}
 				//2. Increment the total by same value in datastore
-				cashRollingCounter, err1 := GetPreviousCashRollingCounter(r)
+				cashRollingCounter, err1 := GZBGetPreviousCashRollingCounter(r)
 				if err1 != nil {
 					return err1
 				}
 				cashRollingCounter.Amount += int64(math.Abs(float64(x.Amount)))
-				cashGAERollingCounterKey := CashRollingCounterKey(r)
 
-				if _, err1 := datastore.Put(c, cashGAERollingCounterKey, cashRollingCounter); err1 != nil {
+				if _, err1 := datastore.Put(c, GZBCashRollingCounterKey(r), cashRollingCounter); err1 != nil {
 					return err1
 				}
 
-				emailSubject := fmt.Sprintf("Settling Rs.%d advance given - %s [SEWPULSE][RRKADVSTL]", x.Amount, x.Description)
+				emailSubject := fmt.Sprintf("Settling Rs.%d advance given - %s [SEWPULSE][GZBADVSTL]", x.Amount, x.Description)
 				htmlBody := fmt.Sprintf("Settling Rs.%d advance given - %s", x.Amount, x.Description)
 				if err1 := SendMailToDesignatedPeopleNow(r, emailSubject, htmlBody); err1 != nil {
 					return err1
@@ -167,13 +144,13 @@ func rrkDailyCashSettleAccForOneEntryApiHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func rrkDailyCashGetUnsettledAdvancesHandler(w http.ResponseWriter, r *http.Request) {
+func gzbDailyCashGetUnsettledAdvancesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	prevUnsettledAdv, err := GetPreviousRRKUnsettledAdvances(r)
+	prevUnsettledAdv, err := GZBGetPreviousUnsettledAdvances(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -181,7 +158,7 @@ func rrkDailyCashGetUnsettledAdvancesHandler(w http.ResponseWriter, r *http.Requ
 	json.NewEncoder(w).Encode(*prevUnsettledAdv)
 }
 
-func rrkDailyCashGetOpeningBalanceHandler(w http.ResponseWriter, r *http.Request) {
+func gzbDailyCashGetOpeningBalanceHandler(w http.ResponseWriter, r *http.Request) {
 	type JsonOpeningBal struct {
 		Initialized    bool
 		OpeningBalance int64
@@ -192,7 +169,7 @@ func rrkDailyCashGetOpeningBalanceHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	cashRollingCounter, err := GetPreviousCashRollingCounter(r)
+	cashRollingCounter, err := GZBGetPreviousCashRollingCounter(r)
 	if err == datastore.ErrNoSuchEntity {
 		json.NewEncoder(w).Encode(JsonOpeningBal{Initialized: false, OpeningBalance: 0})
 		return
@@ -205,51 +182,22 @@ func rrkDailyCashGetOpeningBalanceHandler(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(JsonOpeningBal{Initialized: true, OpeningBalance: cashRollingCounter.Amount})
 }
 
-func SendMailNow(r *http.Request, toAddr []string, ccAddr []string, bccAddr []string, emailSubject string, htmlBody string) error {
-
-	c := appengine.NewContext(r)
-	u := user.Current(c)
-	msg := &mail.Message{
-		Sender:   u.String() + "<" + u.Email + ">",
-		To:       toAddr,
-		Bcc:      bccAddr,
-		Subject:  emailSubject,
-		HTMLBody: htmlBody,
-	}
-	return mail.Send(c, msg)
-}
-
-func SendMailToDesignatedPeopleNow(r *http.Request, emailSubject string, htmlBody string) error {
-	bccAddr := []string{}
-	bccAddr = append(bccAddr, Reverse("moc.liamg@dnanatodhsihsa"))
-	toAddr := []string{}
-	if IsLocalHostedOrOnDevBranch(r) {
-		toAddr = append(toAddr, Reverse("moc.liamg@dnanatodhsihsa"))
-	} else {
-		toAddr = append(toAddr, Reverse("moc.liamg@ztigihba"))
-	}
-	var ccAddr []string = nil
-
-	return SendMailNow(r, toAddr, ccAddr, bccAddr, emailSubject, htmlBody)
-
-}
-
-func rrkSaveUnsettledAdvanceEntryInDataStore(ctx CashTransaction, r *http.Request) error {
+func gzbSaveUnsettledAdvanceEntryInDataStore(ctx CashTransaction, r *http.Request) error {
 	if ctx.Nature != "Unsettled Advance" {
 		return errors.New("Trying to enter " + ctx.Nature + " as 'Unsettled Advance' entry. This should not happen.")
 	}
 
-	e, err := GetPreviousRRKUnsettledAdvances(r)
+	e, err := GZBGetPreviousUnsettledAdvances(r)
 	if err != nil {
 		if err == datastore.ErrNoSuchEntity {
-			e = &RRKUnsettledAdvances{Items: []CashTransaction{}}
+			e = &GZBUnsettledAdvances{Items: []CashTransaction{}}
 		} else {
 			return err
 		}
 	}
 
 	(*e).Items = append((*e).Items, ctx)
-	k := RRKUnsettledAdvancesKey(r)
+	k := GZBUnsettledAdvancesKey(r)
 	c := appengine.NewContext(r)
 	if _, err := datastore.Put(c, k, e); err != nil {
 		return err
@@ -258,7 +206,7 @@ func rrkSaveUnsettledAdvanceEntryInDataStore(ctx CashTransaction, r *http.Reques
 	return nil
 }
 
-func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
+func gzbDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -301,13 +249,13 @@ func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 		for _, ct := range cashTxsAsJson.Items {
 			//Save any unsettled amount in the datastore
 			if ct.Nature == "Unsettled Advance" {
-				if err1 := rrkSaveUnsettledAdvanceEntryInDataStore(ct, r); err1 != nil {
+				if err1 := gzbSaveUnsettledAdvanceEntryInDataStore(ct, r); err1 != nil {
 					return err1
 				}
 			}
 		}
 
-		if _, err1 := datastore.Put(c, CashRollingCounterKey(r), &cashGAERollingCounter); err1 != nil {
+		if _, err1 := datastore.Put(c, GZBCashRollingCounterKey(r), &cashGAERollingCounter); err1 != nil {
 			return err1
 		}
 
@@ -363,7 +311,7 @@ func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 
 		finalHTML := fmt.Sprintf("<html><head></head><body>%s</body></html>", htmlTable)
 
-		emailSubject := fmt.Sprintf("Rs.%v in hand as on %s evening [SEWPULSE][RRKDC]", closingBalance, logDateDDMMYY)
+		emailSubject := fmt.Sprintf("Rs.%v in hand as on %s evening [SEWPULSE][GZBDC]", closingBalance, logDateDDMMYY)
 		if err1 := SendMailToDesignatedPeopleNow(r, emailSubject, finalHTML); err1 != nil {
 			return err1
 		}
