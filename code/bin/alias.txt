@@ -94,3 +94,6 @@ godemosew = pushd %XDATDOCSDIR% && goapp test && appcfg.py update . --email="ash
 rollbacksewlive = pushd %XDATDOCSDIR%\ && appcfg.py rollback . --email="ashishthedev@gmail.com" --version="live" --noauth_local_webserver --oauth2 $*
 rollbacksewdev = pushd %XDATDOCSDIR%\ && appcfg.py rollback .  --email="ashishthedev@gmail.com" --version="dev" --noauth_local_webserver --oauth2 $*
 gcam = git commit -am $*
+gb-D = git branch -D $*
+gc-b = git checkout -b $*
+gm-s = git merge --squash $*
