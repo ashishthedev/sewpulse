@@ -98,27 +98,27 @@
           <hr>
           <div class="row">
             <div class="form-group">
-              <div class="col-xs-4">
+              <div class="col-xs-4 col-sm-3">
                 <div class="input-group">
                   <span class="input-group-addon">#</span>
                   <input required type="text" class="form-control" ng-model="entry.billNumber" autofocus=true placeholder="Bill no..."/>
                 </div>
               </div>
-              <div class="col-xs-4">
+              <div class="col-xs-4 col-sm-3">
                 <select class="form-control" ng-model="entry.nature">
                   <option value="Spent">Spent</option>
                   <option value="Received">Received</option>
                   <option value="Unsettled Advance">Unsettled Advance</option>
                 </select>
               </div>
-              <div class="col-xs-4">
+              <div class="col-xs-4 col-sm-3">
                 <div class="input-group">
                   <span class="input-group-addon">&#8377;</span>
                   <input required type="number" class="form-control" ng-model="entry.amount" placeholder="Amount..."/>
                 </div>
               </div>
-              <div class="col-xs-12">
-                <textarea required type="text"   class="form-control" ng-model="entry.description" placeholder="Description of transaction..." ></textarea>
+              <div class="col-xs-12 col-sm-3">
+                <input required type="text"   class="form-control" ng-model="entry.description" placeholder="Description of transaction..." />
               </div>
             </div> <!-- form-group -->
           </div> <!-- row -->

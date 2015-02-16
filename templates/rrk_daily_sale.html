@@ -23,7 +23,7 @@
   </head>
   <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailySaleController">
     <div class="well">
-      <img class="center-block" src="/static/img/sew57.png" />
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
       <h1 class="text-center">RRK Daily Sale</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
@@ -97,7 +97,8 @@
                 </div>
               </div>
               <div class="col-xs-12">
-                <textarea required type="text"   class="form-control" ng-model="entry.customerName" placeholder="Company name..."></textarea>
+                <input required type="text"   class="form-control"
+                ng-model="entry.customerName" placeholder="Company name..."/>
               </div>
             </div> <!-- form-group -->
           </div> <!-- row -->

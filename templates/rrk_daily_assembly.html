@@ -23,7 +23,7 @@
   </head>
   <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailyAssemblyController">
     <div class="well">
-      <img class="center-block" src="/static/img/sew57.png" />
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
       <h1 class="text-center">RRK Daily Assembly</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
@@ -94,7 +94,7 @@
                 <input required type="text" class="form-control" ng-model="entry.unit" placeholder="pc or kg..."/>
               </div>
               <div class="col-xs-12">
-                <textarea type="text"   class="form-control" ng-model="entry.remarks" placeholder="Remarks if any..."></textarea>
+                <input type="text"   class="form-control" ng-model="entry.remarks" placeholder="Remarks if any..."/>
               </div>
             </div> <!-- form-group -->
           </div> <!-- row -->
