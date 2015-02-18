@@ -68,7 +68,7 @@ appMod.controller('ngRRKDailySaleController', ['$scope', '$http', function($scop
 
   $scope.dateValue =  new Date();
   UpdateDateDiffAsText($scope);
-  $scope.entry = {quantity: 5, unit:"pc"};
+  $scope.entry = {};
   $scope.items = [];
   $scope.statusNote = "";
   $scope.isLogSubmitted = false;

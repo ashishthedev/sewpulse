@@ -44,6 +44,7 @@
                     <th>Bill#</th>
                     <th>Model</th>
                     <th>Qty</th>
+                    <th>Rate</th>
                     <th>Amt</th>
                     <th>Comp</th>
                     <th></th>
@@ -58,6 +59,7 @@
                     <td></td>
                     <td></td>
                     <td></td>
+                    <td></td>
                   </tr>
                 </tfoot>
                 <tr ng-repeat="item in items">
@@ -65,6 +67,7 @@
                   <td><span ng-bind="item.billNumber"></span></td>
                   <td><span ng-bind="item.modelName"></span></td>
                   <td><span ng-bind="item.quantity"></span></td>
+                  <td><span ng-bind="item.rate"></span></td>
                   <td><span ng-bind="item.amount"></span></td>
                   <td><span ng-bind="item.customerName"></span></td>
                   <td><button ng-click="removeEntry($index)" class="btn btn-sm btn-danger pull-right">X</button></td>
@@ -78,7 +81,7 @@
         <form role="form" class="form-horizontal" ng-submit="addSingleEntry()">
           <div class="row">
             <div class="form-group">
-              <div class="col-xs-6 col-sm-3">
+              <div class="col-xs-6 col-sm-2">
                 <div class="input-group">
                   <span class="input-group-addon">#</span>
                   <input required type="text" class="form-control" ng-model="entry.billNumber" autofocus=true placeholder="Bill no..."/>
@@ -87,8 +90,17 @@
               <div class="col-xs-6 col-sm-3">
                 <select class="form-control" ng-options="model for model in models" ng-model="entry.modelName"></select>
               </div>
-              <div class="col-xs-6 col-sm-3">
-                <input required type="number" class="form-control" ng-model="entry.quantity" placeholder="Quantity..."/>
+              <div class="col-xs-6 col-sm-2">
+                <div class="input-group">
+                  <span class="input-group-addon">Qty</span>
+                  <input required type="number" class="form-control" ng-model="entry.quantity" placeholder="Quantity..."/>
+                </div>
+              </div>
+              <div class="col-xs-6 col-sm-2">
+                <div class="input-group">
+                  <span class="input-group-addon">&#8377;</span>
+                  <input required type="number" class="form-control" ng-model="entry.rate" placeholder="Rate..."/>
+                </div>
               </div>
               <div class="col-xs-6 col-sm-3">
                 <div class="input-group">

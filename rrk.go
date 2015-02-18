@@ -77,6 +77,7 @@ type SoldItem struct {
 	Quantity     int
 	Amount       int
 	CustomerName string
+	Rate         int
 }
 
 type SoldItemsJSONValues struct {
@@ -236,6 +237,7 @@ func rrkDailySaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	<th><font color='#000000'> Bill# </font></th>
 	<th><font color='#000000'> Model </font></th>
 	<th><font color='#000000'> Qty </font></th>
+	<th><font color='#000000'> Rate </font></th>
 	<th><font color='#000000'> Amount </font></th>
 	<th><font color='#000000'> Company </font></th>
 	</tr>
@@ -243,7 +245,7 @@ func rrkDailySaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	<tfoot>
 	<tr>
 	<td colspan=2>Total:</td>
-	<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
+	<td colspan=4><font color="#DD472F"><b>%v</b></font></td>
 	</tr>
 	</tfoot>
 	`,
@@ -260,8 +262,9 @@ func rrkDailySaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		<td>%s</td>
 		<td>%d</td>
 		<td>%d</td>
+		<td>%d</td>
 		<td>%s</td>
-		</tr>`, si.BillNumber, si.ModelName, si.Quantity, si.Amount, si.CustomerName)
+		</tr>`, si.BillNumber, si.ModelName, si.Quantity, si.Rate, si.Amount, si.CustomerName)
 	}
 	htmlTable += "</table>"
 
