@@ -34,7 +34,7 @@ appMod.controller('ngRRKDailySaleController', ['$scope', '$http', function($scop
     $scope.statusNote = "Submitting...";
     var api = "/api/rrkDailySaleEmailSendApi";
     var postData = {
-      "dateTimeAsUTCMilliSeconds": $scope.dateValue.getTime(),
+      "dateTimeAsUnixTime": Math.floor($scope.dateValue.getTime()/1000),
       "items": $scope.items,
     }
 

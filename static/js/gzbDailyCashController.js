@@ -31,7 +31,7 @@ appMod.controller('ngGZBDailyCashController', ['$scope', '$http', function($scop
         for(var i=0; i<$scope.unsettledAdvances.length; i++){
           var x = $scope.unsettledAdvances[i];
           x.Amount = Math.abs(x.Amount);
-          x.DateDDMMMYY = DateUTCToDDMMMYY(x.DateUTC);
+          x.DateDDMMMYY = DateAsUnixTimeToDDMMMYY(x.DateAsUnixTime);
         }
       }
 
@@ -82,7 +82,7 @@ appMod.controller('ngGZBDailyCashController', ['$scope', '$http', function($scop
     var copyOfEntry = angular.copy($scope.entry);
     var nature = copyOfEntry.nature;
     var amount = copyOfEntry.amount;
-    copyOfEntry.DateUTC = $scope.dateValue.getTime();
+    copyOfEntry.DateAsUnixTime = Math.floor($scope.dateValue.getTime()/1000);
     if (nature != "Received") {
       copyOfEntry.amount = -1 * Math.abs(amount);
     }
@@ -97,10 +97,9 @@ appMod.controller('ngGZBDailyCashController', ['$scope', '$http', function($scop
 
   $scope.submitTodaysLog = function() {
     $scope.statusNote = "Submitting...";
-    var api = "/api/gzbDailyCashEmailApi";
+    var api = "/api/gzbCashBookStoreAndEmailApi";
     var postData = {
-      "submissionDateTimeAsUTC": $scope.dateValue.getTime(),
-      "dateOfTransactionAsUTC": $scope.dateValue.getTime(),
+      "dateOfTransactionAsUnixTime": Math.floor($scope.dateValue.getTime()/1000),
       "openingBalance": $scope.openingBalance,
       "closingBalance": $scope.closingBalance,
       "items": $scope.items,

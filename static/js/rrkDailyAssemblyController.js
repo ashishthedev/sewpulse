@@ -34,7 +34,7 @@ appMod.controller('ngRRKDailyAssemblyController', ['$scope', '$http', function($
     $scope.statusNote = "Submitting...";
     var api = "/api/rrkDailyAssemblyEmailSendApi";
     var postData = {
-      "dateTimeAsUTCMilliSeconds": $scope.dateValue.getTime(),
+      "dateTimeAsUnixTime": Math.floor($scope.dateValue.getTime()/1000),
       "items": $scope.items,
     }
 

@@ -11,7 +11,6 @@ import (
 	"html/template"
 	"math"
 	"net/http"
-	"time"
 )
 
 func initRRKDailyCashUrlMaps() {
@@ -30,8 +29,8 @@ func initRRKDailyCashUrlMaps() {
 
 func initRRKDailyCashApiMaps() {
 	apiMaps = map[string]apiStruct{
-		"/api/rrkDailyCashEmailApi": apiStruct{
-			handler: rrkDailyCashEmailApiHandler,
+		"/api/rrkCashBookStoreAndEmailApi": apiStruct{
+			handler: rrkCashBookStoreAndEmailApiHandler,
 		},
 		"/api/rrkDailyCashOpeningBalanceApi": apiStruct{
 			handler: rrkDailyCashGetOpeningBalanceHandler,
@@ -41,6 +40,9 @@ func initRRKDailyCashApiMaps() {
 		},
 		"/api/rrkDailyCashSettleAccForOneEntryApi": apiStruct{
 			handler: rrkDailyCashSettleAccForOneEntryApiHandler,
+		},
+		"/rrk/update": apiStruct{
+			handler: rrkDailyCashUpdateModelApiHandler,
 		},
 	}
 
@@ -56,25 +58,24 @@ func init() {
 }
 
 type CashTransaction struct {
-	BillNumber  string
-	Amount      int64
-	Nature      string
-	Description string
-	DateUTC     int64
+	BillNumber     string
+	Amount         int64
+	Nature         string
+	Description    string
+	DateAsUnixTime int64
 }
 
-type cashTxsJSONFormat struct {
-	DateOfTransactionAsUTC  int64
-	SubmissionDateTimeAsUTC int64
-	OpeningBalance          int64
-	ClosingBalance          int64
-	Items                   []CashTransaction
+type CashTxsCluster struct {
+	DateOfTransactionAsUnixTime int64
+	OpeningBalance              int64
+	ClosingBalance              int64
+	Items                       []CashTransaction
 }
 
 type CashGAERollingCounter struct {
-	Amount                 int64
-	DateOfTransactionAsUTC int64
-	SetByUserName          string
+	Amount                      int64
+	DateOfTransactionAsUnixTime int64
+	SetByUserName               string
 }
 
 type RRKUnsettledAdvances struct {
@@ -99,18 +100,98 @@ func GetPreviousRRKUnsettledAdvances(r *http.Request) (*RRKUnsettledAdvances, er
 	return e, nil
 }
 
-func CashRollingCounterKey(r *http.Request) *datastore.Key {
+func RRKCashRollingCounterKey(r *http.Request) *datastore.Key {
 	return RRK_SEWNewKey("CashGAERollingCounter", "cashCounter", 0, r)
 }
 
-func GetPreviousCashRollingCounter(r *http.Request) (*CashGAERollingCounter, error) {
+func RRKGetPreviousCashRollingCounter(r *http.Request) (*CashGAERollingCounter, error) {
 	c := appengine.NewContext(r)
-	k := CashRollingCounterKey(r)
+	k := RRKCashRollingCounterKey(r)
 	e := new(CashGAERollingCounter)
 	err := datastore.Get(c, k, e)
 	return e, err
 }
 
+func rrkDailyCashUpdateModelApiHandler(w http.ResponseWriter, r *http.Request) {
+	type oldCashGAERollingCounter struct {
+		Amount                 int64
+		DateOfTransactionAsUTC int64
+		SetByUserName          string
+	}
+
+	c := appengine.NewContext(r)
+	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
+		cashk := RRKCashRollingCounterKey(r)
+		oldE := new(oldCashGAERollingCounter)
+
+		if err := datastore.Get(c, cashk, oldE); err != nil {
+			return err
+		}
+
+		e := new(CashGAERollingCounter)
+		e.Amount = oldE.Amount
+		e.DateOfTransactionAsUnixTime = oldE.DateOfTransactionAsUTC
+		e.SetByUserName = oldE.SetByUserName
+
+		if _, err := datastore.Put(c, cashk, e); err != nil {
+			return err
+		}
+
+		type OldCashTransaction struct {
+			BillNumber      string
+			Amount          int64
+			RealAmountSpent int64
+			Nature          string
+			Description     string
+			DateUTC         int64
+		}
+		type OldRRKUnsettledAdvances struct {
+			Items []OldCashTransaction
+		}
+
+		unsAdvk := RRKUnsettledAdvancesKey(r)
+		olde, err := func(r *http.Request) (*OldRRKUnsettledAdvances, error) {
+			olde := new(OldRRKUnsettledAdvances)
+			if err := datastore.Get(c, unsAdvk, olde); err != nil {
+				if err == datastore.ErrNoSuchEntity {
+					olde.Items = []OldCashTransaction{}
+					return olde, nil
+				}
+				return olde, err
+			}
+			return olde, nil
+		}(r)
+
+		if err != nil {
+			return err
+		}
+
+		newe := new(RRKUnsettledAdvances)
+		for _, item := range olde.Items {
+			newe.Items = append(newe.Items, CashTransaction{
+				BillNumber:     item.BillNumber,
+				Amount:         item.Amount,
+				Nature:         item.Nature,
+				Description:    item.Description,
+				DateAsUnixTime: item.DateUTC / 1000,
+			})
+		}
+		if _, err := datastore.Put(c, unsAdvk, newe); err != nil {
+			return err
+		}
+		return nil
+
+	}, nil)
+
+	if err == nil {
+		fmt.Fprintf(w, "Updated")
+	} else {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	return
+
+}
 func rrkDailyCashSettleAccForOneEntryApiHandler(w http.ResponseWriter, r *http.Request) {
 	var ctx CashTransaction
 	dec := json.NewDecoder(r.Body)
@@ -126,7 +207,7 @@ func rrkDailyCashSettleAccForOneEntryApiHandler(w http.ResponseWriter, r *http.R
 	}
 
 	for i, x := range prevUnsettledAdv.Items {
-		if math.Abs(float64(x.Amount)) == math.Abs(float64(ctx.Amount)) && x.Description == ctx.Description && x.BillNumber == ctx.BillNumber && x.DateUTC == ctx.DateUTC {
+		if math.Abs(float64(x.Amount)) == math.Abs(float64(ctx.Amount)) && x.Description == ctx.Description && x.BillNumber == ctx.BillNumber && x.DateAsUnixTime == ctx.DateAsUnixTime {
 			//Found the entry
 			c := appengine.NewContext(r)
 			err := datastore.RunInTransaction(c, func(c appengine.Context) error {
@@ -138,12 +219,12 @@ func rrkDailyCashSettleAccForOneEntryApiHandler(w http.ResponseWriter, r *http.R
 					return err1
 				}
 				//2. Increment the total by same value in datastore
-				cashRollingCounter, err1 := GetPreviousCashRollingCounter(r)
+				cashRollingCounter, err1 := RRKGetPreviousCashRollingCounter(r)
 				if err1 != nil {
 					return err1
 				}
 				cashRollingCounter.Amount += int64(math.Abs(float64(x.Amount)))
-				cashGAERollingCounterKey := CashRollingCounterKey(r)
+				cashGAERollingCounterKey := RRKCashRollingCounterKey(r)
 
 				if _, err1 := datastore.Put(c, cashGAERollingCounterKey, cashRollingCounter); err1 != nil {
 					return err1
@@ -192,7 +273,7 @@ func rrkDailyCashGetOpeningBalanceHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	cashRollingCounter, err := GetPreviousCashRollingCounter(r)
+	cashRollingCounter, err := RRKGetPreviousCashRollingCounter(r)
 	if err == datastore.ErrNoSuchEntity {
 		json.NewEncoder(w).Encode(JsonOpeningBal{Initialized: false, OpeningBalance: 0})
 		return
@@ -258,122 +339,20 @@ func rrkSaveUnsettledAdvanceEntryInDataStore(ctx CashTransaction, r *http.Reques
 	return nil
 }
 
-func rrkDailyCashEmailApiHandler(w http.ResponseWriter, r *http.Request) {
+func rrkCashBookStoreAndEmailApiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var cashTxsAsJson cashTxsJSONFormat
-	dec := json.NewDecoder(r.Body)
-	if err := dec.Decode(&cashTxsAsJson); err != nil {
+	var cashTxs CashTxsCluster
+	if err := json.NewDecoder(r.Body).Decode(&cashTxs); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	submissionTimeAsUTC := cashTxsAsJson.SubmissionDateTimeAsUTC
-	logDateDDMMYY := DDMMYYFromUTC(submissionTimeAsUTC)
-
-	logTime := time.Unix(submissionTimeAsUTC/1000, 0)
-	logMsg := LogMsgShownForLogTime(logTime, time.Now())
-
-	dateOfTxAsDDMMYY := DDMMYYFromUTC(cashTxsAsJson.DateOfTransactionAsUTC)
-
-	openingBalance := cashTxsAsJson.OpeningBalance //TODO: Do not read cash opening balance from jSon. Read from server.
-	closingBalance := openingBalance
-	for _, ct := range cashTxsAsJson.Items {
-		closingBalance += ct.Amount
-	}
-
-	if closingBalance != cashTxsAsJson.ClosingBalance {
-		http.Error(w, fmt.Sprintf("Application error: Closing Balance is not consistent on client and server. %v != %v", closingBalance, cashTxsAsJson.ClosingBalance), http.StatusInternalServerError)
-		return
-	}
-
-	c := appengine.NewContext(r)
-	cashGAERollingCounter := CashGAERollingCounter{
-		Amount:                 closingBalance,
-		DateOfTransactionAsUTC: cashTxsAsJson.DateOfTransactionAsUTC,
-		SetByUserName:          user.Current(c).String(),
-	}
-
-	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-		for _, ct := range cashTxsAsJson.Items {
-			//Save any unsettled amount in the datastore
-			if ct.Nature == "Unsettled Advance" {
-				if err1 := rrkSaveUnsettledAdvanceEntryInDataStore(ct, r); err1 != nil {
-					return err1
-				}
-			}
-		}
-
-		if _, err1 := datastore.Put(c, CashRollingCounterKey(r), &cashGAERollingCounter); err1 != nil {
-			return err1
-		}
-
-		htmlTable := fmt.Sprintf(`
-		<table border=1 cellpadding=5>
-		<caption>
-		<u><h1>%s</h1></u>
-		<u><h3>%s</h3></u>
-		</caption>
-		<thead>
-		<tr bgcolor=#838468>
-		<th><font color='#000000'> Date </font></th>
-		<th><font color='#000000'> Nature </font></th>
-		<th><font color='#000000'> Amount </font></th>
-		<th><font color='#000000'> Bill# </font></th>
-		<th><font color='#000000'> Description </font></th>
-		</tr>
-		</thead>
-		<tfoot>
-		<tr>
-		<td colspan=2>Closing Balance:</td>
-		<td colspan=3><font color="#DD472F"><b>%v</b></font></td>
-		</tr>
-		</tfoot>
-		`,
-			logDateDDMMYY,
-			logMsg,
-			closingBalance,
-		)
-
-		htmlTable +=
-			fmt.Sprintf(`
-			<tr>
-			<td colspan=2>%v</td>
-			<td>%v</td>
-			<td></td>
-			<td></td>
-			</tr>`, "Opening Balance", openingBalance)
-
-		for _, ct := range cashTxsAsJson.Items {
-			htmlTable +=
-				fmt.Sprintf(`
-		<tr>
-		<td>%v</td>
-		<td>%v</td>
-		<td>%v</td>
-		<td>%v</td>
-		<td>%v</td>
-		</tr>`, dateOfTxAsDDMMYY, ct.Nature, ct.Amount, ct.BillNumber, ct.Description)
-		}
-
-		htmlTable += "</table>"
-
-		finalHTML := fmt.Sprintf("<html><head></head><body>%s</body></html>", htmlTable)
-
-		emailSubject := fmt.Sprintf("Rs.%v in hand as on %s evening [SEWPULSE][RRKDC]", closingBalance, logDateDDMMYY)
-		if err1 := SendMailToDesignatedPeopleNow(r, emailSubject, finalHTML); err1 != nil {
-			return err1
-		}
-		return nil
-	}, nil)
-
-	if err != nil {
+	if err := CashBookStoreAndEmailApi(&cashTxs, r, RRKCashRollingCounterKey, RRKGetPreviousCashRollingCounter, rrkSaveUnsettledAdvanceEntryInDataStore, "RRKDC"); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	return
 }

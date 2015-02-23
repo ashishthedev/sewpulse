@@ -31,7 +31,8 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
         for(var i=0; i<$scope.unsettledAdvances.length; i++){
           var x = $scope.unsettledAdvances[i];
           x.Amount = Math.abs(x.Amount);
-          x.DateDDMMMYY = DateUTCToDDMMMYY(x.DateUTC);
+          x.DateDDMMMYY = DateAsUnixTimeToDDMMMYY(x.DateAsUnixTime);
+          console.log(x.DateAsUnixTime + "-->" + x.DateDDMMMYY);
         }
       }
 
@@ -82,7 +83,7 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
     var copyOfEntry = angular.copy($scope.entry);
     var nature = copyOfEntry.nature;
     var amount = copyOfEntry.amount;
-    copyOfEntry.DateUTC = $scope.dateValue.getTime();
+    copyOfEntry.DateAsUnixTime = Math.floor($scope.dateValue.getTime()/1000);
     if (nature != "Received") {
       copyOfEntry.amount = -1 * Math.abs(amount);
     }
@@ -97,12 +98,9 @@ appMod.controller('ngRRKDailyCashController', ['$scope', '$http', function($scop
 
   $scope.submitTodaysLog = function() {
     $scope.statusNote = "Submitting...";
-    var api = "/api/rrkDailyCashEmailApi";
+    var api = "/api/rrkCashBookStoreAndEmailApi";
     var postData = {
-      "submissionDateTimeAsUTC": $scope.dateValue.getTime(),
-      "dateOfTransactionAsUTC": $scope.dateValue.getTime(),
-      "openingBalance": $scope.openingBalance,
-      "closingBalance": $scope.closingBalance,
+      "dateOfTransactionAsUnixTime": Math.floor($scope.dateValue.getTime()/1000),
       "items": $scope.items,
     }
 

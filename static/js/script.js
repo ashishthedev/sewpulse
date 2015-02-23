@@ -1,10 +1,11 @@
 
-function DateUTCToDDMMMYY(utc) {
-  var d = new Date(utc);
+function DateAsUnixTimeToDDMMMYY(unixTime) {
+  var d = new Date(unixTime);
 
   function pad2(n) {
     return n > 9 ? n : '0' + n;
   }
+
   var MONTH_AS_TEXT = {
     1: "Jan",
     2: "Feb",
@@ -19,7 +20,7 @@ function DateUTCToDDMMMYY(utc) {
     11: "Nov",
     12: "Dec",
   }
-  var d = new Date(utc);
+  var d = new Date(unixTime*1000);
   var year = d.getUTCFullYear();
   var month = MONTH_AS_TEXT[d.getUTCMonth() + 1];  // months start at zero
 
@@ -30,8 +31,8 @@ function DateUTCToDDMMMYY(utc) {
 
 function UpdateDateDiffAsText($scope) {
   var today = new Date();
-  var diff = Math.floor(today.getTime() - $scope.dateValue.getTime());
-  var day = 1000 * 60 * 60 * 24;
+  var diff = Math.floor(today.getTime()/1000 - $scope.dateValue.getTime()/1000);
+  var day = 60 * 60 * 24;
 
   var days = Math.floor(diff/day);
 
@@ -39,7 +40,7 @@ function UpdateDateDiffAsText($scope) {
     if (days == 0) {
       dateDiffFromTodayAsText = "Today";
     }
-    else if (days ==1) {
+    else if (days == 1) {
       dateDiffFromTodayAsText = "1 day old";
     } else {
       dateDiffFromTodayAsText = days + " days old";

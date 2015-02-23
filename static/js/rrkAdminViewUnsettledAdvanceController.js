@@ -30,7 +30,7 @@ appMod.controller('ngRRKAdminUnsettledAdvanceController', ['$scope', '$http', fu
         for(var i=0; i<$scope.unsettledAdvances.length; i++){
           var x = $scope.unsettledAdvances[i];
           x.Amount = Math.abs(x.Amount);
-          x.DateDDMMMYY = DateUTCToDDMMMYY(x.DateUTC);
+          x.DateDDMMMYY = DateAsUnixTimeToDDMMMYY(x.DateAsUnixTime);
         }
       }
     }).error(function(data, status, headers, config){

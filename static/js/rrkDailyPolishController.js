@@ -33,7 +33,7 @@ appMod.controller('ngRRKDailyPolishController', ['$scope', '$http', function($sc
     $scope.statusNote = "Submitting...";
     var api = "/api/rrkDailyPolishEmailSendApi";
     var postData = {
-      "dateTimeAsUTCMilliSeconds": $scope.dateValue.getTime(),
+      "dateTimeAsUnixTime": Math.floor($scope.dateValue.getTime()/1000),
       "items": $scope.items,
     }
 

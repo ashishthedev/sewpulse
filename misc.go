@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-func YYYYMMMDDFromUTC(utc int64) string {
-	return time.Unix(utc/1000, 0).Format("2006-Jan-02")
+func YYYYMMMDDFromUnixTime(unixTime int64) string {
+	return time.Unix(unixTime, 0).Format("2006-Jan-02")
 }
 
-func DDMMYYFromUTC(utc int64) string {
-	return time.Unix(utc/1000, 0).Format("02-Jan-06")
+func DDMMYYFromUnixTime(unixTime int64) string {
+	return time.Unix(unixTime, 0).Format("02-Jan-06")
 }
 
 func myDebug(r *http.Request, s string) {

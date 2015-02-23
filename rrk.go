@@ -81,8 +81,8 @@ type SoldItem struct {
 }
 
 type SoldItemsJSONValues struct {
-	DateTimeAsUTCMilliSeconds int64
-	Items                     []SoldItem
+	DateTimeAsUnixTime int64
+	Items              []SoldItem
 }
 
 type ProducedItem struct {
@@ -94,8 +94,8 @@ type ProducedItem struct {
 }
 
 type ProducedItemsJSONValues struct {
-	DateTimeAsUTCMilliSeconds int64
-	Items                     []ProducedItem
+	DateTimeAsUnixTime int64
+	Items              []ProducedItem
 }
 
 type ModelSet struct {
@@ -215,9 +215,9 @@ func rrkDailySaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	submissionDateTimeAsUTC := soldItemsAsJson.DateTimeAsUTCMilliSeconds
-	logTime := time.Unix(submissionDateTimeAsUTC/1000, 0)
-	logDateDDMMYY := DDMMYYFromUTC(submissionDateTimeAsUTC)
+	submissionDateTimeAsUnixTime := soldItemsAsJson.DateTimeAsUnixTime
+	logTime := time.Unix(submissionDateTimeAsUnixTime, 0)
+	logDateDDMMYY := DDMMYYFromUnixTime(submissionDateTimeAsUnixTime)
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
 
 	totalQuantitySold := 0
@@ -310,9 +310,9 @@ func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	submissionDateTimeAsUTC := producedItemsAsJson.DateTimeAsUTCMilliSeconds
-	logTime := time.Unix(submissionDateTimeAsUTC/1000, 0)
-	logDateDDMMYY := DDMMYYFromUTC(submissionDateTimeAsUTC)
+	submissionDateTimeAsUnixTime := producedItemsAsJson.DateTimeAsUnixTime
+	logTime := time.Unix(submissionDateTimeAsUnixTime, 0)
+	logDateDDMMYY := DDMMYYFromUnixTime(submissionDateTimeAsUnixTime)
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
 
 	totalQuantityProduced := 0
@@ -402,9 +402,9 @@ func rrkDailyPolishEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	submissionDateTimeAsUTC := producedItemsAsJson.DateTimeAsUTCMilliSeconds
-	logTime := time.Unix(submissionDateTimeAsUTC/1000, 0)
-	logDateDDMMYY := DDMMYYFromUTC(submissionDateTimeAsUTC)
+	submissionDateTimeAsUnixTime := producedItemsAsJson.DateTimeAsUnixTime
+	logTime := time.Unix(submissionDateTimeAsUnixTime, 0)
+	logDateDDMMYY := DDMMYYFromUnixTime(submissionDateTimeAsUnixTime)
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
 
 	totalQuantityProduced := 0
