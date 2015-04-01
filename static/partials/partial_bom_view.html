@@ -1,0 +1,35 @@
+<div id="statusNote" ng-bind="statusNote"></div>
+<div ng-show=allDone()>
+  <div class="container-fluid">
+    <table class="table table-striped table-condensed">
+      <thead>
+        <tr>
+          <td></td>
+          <td ng-repeat="model in bom.Models">
+            <span ng-bind="model.Name"></span>
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="articleName in sortedArticleKeys">
+          <td><a ng-href="#/edit/article/||articleName||"><span ng-bind="articleName"></a></span></td>
+          <td ng-repeat="model in bom.Models">
+            <div ng-show=editingQty >
+              <input class="tooltipInput col-xs-7 " type="number" ng-model="model.ArticleAndQty[articleName]" />
+              <button ng-click="SetGridDirty(); editingQty=!editingQty" class="btn btn-success">Done</button>
+            </div>
+            <div ng-hide=editingQty >
+              <span ng-click="editingQty=!editingQty;" ng-bind="model.ArticleAndQty[articleName]"></span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div ng-show=isGridDirty >
+      <button type="submit" ng-click="SaveTheChangesOnServer()" class="btn btn-info center-block">Save the changes</button>
+    </div>
+  </div> <!-- container -->
+</div>
+<div ng-hide=allDone()>
+  <p class="text-center text-muted">Working...</p>
+</div>

@@ -1,0 +1,40 @@
+<div ng-show=allDone()>
+  <div class="container-fluid">
+    <div id="statusNote" ng-bind="statusNote"></div>
+    <div ng-hide=articleDeleted>
+      <form role="form" class="form-horizontal">
+        <div class="row">
+          <div class="col-xs-4 col-xs-offset-4">
+            <input required type="text" class="form-control" ng-model="article.Name" placeholder="New article name..."/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-4 col-xs-offset-4">
+            <input required type="text" class="form-control" ng-model="article.Unit" placeholder="pc/kg/gm/..."/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-4 col-xs-offset-4">
+            <input required type="number" class="form-control" ng-model="article.ReorderPoint" placeholder="Reorder Point..."/>
+          </div>
+        </div>
+        <div ng-show="article.ArticleValue.ArticleName && article.ArticleValue.Unit && article.ReorderPoint">
+          <div class="row">
+            <div class="col-xs-4 col-xs-offset-4">
+              <button ng-click="SaveArticleOnServerAlongWithBOM()" type="submit"
+                class="btn col-xs-12 btn-info">Save Changes</button>
+            </div>
+          </div>
+        </div>
+        <div ng-hide=hideDelete>
+          <div ng-hide="stage2">
+            <button class="btn btn-xs btn-danger" ng-click="stage2=true">Delete Article</button>
+          </div>
+          <div ng-show="stage2">
+            <button class="btn btn-xs btn-danger pull-right" ng-click="deleteArticle();stage2=false">Confirm deletion of ||article.Name||</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -8,54 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"math"
 	"net/http"
 )
-
-func initRRKDailyCashUrlMaps() {
-	urlMaps = map[string]urlStruct{
-		"/rrk/daily-cash": urlStruct{
-			handler:      generalPageHander,
-			templatePath: "templates/rrk_daily_cash.html",
-		},
-	}
-
-	for path, urlBlob := range urlMaps {
-		templates[path] = template.Must(template.ParseFiles(urlBlob.templatePath))
-		http.HandleFunc(path, urlBlob.handler)
-	}
-}
-
-func initRRKDailyCashApiMaps() {
-	apiMaps = map[string]apiStruct{
-		"/api/rrkCashBookStoreAndEmailApi": apiStruct{
-			handler: rrkCashBookStoreAndEmailApiHandler,
-		},
-		"/api/rrkDailyCashOpeningBalanceApi": apiStruct{
-			handler: rrkDailyCashGetOpeningBalanceHandler,
-		},
-		"/api/rrkDailyCashGetUnsettledAdvancesApi": apiStruct{
-			handler: rrkDailyCashGetUnsettledAdvancesHandler,
-		},
-		"/api/rrkDailyCashSettleAccForOneEntryApi": apiStruct{
-			handler: rrkDailyCashSettleAccForOneEntryApiHandler,
-		},
-		"/rrk/update": apiStruct{
-			handler: rrkDailyCashUpdateModelApiHandler,
-		},
-	}
-
-	for path, apiBlob := range apiMaps {
-		http.HandleFunc(path, apiBlob.handler)
-	}
-}
-
-func init() {
-	initRRKDailyCashApiMaps()
-	initRRKDailyCashUrlMaps()
-	return
-}
 
 type CashTransaction struct {
 	BillNumber     string

@@ -18,19 +18,11 @@ handlers:
   upload: templates/faq.html
   login: admin
 
-- url: /gzb/a/.*
+- url: /a/.*
   script: _go_app
   login: admin
 
-- url: /gzb/a
-  script: _go_app
-  login: admin
-
-- url: /rrk/a/.*
-  script: _go_app
-  login: admin
-
-- url: /rrk/a
+- url: /a
   script: _go_app
   login: admin
 

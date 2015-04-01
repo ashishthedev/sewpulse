@@ -34,18 +34,18 @@
 }
 
 .sm-addon {
-    min-width:100px;
-    text-align:right;
+  min-width:100px;
+  text-align:right;
 }
 
 .md-addon {
-    min-width:200px;
-    text-align:right;
+  min-width:200px;
+  text-align:right;
 }
 
 .lg-addon {
-    min-width:300px;
-    text-align:right;
+  min-width:300px;
+  text-align:right;
 }
 
 
@@ -56,5 +56,43 @@
   /* Set the fixed height of the footer here */
   height: 60px;
   background-color: #f5f5f5;
+}
+
+/*-------------------------
+The edit tooltip
+--------------------------*/
+
+
+.tooltipInput{
+  border: none;
+  line-height: 34px;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px #bbb inset;
+  text-align: center;
+  font-family: inherit;
+  color: #8d9395;
+  font-weight: bold;
+  outline: none;
+}
+
+.xladdon
+{
+  min-width: 180px;
+  text-align: right;
+}
+.lgaddon
+{
+  min-width: 150px;
+  text-align: right;
+}
+.mdaddon
+{
+  min-width: 120px;
+  text-align: right;
+}
+.smaddon
+{
+  min-width: 100px;
+  text-align: right;
 }
 

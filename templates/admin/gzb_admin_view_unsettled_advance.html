@@ -3,7 +3,6 @@
     <title>Gzb Unsettled Advance</title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/js/script.js"></script>
-    <script src="/static/js/gzbAdminViewUnsettledAdvanceController.js"></script>
 
     <!-- Standard Favicon -->
     <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
@@ -20,6 +19,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
     <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
     <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('ngSEWPulseApp', []);
+      appMod.controller('ngGZBAdminUnsettledAdvanceController', ['$scope', '$http', function($scope, $http) {
+
+        function FetchCashInHand() {
+          $scope.statusNote = "Fetching cash in hand ...";
+          var api = "/api/gzbDailyCashOpeningBalanceApi";
+          var postData = null;
+
+          $http.post(api, postData).success(function(data, status, headers, config) {
+            $scope.statusNote = "";
+            if (data.Initialized == true) {
+              $scope.CashInHand = parseInt(data.OpeningBalance);
+              } else {
+              $scope.CashInHand = 0;
+            }
+            }).error(function(data, status, headers, config){
+            $scope.statusNote = status + ": " + data;
+          });
+        }
+
+        function FetchUnsettledAdvances() {
+          var api = "/api/gzbDailyCashGetUnsettledAdvancesApi";
+          var postData = null;
+          $scope.statusNote = "Fetching unsettled advances ...";
+          $http.post(api, postData).success(function(data, status, headers, config) {
+            $scope.statusNote = "";
+            $scope.unsettledAdvances = data.Items;
+            if ($scope.unsettledAdvances != null) {
+              for(var i=0; i<$scope.unsettledAdvances.length; i++){
+                var x = $scope.unsettledAdvances[i];
+                x.Amount = Math.abs(x.Amount);
+                x.DateDDMMMYY = DateAsUnixTimeToDDMMMYY(x.DateAsUnixTime);
+              }
+            }
+            }).error(function(data, status, headers, config){
+            $scope.statusNote = status + ": " + data;
+          });
+        }
+
+        FetchUnsettledAdvances();
+        FetchCashInHand();
+      }]);
+
+    </script>
   </head>
   <body ng-app="ngSEWPulseApp" ng-controller="ngGZBAdminUnsettledAdvanceController">
     <div class="well">

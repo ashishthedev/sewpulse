@@ -1,0 +1,64 @@
+<html>
+  <head>
+    <title>Create Model</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
+
+      appMod.controller('AdminCreateModelController', ['$scope', 'Model', function($scope, Model) {
+
+        $scope.createModelOnServerWithName = function() {
+          $scope.statusNote = "Creating model...";
+          Model.save($scope.newModel,function(data) {
+            $scope.statusNote = "Model " + $scope.newModel.Name + " created successfully.";
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+          });
+        }
+      }]);
+
+    </script>
+  </head>
+  <body ng-app="SEWPulseApp" ng-controller="AdminCreateModelController">
+    <div class="well">
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+      <h1 class="text-center">BOM - Create Model</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <form role="form" class="form-horizontal" ng-submit="createModelOnServerWithName()">
+        <div class="row">
+          <div class="col-xs-4 col-xs-offset-4">
+            <input required type="text" class="form-control" ng-model="newModel.Name" placeholder="New model name..."/>
+            <input required type="text" class="form-control" ng-model="newModel.Unit" placeholder="pc/kg/gm..."/>
+          </div>
+        </div>
+        <div ng-show="newModel.Name && newModel.Unit">
+          <div class="row">
+            <div class="col-xs-4 col-xs-offset-4">
+              <button type="submit" class="btn col-xs-12 btn-danger">Create New Model</button>
+            </div>
+          </div> <!-- row -->
+        </div>
+      </form>
+    </div> <!-- container -->
+  </body>
+</html>

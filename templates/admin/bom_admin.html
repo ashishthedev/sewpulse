@@ -1,0 +1,96 @@
+<html>
+  <head>
+    <title>SEW BOM Admin</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
+
+      appMod.controller('AdminBomOperationsController', ['$scope', 'BOM', function($scope, BOM) {
+
+        $scope.resetToSampleBOM = function() {
+          $scope.hideBomSample = true;
+          $scope.statusNote = "Resetting the BOM to a predifened state...";
+          BOM.resetToSampleState(function(data){
+            $scope.statusNote = "";
+            $scope.hideBomSample = false;
+            }, function(error){
+            $scope.statusNote = status + ": " + data;
+            $scope.hideBomSample = true;
+          });
+        }
+        $scope.bomReset = function() {
+          $scope.hideReset = true;
+          $scope.statusNote = "Resetting the BOM ...";
+          BOM.reset(function(data){
+            $scope.statusNote = "";
+            $scope.hideReset = false;
+            }, function(error){
+            $scope.statusNote = status + ": " + data;
+            $scope.hideReset = true;
+          });
+        }
+      }]);
+    </script>
+  </head>
+  <body ng-app="SEWPulseApp" ng-controller="AdminBomOperationsController">
+    <div class="well">
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+      <h1 class="text-center">BOM Admin</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <div class="col-xs-6">
+        <span class="text-center"><u><h3>Model</h3></u></span>
+        <ul class="nav nav-pills nav-stacked nav-justified">
+          <li><a href="/a/bom/new-model"><h3>Create Model</h3></a></li><hr>
+          <li><a href="/a/bom/model-qty-lockdown"><h3>Lockdown Quantity(TODO)</h3></a></li><hr>
+        </ul>
+      </div>
+      <div class="col-xs-6">
+        <span class="text-center"><u><h3>Article</h3></u></span>
+        <ul class="nav nav-pills nav-stacked nav-justified">
+          <li><a href="/a/bom/new-article"><h3>Create Article</h3></a></li><hr>
+          <li><a href="/a/bom/article-qty-lockdown"><h3>Lockdown Quantity(TODO)</h3></a></li><hr>
+        </ul>
+      </div>
+      <div class="col-xs-12">
+        <ul class="nav nav-pills nav-stacked nav-justified">
+          <li><a href="/a/bom/view"><h3>View BOM</h3></a></li>
+        </ul>
+      </div>
+      <div ng-hide=hideBomSample>
+        <div class="col-xs-12">
+        <ul class="nav nav-pills nav-stacked nav-justified">
+          <li><a ng-click="hideBomSample=true; resetToSampleBOM();" ng-href="#"><h3>Bring the BOM to sample state(Delete Later)</h3></a></li>
+        </ul>
+        </div>
+      </div>
+      <div ng-hide=hideReset>
+        <div ng-show="stage2">
+          <button class="btn btn-xs btn-danger pull-right" ng-click="bomReset();stage2=false">Confirm Resetting of BOM</button>
+        </div>
+        <div ng-hide="stage2">
+          <button class="btn btn-xs btn-danger" ng-click="stage2=true">Reset BOM</button>
+        </div>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>

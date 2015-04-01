@@ -6,54 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"math"
 	"net/http"
 )
-
-func initGZBDailyCashUrlMaps() {
-	urlMaps = map[string]urlStruct{
-		"/gzb/daily-cash": urlStruct{
-			handler:      generalPageHander,
-			templatePath: "templates/gzb_daily_cash.html",
-		},
-	}
-
-	for path, urlBlob := range urlMaps {
-		templates[path] = template.Must(template.ParseFiles(urlBlob.templatePath))
-		http.HandleFunc(path, urlBlob.handler)
-	}
-}
-
-func initGZBDailyCashApiMaps() {
-	apiMaps = map[string]apiStruct{
-		"/api/gzbCashBookStoreAndEmailApi": apiStruct{
-			handler: gzbCashBookStoreAndEmailApiHandler,
-		},
-		"/api/gzbDailyCashOpeningBalanceApi": apiStruct{
-			handler: gzbDailyCashGetOpeningBalanceHandler,
-		},
-		"/api/gzbDailyCashGetUnsettledAdvancesApi": apiStruct{
-			handler: gzbDailyCashGetUnsettledAdvancesHandler,
-		},
-		"/api/gzbDailyCashSettleAccForOneEntryApi": apiStruct{
-			handler: gzbDailyCashSettleAccForOneEntryApiHandler,
-		},
-		"/gzb/update": apiStruct{
-			handler: gzbDailyCashUpdateModelApiHandler,
-		},
-	}
-
-	for path, apiBlob := range apiMaps {
-		http.HandleFunc(path, apiBlob.handler)
-	}
-}
-
-func init() {
-	initGZBDailyCashApiMaps()
-	initGZBDailyCashUrlMaps()
-	return
-}
 
 type GZBUnsettledAdvances struct {
 	//TODO: RRKUnsettledAdvances is just like GZBUnsettledAdvance. Fix it if found more clarity.

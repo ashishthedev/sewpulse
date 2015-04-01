@@ -32,7 +32,7 @@ appMod.controller('ngRRKDailySaleController', ['$scope', '$http', function($scop
 
   $scope.submitTodaysLog = function() {
     $scope.statusNote = "Submitting...";
-    var api = "/api/rrkDailySaleEmailSendApi";
+    var api = "/api/rrkDailySaleEmailSendApiOld";
     var postData = {
       "dateTimeAsUnixTime": Math.floor($scope.dateValue.getTime()/1000),
       "items": $scope.items,
@@ -60,7 +60,6 @@ appMod.controller('ngRRKDailySaleController', ['$scope', '$http', function($scop
         $scope.models[0] = "No model exists. Please create one.";
       }
       $scope.entry.modelName = $scope.models[0];
-      console.log("setting the entry.Modelname to : "+ $scope.entry.modelName)
     }).error(function(data, status, headers, config) {
       $scope.statusNote = status + ": " + data;
     });

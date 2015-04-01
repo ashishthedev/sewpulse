@@ -4,6 +4,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"appengine/user"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -18,9 +19,18 @@ func DDMMYYFromUnixTime(unixTime int64) string {
 	return time.Unix(unixTime, 0).Format("02-Jan-06")
 }
 
+func YYYYMMMDDFromGoTime(goTime time.Time) string {
+	return goTime.Format("2006-Jan-02")
+}
+
+func DDMMYYFromGoTime(goTime time.Time) string {
+	return goTime.Format("02-Jan-06")
+}
+
 func myDebug(r *http.Request, s string) {
-	line := "________________________"
-	s1 := "\n" + line + "\n" + s + "\n" + line
+	//line := "________________________"
+	//s1 := "\n" + line + "\n" + s + "\n" + line + "\n\n"
+	s1 := "\n|||||||||||||||||" + s
 	c := appengine.NewContext(r)
 	c.Debugf(s1)
 	return
@@ -118,7 +128,23 @@ func RRK_SEWNewKey(kind string, stringId string, numericID int64, r *http.Reques
 	return _SEWNewKey(kind, RRK_PREFIX+stringId, numericID, r)
 }
 
-func Common_SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *datastore.Key {
+func CMN_SEWNewKey(kind string, stringId string, numericID int64, r *http.Request) *datastore.Key {
 	COMMON_PREFIX := "CMN_"
 	return _SEWNewKey(kind, COMMON_PREFIX+stringId, numericID, r)
+}
+
+func toJson(i interface{}) []byte {
+	data, err := json.Marshal(i)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(fmt.Sprintf("ToJson() %v ==> %v", i, data))
+	return data
+}
+
+func fromJson(v []byte, vv interface{}) error {
+	err := json.Unmarshal(v, vv)
+	fmt.Println(fmt.Sprintf("FromJson() %v ==> %v", v, vv))
+	return err
 }

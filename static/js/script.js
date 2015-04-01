@@ -29,21 +29,26 @@ function DateAsUnixTimeToDDMMMYY(unixTime) {
   return pad2(day) + month + year;
 }
 
-function UpdateDateDiffAsText($scope) {
+function GetDateDiffAsText(dateValue){
   var today = new Date();
-  var diff = Math.floor(today.getTime()/1000 - $scope.dateValue.getTime()/1000);
+  var diff = Math.floor(today.getTime()/1000 - dateValue.getTime()/1000);
   var day = 60 * 60 * 24;
 
   var days = Math.floor(diff/day);
 
-  var dateDiffFromTodayAsText = ""
-    if (days == 0) {
-      dateDiffFromTodayAsText = "Today";
-    }
-    else if (days == 1) {
-      dateDiffFromTodayAsText = "1 day old";
-    } else {
-      dateDiffFromTodayAsText = days + " days old";
-    }
-  $scope.dateDiffFromTodayAsText = dateDiffFromTodayAsText;
+  var dateDiffFromTodayAsText = "";
+  if (days == 0) {
+    dateDiffFromTodayAsText = "Today";
+  }
+  else if (days == 1) {
+    dateDiffFromTodayAsText = "1 day old";
+  } else {
+    dateDiffFromTodayAsText = days + " days old";
+  }
+  return dateDiffFromTodayAsText;
+
+}
+
+function UpdateDateDiffAsText($scope) {
+  $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.dateValue);
 }
