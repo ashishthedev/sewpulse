@@ -6,25 +6,13 @@ import (
 	"net/http"
 )
 
-func DeleteModel(r *http.Request) (err error) {
-	panic("Not implemented... yet")
-}
-
-func GetSingleModel(r *http.Request) (err error) {
-	return
-}
-
-func SaveExistingModel(r *http.Request) (err error) {
-	return
-}
-
-func CreateNewModel(r *http.Request) error {
+func ExtractModelFromRequest(r *http.Request) (*Model, error) {
 	newMod := NewModel()
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&newMod); err != nil {
-		return err
+		return nil, err
 	}
-	return CreateDecodedNewModel(newMod, r)
+	return newMod, nil
 }
 
 func CreateDecodedNewModel(newMod *Model, r *http.Request) error {

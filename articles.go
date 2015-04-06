@@ -8,7 +8,7 @@ import (
 )
 
 func DeleteArticle(r *http.Request) error {
-	articleName := r.URL.Path[len(API_ARTICLE):]
+	articleName := r.URL.Path[len(API_BOM_ARTICLE_SLASH_END):]
 	return DeleteDecodedArticle(articleName, r)
 }
 
@@ -78,10 +78,18 @@ func DeleteArticleFromAllModels(r *http.Request, articleName string) error {
 	return nil
 }
 
-func CreateArticle(r *http.Request) error {
+func ExtractArticleFromPostData(r *http.Request) (*Article, error) {
 	article := NewArticle()
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&article); err != nil {
+		return nil, err
+	}
+	return article, nil
+}
+
+func CreateArticle(r *http.Request) error {
+	article, err := ExtractArticleFromPostData(r)
+	if err != nil {
 		return err
 	}
 	return CreateDecodedNewArticle(article, r)

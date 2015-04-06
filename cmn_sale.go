@@ -14,7 +14,7 @@ type SaleInvoice struct {
 	Items                []InvoiceItem
 	Number               string
 	DateValue            time.Time
-	JSDateValueAsSeconds int64 `datastore: "-"`
+	JSDateValueAsSeconds int64
 	GoodsValue           float64
 	GrandTotal           float64
 	CustomerName         string

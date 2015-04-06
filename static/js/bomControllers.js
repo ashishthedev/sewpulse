@@ -1,14 +1,13 @@
 var bomViewControllers = angular.module('bomViewControllers', []);
 
-bomViewControllers.controller('ArticleDetailCtrl', ['$http', '$scope', '$routeParams', 'BOM', function($http, $scope, $routeParams, BOM) {
+bomViewControllers.controller('ArticleDetailCtrl', ['$scope', '$routeParams', 'BOM', 'Article', function( $scope, $routeParams, BOM, Article) {
   var articleName = $routeParams.id;
-  function FetchBom() {
-    $scope.statusNote = "Fetching BOM ...";
-    $scope.bom = BOM.get(
+  function FetchArticle() {
+    $scope.statusNote = "Fetching article ...";
+    $scope.article = Article.get({id:articleName},
       function(data){
         $scope.statusNote = "";
-        $scope.article = $scope.bom.AML.Articles[articleName];
-        $scope.bomFetched = true;
+        $scope.articleFetched = true;
       },
       function(error){
         $scope.statusNote = error.status + ": " + error.data;
@@ -26,25 +25,22 @@ bomViewControllers.controller('ArticleDetailCtrl', ['$http', '$scope', '$routePa
 
   $scope.deleteArticle = function() {
     $scope.statusNote = "Deleting article on server...";
-    var api = "/api/bom/article/delete";
-    var api = "/api/bom/article/" + $scope.article.Name;
-    var postData = $scope.article;
-    $http.delete(api).success(function(data, status, headers, config) {
+    Article.remove({id:$scope.article.Name}, function(data){
       $scope.statusNote = "Article " + $scope.article.Name + " deleted...";
       $scope.articleDeleted = true;
-    }).error(function(data, status, headers, config) {
-      $scope.statusNote = status + ": " + data;
+    }, function(error){
+      $scope.statusNote = error.status + ": " + error.data;
     });
   }
 
   $scope.allDone = function()
   {
-    return $scope.bomFetched;
+    return $scope.articleFetched;
   }
   function InitApp(){
-    $scope.bomFetched = false;
+    $scope.articleFetched = false;
 
-    FetchBom();
+    FetchArticle();
   }
   InitApp();
 
@@ -77,11 +73,6 @@ bomViewControllers.controller('AdminBOMViewController', ['$scope', '$rootScope',
     }, function(error){
       $scope.statusNote = error.status + ": " + error.data;
     });
-  }
-
-  $scope.RemoveThisModel = function(ModelName){
-    delete $scope.bom.Models[ModelName];
-    $scope.SetGridDirty();
   }
 
   $scope.SetGridPristine = function() {

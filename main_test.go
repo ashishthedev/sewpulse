@@ -155,7 +155,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		r, err := inst.NewRequest("POST", API_ARTICLE, &b)
+		r, err := inst.NewRequest("POST", API_BOM_ARTICLE_END, &b)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -165,13 +165,13 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		//	t.Error(err)
 		//}
 		w := httptest.NewRecorder()
-		bomArticleAPIHandler(w, r)
+		bomArticleWithoutSalshAPIHandler(w, r)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("Body:%v", w.Body.String())
 		}
 	}
-	r, err := inst.NewRequest("POST", API_ARTICLE, nil)
+	r, err := inst.NewRequest("POST", API_BOM_ARTICLE_SLASH_END, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +200,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		r, err := inst.NewRequest("POST", "/api/bom/model", &b)
+		r, err := inst.NewRequest("POST", API_BOM_MODEL_END, &b)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -210,7 +210,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		//	t.Error(err)
 		//}
 		w := httptest.NewRecorder()
-		bomSingleModelAPIHandler(w, r)
+		bomModelWithoutSlashAPIHandler(w, r)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("\nError occured:\n HTML Body:%v", w.Body.String())
@@ -256,7 +256,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		r, err := inst.NewRequest("POST", API_ARTICLE, &b)
+		r, err := inst.NewRequest("POST", API_BOM_ARTICLE_END, &b)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -266,7 +266,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		//	t.Error(err)
 		//}
 		w := httptest.NewRecorder()
-		bomArticleAPIHandler(w, r)
+		bomArticleWithoutSalshAPIHandler(w, r)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("Body:%v", w.Body.String())
@@ -304,7 +304,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		r, err := inst.NewRequest("POST", "/api/bom/model", &b)
+		r, err := inst.NewRequest("POST", API_BOM_MODEL_END, &b)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -314,7 +314,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		//	t.Error(err)
 		//}
 		w := httptest.NewRecorder()
-		bomSingleModelAPIHandler(w, r)
+		bomModelWithoutSlashAPIHandler(w, r)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("\nError occured:\n HTML Body:%v", w.Body.String())
@@ -351,6 +351,46 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//TODO:Delete an article and test
 	//======================================================
 
+	for _, singleArticle := range []Article{GUARD} {
+
+		r, err := inst.NewRequest("DELETE", API_BOM_ARTICLE_SLASH_END+singleArticle.Name, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		aetest.Login(u, r)
+		w := httptest.NewRecorder()
+		bomArticleWithSlashAPIHandler(w, r)
+
+		if w.Code != http.StatusOK {
+			t.Errorf("Body:%v", w.Body.String())
+		}
+	}
+
+	expectedBOM = NewBOM()
+	expectedBOM.Models = map[string]Model{
+		"PremiumPlus": {
+			Name:          "PremiumPlus",
+			Unit:          "pc",
+			ArticleAndQty: map[string]int{KNOB.Name: 3, BURNER.Name: 3},
+		},
+		"Sapphire": {
+			Name:          "Sapphire",
+			Unit:          "pc",
+			ArticleAndQty: map[string]int{KNOB.Name: 2, BURNER.Name: 2},
+		},
+		"Ruby": {
+			Name:          "Ruby",
+			Unit:          "pc",
+			ArticleAndQty: map[string]int{KNOB.Name: 1, BURNER.Name: 1},
+		},
+	}
+	expectedBOM.AML.Articles = map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER}
+	expectedArticles = &ArticleMasterList{
+		Articles: map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER},
+	}
+	expectedBomAtThisStage(r, t, expectedBOM, expectedArticles, "stage5: Deleted GUARD")
+
 	//======================================================
 	//TODO:Delete a model and test
 	//======================================================
@@ -363,13 +403,18 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//TODO:Rename an article and test
 	//======================================================
 
+	//======================================================
+	//TODO:Create an article with specific name inside get request
+	//======================================================
+
+	//======================================================
+	//TODO:Create a model with specific name inside get request
+	//======================================================
+
 	return
 }
 
 func IsBOMHavingSameArticleListAcrossModels(bom *BOM, t *testing.T, stage string) bool {
-	//	if bom == nil {
-	//		return true
-	//	}
 	if len(bom.Models) == 0 {
 		return true
 	}

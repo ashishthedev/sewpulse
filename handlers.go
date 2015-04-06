@@ -19,7 +19,11 @@ var apiMaps map[string]apiStruct
 var PRE_BUILT_TEPLATES = make(map[string]*template.Template)
 var PAGE_NOT_FOUND_TEMPLATE = template.Must(template.ParseFiles("templates/pageNotFound.html"))
 
-const API_ARTICLE = "/api/bom/article/"
+const API_BOM_ARTICLE_SLASH_END = "/api/bom/article/"
+const API_BOM_ARTICLE_END = "/api/bom/article"
+
+const API_BOM_MODEL_SLASH_END = "/api/bom/model/"
+const API_BOM_MODEL_END = "/api/bom/model"
 
 func initRootUrlMaps() {
 	urlMaps := map[string]urlStruct{
@@ -116,17 +120,17 @@ func initRootApiMaps() {
 		"/api/bom/resetToSampleBOM": apiStruct{
 			handler: bomResetToSampleState,
 		},
-		"/api/bom/model": apiStruct{
-			handler: bomSingleModelAPIHandler,
+		API_BOM_MODEL_END: apiStruct{
+			handler: bomModelWithoutSlashAPIHandler,
 		},
-		"/api/bom/articlesml": apiStruct{
-			handler: bomArticlesMasterListAPIHandler,
+		API_BOM_MODEL_SLASH_END: apiStruct{
+			handler: bomModelWithSlashAPIHandler,
 		},
-		//"/api/bom/article/delete": apiStruct{
-		//	handler: bomDeleteArticleAPIHandler,
-		//},
-		API_ARTICLE: apiStruct{
-			handler: bomArticleAPIHandler,
+		API_BOM_ARTICLE_END: apiStruct{
+			handler: bomArticleWithoutSalshAPIHandler,
+		},
+		API_BOM_ARTICLE_SLASH_END: apiStruct{
+			handler: bomArticleWithSlashAPIHandler,
 		},
 		"/api/bom": apiStruct{
 			handler: bomAPIHandler,
@@ -193,14 +197,7 @@ func init() {
 }
 
 func generalPageHandler(w http.ResponseWriter, r *http.Request) {
-	var t *template.Template = nil
-	for k, v := range PRE_BUILT_TEPLATES {
-		if r.URL.Path == k {
-			t = v
-			break
-		}
-	}
-
+	t := PRE_BUILT_TEPLATES[r.URL.Path]
 	if t == nil {
 		t = PAGE_NOT_FOUND_TEMPLATE
 	}
