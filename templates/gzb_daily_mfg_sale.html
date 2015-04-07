@@ -177,7 +177,10 @@
           <h5 class="text-center"><u>Item Details:</u></h5>
           <div class="row" ng-repeat="item in SaleInvoice.Items">
             <span class="col-sm-3 col-xs-6">
-              <span readonly class="form-control" ng-bind="item.Name" ></span>
+              <span class="input-group">
+                <span class="input-group-addon">Name</span>
+                <span readonly class="form-control" ng-bind="item.Name" ></span>
+              </span>
             </span>
             <span class="col-sm-2 col-xs-6">
               <span class="input-group">
@@ -205,7 +208,10 @@
           </div>
           <div class="row">
             <span class="col-sm-3 col-xs-6">
-              <select class="form-control" ng-options="model for model in models" ng-model="orphan.Name"></select>
+              <span class="input-group">
+                <span class="input-group-addon">Name</span>
+                <input required class="form-control" title="Name" type="text" ng-model="orphan.Name" ng-change="UpdateOrphan()"/>
+              </span>
             </span>
             <span class="col-sm-2 col-xs-6">
               <span class="input-group">
