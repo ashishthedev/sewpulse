@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Roorkee Daily Sale</title>
+    <title>GZB Daily Sale</title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/js/script.js"></script>
 
@@ -25,7 +25,7 @@
       debug = true;
       debug = false;
 
-      appMod.controller('RRKDailySaleCtrl', ['$scope', '$http', function($scope, $http) {
+      appMod.controller('GZBDailySaleCtrl', ['$scope', '$http', function($scope, $http) {
 
         $scope.DateChanged = function() {
           var today = new Date();
@@ -37,13 +37,12 @@
 
         $scope.submitTodaysLog = function() {
           $scope.statusNote = "Submitting...";
-          var api = "/api/rrkDailySaleEmailSendApi";
+          var api = "/api/gzbDailySaleEmailSendApi";
           $scope.SaleInvoice.JSDateValueAsSeconds = Math.floor($scope.SaleInvoice.JSDateValue.getTime()/1000);
           var postData = $scope.SaleInvoice;
 
           $http.post(api, postData).success(function(data, status, headers, config) {
-            //if (true){
-              if (debug){
+            if (debug){
                 alert("TODO: Remove this");
                 $scope.statusNote = "Posted";
                 $scope.isLogSubmitted = false;
@@ -60,7 +59,7 @@
 
           function FetchModelsFromServer() {
             $scope.statusNote = "Fetching model set...";
-            var api = "/api/rrkGetModelApi";
+            var api = "/api/gzbGetModelApi";
             var postData = {};
 
             $http.post(api, postData).success(function(data, status, headers, config) {
@@ -133,10 +132,10 @@
     </script>
   </head>
 
-  <body ng-app="SEWPulseApp" ng-controller="RRKDailySaleCtrl">
+  <body ng-app="SEWPulseApp" ng-controller="GZBDailySaleCtrl">
     <div class="well">
       <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
-      <h1 class="text-center">RRK Daily Sale</h1>
+      <h1 class="text-center">GZB Daily Sale</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
@@ -261,8 +260,7 @@
               <div class="row">
                 <span class="input-group col-sm-offset-2 col-sm-10">
                   <span class="input-group-addon mdaddon">Remarks</span>
-                  <input class="form-control"  title="Remarks" type="text"
-                  ng-model="SaleInvoice.Remarks" placeholder="optional..."/>
+                  <input class="form-control"  title="Remarks" type="text" ng-model="SaleInvoice.Remarks" placeholder="optional..."/>
                 </span>
               </div>
               <div class="row">

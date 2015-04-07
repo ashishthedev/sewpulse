@@ -231,6 +231,7 @@ func SendMailForRRKSaleInvoice(si *SaleInvoice, r *http.Request) (err error) {
 	{{end}}
 	</table>
 	<h4>Remarks:{{if .Remarks}} <font color="#DD472F">{{.Remarks }}</font>{{else}} No remarks. {{end}}</h4>
+	<font color="grey">SEW RRK</font>
 	</body></html>
 	`))
 
@@ -262,101 +263,6 @@ func SendMailForRRKSaleInvoice(si *SaleInvoice, r *http.Request) (err error) {
 		return err
 	}
 	return nil
-}
-
-func rrkDailySaleEmailSendApiHandlerOld(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var soldItemsAsJson SoldItemsJSONValues
-	dec := json.NewDecoder(r.Body)
-	if err := dec.Decode(&soldItemsAsJson); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	submissionDateTimeAsUnixTime := soldItemsAsJson.DateTimeAsUnixTime
-	logTime := time.Unix(submissionDateTimeAsUnixTime, 0)
-	logDateDDMMYY := DDMMYYFromUnixTime(submissionDateTimeAsUnixTime)
-	logMsg := LogMsgShownForLogTime(logTime, time.Now())
-
-	totalQuantitySold := 0
-	for _, si := range soldItemsAsJson.Items {
-		totalQuantitySold += si.Quantity
-	}
-
-	htmlTable := fmt.Sprintf(`
-	<table border=1 cellpadding=5>
-	<caption>
-	<u><h1>%s</h1></u>
-	<u><h3>%s</h3></u>
-	</caption>
-	<thead>
-	<tr bgcolor=#838468>
-
-	<th><font color='#000000'> Bill# </font></th>
-	<th><font color='#000000'> Model </font></th>
-	<th><font color='#000000'> Qty </font></th>
-	<th><font color='#000000'> Rate </font></th>
-	<th><font color='#000000'> Amount </font></th>
-	<th><font color='#000000'> Company </font></th>
-	</tr>
-	</thead>
-	<tfoot>
-	<tr>
-	<td colspan=2>Total:</td>
-	<td colspan=4><font color="#DD472F"><b>%v</b></font></td>
-	</tr>
-	</tfoot>
-	`,
-		logDateDDMMYY,
-		logMsg,
-		totalQuantitySold,
-	)
-
-	for _, si := range soldItemsAsJson.Items {
-		htmlTable +=
-			fmt.Sprintf(`
-		<tr>
-		<td>%s</td>
-		<td>%s</td>
-		<td>%d</td>
-		<td>%d</td>
-		<td>%d</td>
-		<td>%s</td>
-		</tr>`, si.BillNumber, si.ModelName, si.Quantity, si.Rate, si.Amount, si.CustomerName)
-	}
-	htmlTable += "</table>"
-
-	finalHTML := fmt.Sprintf("<html><head></head><body>%s</body></html>", htmlTable)
-
-	bccAddr := Reverse("moc.liamg@dnanatodhsihsa")
-	toAddr := ""
-	if IsLocalHostedOrOnDevBranch(r) {
-		toAddr = Reverse("moc.liamg@dnanatodhsihsa")
-	} else {
-		toAddr = Reverse("moc.liamg@ztigihba")
-	}
-
-	c := appengine.NewContext(r)
-	u := user.Current(c)
-	msg := &mail.Message{
-		Sender:   u.String() + "<" + u.Email + ">",
-		To:       []string{toAddr},
-		Bcc:      []string{bccAddr},
-		Subject:  fmt.Sprintf("%s: %v pc sold [SEWPULSE][RRKDS]", logDateDDMMYY, totalQuantitySold),
-		HTMLBody: finalHTML,
-	}
-
-	if err := mail.Send(c, msg); err != nil {
-		c.Errorf("Couldn't send email: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	return
 }
 
 func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {

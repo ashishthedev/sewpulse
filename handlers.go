@@ -75,6 +75,10 @@ func initRootUrlMaps() {
 			handler:      generalPageHandler,
 			templatePath: "templates/gzb_daily_cash.html",
 		},
+		"/gzb/daily-sale": urlStruct{
+			handler:      generalPageHandler,
+			templatePath: "templates/gzb_daily_sale.html",
+		},
 		"/rrk/daily-polish": urlStruct{
 			handler:      generalPageHandler,
 			templatePath: "templates/rrk_daily_polish.html",
@@ -86,10 +90,6 @@ func initRootUrlMaps() {
 		"/rrk/daily-sale": urlStruct{
 			handler:      generalPageHandler,
 			templatePath: "templates/rrk_daily_sale.html",
-		},
-		"/rrk/daily-sale-old": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/rrk_daily_sale_old.html",
 		},
 		"/rrk": urlStruct{
 			handler:      generalPageHandler,
@@ -147,6 +147,12 @@ func initRootApiMaps() {
 		"/api/gzbDailyCashSettleAccForOneEntryApi": apiStruct{
 			handler: gzbDailyCashSettleAccForOneEntryApiHandler,
 		},
+		"/api/gzbDailySaleEmailSendApi": apiStruct{
+			handler: gzbDailySaleEmailSendApiHandler,
+		},
+		"/api/gzbGetModelApi": apiStruct{
+			handler: gzbGetModelApiHandler,
+		},
 		"/gzb/update": apiStruct{
 			handler: gzbDailyCashUpdateModelApiHandler,
 		},
@@ -155,9 +161,6 @@ func initRootApiMaps() {
 		},
 		"/api/rrkDailyAssemblyEmailSendApi": apiStruct{
 			handler: rrkDailyAssemblyEmailSendApiHandler,
-		},
-		"/api/rrkDailySaleEmailSendApiOld": apiStruct{
-			handler: rrkDailySaleEmailSendApiHandlerOld,
 		},
 		"/api/rrkDailySaleEmailSendApi": apiStruct{
 			handler: rrkDailySaleEmailSendApiHandler,
