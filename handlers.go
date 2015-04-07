@@ -27,78 +27,25 @@ const API_BOM_MODEL_END = "/api/bom/model"
 
 func initRootUrlMaps() {
 	urlMaps := map[string]urlStruct{
-		"/": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/home.html",
-		},
-		"/a": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/admin.html",
-		},
-		"/a/gzb": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/gzb_admin.html",
-		},
-		"/a/bom": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/bom_admin.html",
-		},
-		"/a/bom/view": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/bom_view.html",
-		},
-		"/a/bom/new-model": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/create_model.html",
-		},
-		"/a/bom/new-article": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/create_article.html",
-		},
-		"/a/gzb/view-unsettled-advance": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/gzb_admin_view_unsettled_advance.html",
-		},
-		"/a/rrk": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/rrk_admin.html",
-		},
-		"/a/rrk/view-unsettled-advance": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/admin/rrk_admin_view_unsettled_advance.html",
-		},
-		"/gzb": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/gzb.html",
-		},
-		"/gzb/daily-cash": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/gzb_daily_cash.html",
-		},
-		"/gzb/daily-sale": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/gzb_daily_sale.html",
-		},
-		"/rrk/daily-polish": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/rrk_daily_polish.html",
-		},
-		"/rrk/daily-assembly": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/rrk_daily_assembly.html",
-		},
-		"/rrk/daily-sale": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/rrk_daily_sale.html",
-		},
-		"/rrk": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/rrk.html",
-		},
-		"/rrk/daily-cash": urlStruct{
-			handler:      generalPageHandler,
-			templatePath: "templates/rrk_daily_cash.html",
-		},
+		"/":                             {generalPageHandler, "templates/home.html"},
+		"/a":                            {generalPageHandler, "templates/admin/admin.html"},
+		"/a/gzb":                        {generalPageHandler, "templates/admin/gzb_admin.html"},
+		"/a/bom":                        {generalPageHandler, "templates/admin/bom_admin.html"},
+		"/a/bom/view":                   {generalPageHandler, "templates/admin/bom_view.html"},
+		"/a/bom/new-model":              {generalPageHandler, "templates/admin/create_model.html"},
+		"/a/bom/new-article":            {generalPageHandler, "templates/admin/create_article.html"},
+		"/a/gzb/view-unsettled-advance": {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
+		"/a/rrk":                        {generalPageHandler, "templates/admin/rrk_admin.html"},
+		"/a/rrk/view-unsettled-advance": {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
+		"/gzb":                          {generalPageHandler, "templates/gzb.html"},
+		"/gzb/daily-cash":               {generalPageHandler, "templates/gzb_daily_cash.html"},
+		"/gzb/daily-mfg-sale":           {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
+		"/gzb/daily-trading-sale":       {generalPageHandler, "templates/gzb_daily_trading_sale.html"},
+		"/rrk/daily-polish":             {generalPageHandler, "templates/rrk_daily_polish.html"},
+		"/rrk/daily-assembly":           {generalPageHandler, "templates/rrk_daily_assembly.html"},
+		"/rrk/daily-sale":               {generalPageHandler, "templates/rrk_daily_sale.html"},
+		"/rrk":                          {generalPageHandler, "templates/rrk.html"},
+		"/rrk/daily-cash":               {generalPageHandler, "templates/rrk_daily_cash.html"},
 	}
 
 	for path, urlBlob := range urlMaps {
@@ -114,78 +61,31 @@ func initRootUrlMaps() {
 
 func initRootApiMaps() {
 	apiMaps := map[string]apiStruct{
-		"/api/bom/reset": apiStruct{
-			handler: bomResetAPIHandler,
-		},
-		"/api/bom/resetToSampleBOM": apiStruct{
-			handler: bomResetToSampleState,
-		},
-		API_BOM_MODEL_END: apiStruct{
-			handler: bomModelWithoutSlashAPIHandler,
-		},
-		API_BOM_MODEL_SLASH_END: apiStruct{
-			handler: bomModelWithSlashAPIHandler,
-		},
-		API_BOM_ARTICLE_END: apiStruct{
-			handler: bomArticleWithoutSalshAPIHandler,
-		},
-		API_BOM_ARTICLE_SLASH_END: apiStruct{
-			handler: bomArticleWithSlashAPIHandler,
-		},
-		"/api/bom": apiStruct{
-			handler: bomAPIHandler,
-		},
-		"/api/gzbCashBookStoreAndEmailApi": apiStruct{
-			handler: gzbCashBookStoreAndEmailApiHandler,
-		},
-		"/api/gzbDailyCashOpeningBalanceApi": apiStruct{
-			handler: gzbDailyCashGetOpeningBalanceHandler,
-		},
-		"/api/gzbDailyCashGetUnsettledAdvancesApi": apiStruct{
-			handler: gzbDailyCashGetUnsettledAdvancesHandler,
-		},
-		"/api/gzbDailyCashSettleAccForOneEntryApi": apiStruct{
-			handler: gzbDailyCashSettleAccForOneEntryApiHandler,
-		},
-		"/api/gzbDailySaleEmailSendApi": apiStruct{
-			handler: gzbDailySaleEmailSendApiHandler,
-		},
-		"/api/gzbGetModelApi": apiStruct{
-			handler: gzbGetModelApiHandler,
-		},
-		"/gzb/update": apiStruct{
-			handler: gzbDailyCashUpdateModelApiHandler,
-		},
-		"/api/rrkDailyPolishEmailSendApi": apiStruct{
-			handler: rrkDailyPolishEmailSendApiHandler,
-		},
-		"/api/rrkDailyAssemblyEmailSendApi": apiStruct{
-			handler: rrkDailyAssemblyEmailSendApiHandler,
-		},
-		"/api/rrkDailySaleEmailSendApi": apiStruct{
-			handler: rrkDailySaleEmailSendApiHandler,
-		},
-		"/api/rrkGetModelApi": apiStruct{
-			handler: rrkGetModelApiHandler,
-		},
-		"/api/rrkAddModelNameApi": apiStruct{
-			handler: rrkAddModelNameApiHandler,
-		},
-		"/api/rrkCashBookStoreAndEmailApi": apiStruct{
-			handler: rrkCashBookStoreAndEmailApiHandler,
-		},
-		"/api/rrkDailyCashOpeningBalanceApi": apiStruct{
-			handler: rrkDailyCashGetOpeningBalanceHandler,
-		},
-		"/api/rrkDailyCashGetUnsettledAdvancesApi": apiStruct{
-			handler: rrkDailyCashGetUnsettledAdvancesHandler,
-		},
-		"/api/rrkDailyCashSettleAccForOneEntryApi": apiStruct{
-			handler: rrkDailyCashSettleAccForOneEntryApiHandler,
-		},
-		"/rrk/update": apiStruct{
-			handler: rrkDailyCashUpdateModelApiHandler,
-		},
+		"/api/bom/reset":                           {bomResetAPIHandler},
+		"/api/bom/resetToSampleBOM":                {bomResetToSampleState},
+		API_BOM_MODEL_END:                          {bomModelWithoutSlashAPIHandler},
+		API_BOM_MODEL_SLASH_END:                    {bomModelWithSlashAPIHandler},
+		API_BOM_ARTICLE_END:                        {bomArticleWithoutSalshAPIHandler},
+		API_BOM_ARTICLE_SLASH_END:                  {bomArticleWithSlashAPIHandler},
+		"/api/bom":                                 {bomAPIHandler},
+		"/api/gzbCashBookStoreAndEmailApi":         {gzbCashBookStoreAndEmailApiHandler},
+		"/api/gzbDailyCashOpeningBalanceApi":       {gzbDailyCashGetOpeningBalanceHandler},
+		"/api/gzbDailyCashGetUnsettledAdvancesApi": {gzbDailyCashGetUnsettledAdvancesHandler},
+		"/api/gzbDailyCashSettleAccForOneEntryApi": {gzbDailyCashSettleAccForOneEntryApiHandler},
+		"/api/gzbDailyMfgSaleEmailSendApi":         {gzbDailyMfgSaleEmailSendApiHandler},
+		"/api/gzbDailyTradingSaleEmailSendApi":     {gzbDailyTradingSaleEmailSendApiHandler},
+		"/api/gzbGetModelApi":                      {gzbGetModelApiHandler},
+		"/gzb/update":                              {gzbDailyCashUpdateModelApiHandler},
+		"/api/rrkDailyPolishEmailSendApi":          {rrkDailyPolishEmailSendApiHandler},
+		"/api/rrkDailyAssemblyEmailSendApi":        {rrkDailyAssemblyEmailSendApiHandler},
+		"/api/rrkDailySaleEmailSendApi":            {rrkDailySaleEmailSendApiHandler},
+		"/api/rrkGetModelApi":                      {rrkGetModelApiHandler},
+		"/api/rrkAddModelNameApi":                  {rrkAddModelNameApiHandler},
+		"/api/rrkCashBookStoreAndEmailApi":         {rrkCashBookStoreAndEmailApiHandler},
+		"/api/rrkDailyCashOpeningBalanceApi":       {rrkDailyCashGetOpeningBalanceHandler},
+		"/api/rrkDailyCashGetUnsettledAdvancesApi": {rrkDailyCashGetUnsettledAdvancesHandler},
+		"/api/rrkDailyCashSettleAccForOneEntryApi": {rrkDailyCashSettleAccForOneEntryApiHandler},
+		"/rrk/update":                              {rrkDailyCashUpdateModelApiHandler},
 	}
 	for path, apiBlob := range apiMaps {
 		http.HandleFunc(path, apiBlob.handler)

@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>GZB Daily Sale</title>
+    <title>GZB Daily Trading Sale </title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/js/script.js"></script>
 
@@ -25,7 +25,7 @@
       debug = true;
       debug = false;
 
-      appMod.controller('GZBDailySaleCtrl', ['$scope', '$http', function($scope, $http) {
+      appMod.controller('GZBDailyTradingSaleCtrl', ['$scope', '$http', function($scope, $http) {
 
         $scope.DateChanged = function() {
           var today = new Date();
@@ -37,7 +37,7 @@
 
         $scope.submitTodaysLog = function() {
           $scope.statusNote = "Submitting...";
-          var api = "/api/gzbDailySaleEmailSendApi";
+          var api = "/api/gzbDailyTradingSaleEmailSendApi";
           $scope.SaleInvoice.JSDateValueAsSeconds = Math.floor($scope.SaleInvoice.JSDateValue.getTime()/1000);
           var postData = $scope.SaleInvoice;
 
@@ -132,10 +132,10 @@
     </script>
   </head>
 
-  <body ng-app="SEWPulseApp" ng-controller="GZBDailySaleCtrl">
+  <body ng-app="SEWPulseApp" ng-controller="GZBDailyTradingSaleCtrl">
     <div class="well">
       <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
-      <h1 class="text-center">GZB Daily Sale</h1>
+      <h1 class="text-center">GZB Daily Trading Sale</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
