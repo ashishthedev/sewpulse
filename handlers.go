@@ -39,17 +39,17 @@ func initRootUrlMaps() {
 		"/a/bom/new-article":            {generalPageHandler, "templates/admin/create_article.html"},
 		"/a/gzb/view-unsettled-advance": {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
 		"/a/rrk":                        {generalPageHandler, "templates/admin/rrk_admin.html"},
-		"/a/rrk/all-sale-bills":         {generalPageHandler, "templates/admin/rrk_all_sale_bills.html"},
+		"/a/rrk/all-sale-invoices":      {generalPageHandler, "templates/admin/rrk_all_sale_invoices.html"},
 		"/a/rrk/view-unsettled-advance": {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
-		"/gzb":                          {generalPageHandler, "templates/gzb.html"},
-		"/gzb/daily-cash":               {generalPageHandler, "templates/gzb_daily_cash.html"},
-		"/gzb/daily-mfg-sale":           {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
-		"/gzb/daily-trading-sale":       {generalPageHandler, "templates/gzb_daily_trading_sale.html"},
 		"/rrk/daily-polish":             {generalPageHandler, "templates/rrk_daily_polish.html"},
 		"/rrk/daily-assembly":           {generalPageHandler, "templates/rrk_daily_assembly.html"},
 		"/rrk/daily-sale":               {generalPageHandler, "templates/rrk_daily_sale.html"},
 		"/rrk":                          {generalPageHandler, "templates/rrk.html"},
 		"/rrk/daily-cash":               {generalPageHandler, "templates/rrk_daily_cash.html"},
+		"/gzb":                          {generalPageHandler, "templates/gzb.html"},
+		"/gzb/daily-cash":               {generalPageHandler, "templates/gzb_daily_cash.html"},
+		"/gzb/daily-mfg-sale":           {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
+		"/gzb/daily-trading-sale":       {generalPageHandler, "templates/gzb_daily_trading_sale.html"},
 	}
 
 	for path, urlBlob := range urlMaps {
@@ -60,6 +60,7 @@ func initRootUrlMaps() {
 	for path, urlBlob := range urlMaps {
 		http.HandleFunc(path, urlBlob.handler)
 	}
+	http.HandleFunc("/rrk/saleinvoice/", singleInvoiceHandler)
 	return
 }
 
@@ -110,6 +111,15 @@ func generalPageHandler(w http.ResponseWriter, r *http.Request) {
 		t = PAGE_NOT_FOUND_TEMPLATE
 	}
 
+	if err := t.Execute(w, nil); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	return
+}
+
+func singleInvoiceHandler(w http.ResponseWriter, r *http.Request) {
+	t := template.Must(template.ParseFiles("templates/rrk_sale_invoice.html"))
 	if err := t.Execute(w, nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

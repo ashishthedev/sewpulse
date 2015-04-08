@@ -22,19 +22,18 @@
     <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
     <script>
       var appMod = angular.module('SEWPulseApp', ['bomServices']);
+      appMod.config(function($interpolateProvider) {
+        $interpolateProvider.startSymbol('||');
+        $interpolateProvider.endSymbol('||');
+      });
+
 
       appMod.controller('RRKSaleInvoiceCtrl', ['$scope', 'RRKSaleInvoice', function($scope, RRKSaleInvoice) {
         function FetchRRKSaleInvoices(){
           $scope.statusNote = "Fetching RRK Sale Invoices...";
           RRKSaleInvoice.query(function(data){
             $scope.statusNote = "";
-            alert(data);
-            if (data == null){
-              $scope.rrkSIS = [];
-            } else
-            {
               $scope.rrkSIS = data;
-            }
             }, function(error){
             alert(data);
             $scope.statusNote = error.status + ": " + error.data;
@@ -54,7 +53,7 @@
     </div>
     <div class="container-fluid">
       <li ng-repeat="si in rrkSIS">
-      <span ng-bind="si.DD_MMM_YY"></span> <span ng-bind="si.Number"></span> <span ng-bind="si.CustomerName">
+      <span ng-bind="si.DD_MMM_YY"></span> <span ng-bind="si.Number"></span> <span ng-bind="si.CustomerName"></span> <a ng-href="/rrk/saleinvoice/||si.UID||">Edit</a>
       </li>
     </div> <!-- container -->
   </body>
