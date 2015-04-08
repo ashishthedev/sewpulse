@@ -25,6 +25,9 @@ const API_BOM_ARTICLE_END = "/api/bom/article"
 const API_BOM_MODEL_SLASH_END = "/api/bom/model/"
 const API_BOM_MODEL_END = "/api/bom/model"
 
+const API_RRK_SALE_INVOICE_SALSH_END = "/api/rrk/saleInvoice/"
+const API_RRK_SALE_INVOICE_END = "/api/rrk/saleInvoice"
+
 func initRootUrlMaps() {
 	urlMaps := map[string]urlStruct{
 		"/":                             {generalPageHandler, "templates/home.html"},
@@ -36,6 +39,7 @@ func initRootUrlMaps() {
 		"/a/bom/new-article":            {generalPageHandler, "templates/admin/create_article.html"},
 		"/a/gzb/view-unsettled-advance": {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
 		"/a/rrk":                        {generalPageHandler, "templates/admin/rrk_admin.html"},
+		"/a/rrk/all-sale-bills":         {generalPageHandler, "templates/admin/rrk_all_sale_bills.html"},
 		"/a/rrk/view-unsettled-advance": {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
 		"/gzb":                          {generalPageHandler, "templates/gzb.html"},
 		"/gzb/daily-cash":               {generalPageHandler, "templates/gzb_daily_cash.html"},
@@ -78,7 +82,8 @@ func initRootApiMaps() {
 		"/gzb/update":                              {gzbDailyCashUpdateModelApiHandler},
 		"/api/rrkDailyPolishEmailSendApi":          {rrkDailyPolishEmailSendApiHandler},
 		"/api/rrkDailyAssemblyEmailSendApi":        {rrkDailyAssemblyEmailSendApiHandler},
-		"/api/rrkDailySaleEmailSendApi":            {rrkDailySaleEmailSendApiHandler},
+		"/api/rrk/saleInvoice":                     {rrkSaleInvoiceApiHandler},
+		API_RRK_SALE_INVOICE_SALSH_END:             {rrkSaleInvoiceWithSalshApiHandler},
 		"/api/rrkGetModelApi":                      {rrkGetModelApiHandler},
 		"/api/rrkAddModelNameApi":                  {rrkAddModelNameApiHandler},
 		"/api/rrkCashBookStoreAndEmailApi":         {rrkCashBookStoreAndEmailApiHandler},

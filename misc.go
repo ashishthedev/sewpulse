@@ -133,18 +133,23 @@ func CMN_SEWNewKey(kind string, stringId string, numericID int64, r *http.Reques
 	return _SEWNewKey(kind, COMMON_PREFIX+stringId, numericID, r)
 }
 
-func toJson(i interface{}) []byte {
-	data, err := json.Marshal(i)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(fmt.Sprintf("ToJson() %v ==> %v", i, data))
-	return data
+func WriteJson(w *http.ResponseWriter, i interface{}) error {
+	return json.NewEncoder(*w).Encode(i)
 }
 
 func fromJson(v []byte, vv interface{}) error {
-	err := json.Unmarshal(v, vv)
-	fmt.Println(fmt.Sprintf("FromJson() %v ==> %v", v, vv))
-	return err
+	return json.Unmarshal(v, vv)
+}
+
+func RemoveDuplicates(xs *[]string) {
+	found := make(map[string]bool)
+	j := 0
+	for i, x := range *xs {
+		if !found[x] {
+			found[x] = true
+			(*xs)[j] = (*xs)[i]
+			j++
+		}
+	}
+	*xs = (*xs)[:j]
 }

@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <title>RRK Sale Bills</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
+
+      appMod.controller('RRKSaleInvoiceCtrl', ['$scope', 'RRKSaleInvoice', function($scope, RRKSaleInvoice) {
+        function FetchRRKSaleInvoices(){
+          $scope.statusNote = "Fetching RRK Sale Invoices...";
+          RRKSaleInvoice.query(function(data){
+            $scope.statusNote = "";
+            alert(data);
+            if (data == null){
+              $scope.rrkSIS = [];
+            } else
+            {
+              $scope.rrkSIS = data;
+            }
+            }, function(error){
+            alert(data);
+            $scope.statusNote = error.status + ": " + error.data;
+          });
+        }
+
+        FetchRRKSaleInvoices();
+      }]);
+
+    </script>
+  </head>
+  <body ng-app="SEWPulseApp" ng-controller="RRKSaleInvoiceCtrl">
+    <div class="well">
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+     <h1 class="text-center">RRK Sale Invoices</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <li ng-repeat="si in rrkSIS">
+      <span ng-bind="si.DD_MMM_YY"></span> <span ng-bind="si.Number"></span> <span ng-bind="si.CustomerName">
+      </li>
+    </div> <!-- container -->
+  </body>
+</html>

@@ -2,6 +2,8 @@
   <head>
     <title>Roorkee Daily Sale</title>
     <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
     <script src="/static/js/script.js"></script>
 
     <!-- Standard Favicon -->
@@ -20,12 +22,12 @@
     <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
     <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
     <script>
-      var appMod = angular.module('SEWPulseApp', []);
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
       var debug;
-      debug = true;
       debug = false;
+      debug = true;
 
-      appMod.controller('RRKDailySaleCtrl', ['$scope', '$http', function($scope, $http) {
+      appMod.controller('RRKDailySaleCtrl', ['$scope', 'Model', 'RRKSaleInvoice', function($scope, Model, RRKSaleInvoice) {
 
         $scope.DateChanged = function() {
           var today = new Date();
@@ -37,99 +39,91 @@
 
         $scope.submitTodaysLog = function() {
           $scope.statusNote = "Submitting...";
-          var api = "/api/rrkDailySaleEmailSendApi";
           $scope.SaleInvoice.JSDateValueAsSeconds = Math.floor($scope.SaleInvoice.JSDateValue.getTime()/1000);
-          var postData = $scope.SaleInvoice;
-
-          $http.post(api, postData).success(function(data, status, headers, config) {
-            //if (true){
-              if (debug){
-                alert("TODO: Remove this");
-                $scope.statusNote = "Posted";
-                $scope.isLogSubmitted = false;
-                } else{
-                $scope.statusNote = "";
-                $scope.isLogSubmitted = true;
-              }
-
-              }).error(function(data, status, headers, config){
-              $scope.statusNote = status + ": " + data;
+          RRKSaleInvoice.save($scope.SaleInvoice, function(data){
+          $scope.statusNote = "Submitting...";
+            if (debug){
+              alert("TODO: Remove this");
+              $scope.statusNote = "Posted";
               $scope.isLogSubmitted = false;
-            });
-          }
-
-          function FetchModelsFromServer() {
-            $scope.statusNote = "Fetching model set...";
-            var api = "/api/rrkGetModelApi";
-            var postData = {};
-
-            $http.post(api, postData).success(function(data, status, headers, config) {
+              } else{
               $scope.statusNote = "";
-              $scope.models = data.ModelNames;
-              console.log("data.ModelNames : "+ data.ModelNames)
-              if($scope.models.length === 0) {
-                $scope.models[0] = "No model exists. Please create one.";
-              }
-              }).error(function(data, status, headers, config) {
-              $scope.statusNote = status + ": " + data;
-            });
-          }
-
-          $scope.UpdateOrphan = function () {
-            $scope.orphan.value = $scope.orphan.Rate * $scope.orphan.Quantity;
-          }
-
-          $scope.RemoveItem = function(index) {
-            $scope.SaleInvoice.Items.splice(index, 1);
-            $scope.ReCalculateInvoiceGT();
-          }
-          $scope.AddOrphan = function() {
-            var items = $scope.SaleInvoice.Items;
-            var l = items.length;
-            var newItem = {};
-            newItem.Name = $scope.orphan.Name;
-            newItem.Quantity = $scope.orphan.Quantity;
-            newItem.Rate = $scope.orphan.Rate;
-            items.splice(l, 0, angular.copy(newItem));
-            $scope.ReCalculateInvoiceGT();
-            $scope.orphan = {};
-          }
-
-          $scope.ReCalculateInvoiceGT = function() {
-            var si = $scope.SaleInvoice;
-            var items = si.Items;
-            var l = items.length;
-            var gt = 0;
-            var gv = 0;
-            for (var i = 0; i<l; i++){
-              var item = items[i];
-              gv += item.Rate * item.Quantity;
+              $scope.isLogSubmitted = true;
             }
-            gt += gv;
-            gt += si.TotalFreight;
-            gt += si.TotalTax;
-            $scope.SaleInvoice.GrandTotal = gt;
-            $scope.SaleInvoice.GoodsValue = gv;
-            return;
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+            $scope.isLogSubmitted = false;
+          });
+        }
+
+        function FetchModelsFromServer() {
+          $scope.statusNote = "Fetching model set...";
+          Model.query(function(data){
+            $scope.models = data;
+            console.log("Models: " + $scope.models);
+            if($scope.models.length === 0) {
+              $scope.models[0] = "No model exists. Please create one.";
+            }
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+          });
+        }
+
+        $scope.UpdateOrphanCalc = function () {
+          $scope.orphan.value = $scope.orphan.Rate * $scope.orphan.Quantity;
+        }
+
+        $scope.RemoveItem = function(index) {
+          $scope.SaleInvoice.Items.splice(index, 1);
+          $scope.ReCalculateInvoiceGT();
+        }
+
+        $scope.AddOrphan = function() {
+          var items = $scope.SaleInvoice.Items;
+          var l = items.length;
+          var newItem = {};
+          newItem.Name = $scope.orphan.Model.Name;
+          newItem.Quantity = $scope.orphan.Quantity;
+          newItem.Rate = $scope.orphan.Rate;
+          items.splice(l, 0, angular.copy(newItem));
+          $scope.ReCalculateInvoiceGT();
+          $scope.orphan = {};
+        }
+
+        $scope.ReCalculateInvoiceGT = function() {
+          var si = $scope.SaleInvoice;
+          var items = si.Items;
+          var l = items.length;
+          var gt = 0;
+          var gv = 0;
+          for (var i = 0; i<l; i++){
+            var item = items[i];
+            gv += item.Rate * item.Quantity;
           }
+          gt += gv;
+          gt += si.TotalFreight;
+          gt += si.TotalTax;
+          $scope.SaleInvoice.GrandTotal = gt;
+          $scope.SaleInvoice.GoodsValue = gv;
+          return;
+        }
 
-          $scope.SaleInvoice = {};
-          $scope.SaleInvoice.Items = [];
-          $scope.SaleInvoice.JSDateValue =  new Date();
-          $scope.SaleInvoice.TotalTax = 0;
-          $scope.SaleInvoice.TotalFreight = 0;
-          $scope.DateChanged();
-          $scope.statusNote = "";
-          $scope.isLogSubmitted = false;
-          FetchModelsFromServer();
-          if(debug == true) {
+        $scope.SaleInvoice = {};
+        $scope.SaleInvoice.Items = [];
+        $scope.SaleInvoice.JSDateValue =  new Date();
+        $scope.SaleInvoice.TotalTax = 0;
+        $scope.SaleInvoice.TotalFreight = 0;
+        $scope.DateChanged();
+        $scope.statusNote = "";
+        $scope.isLogSubmitted = false;
+        FetchModelsFromServer();
+        if(debug == true) {
+          $scope.SaleInvoice.Number="111";
+          $scope.tempGrandTotal = 3;
+          $scope.SaleInvoice.CustomerName = "Rancho";
+        }
 
-            $scope.SaleInvoice.Number="111";
-            $scope.tempGrandTotal = 3;
-            $scope.SaleInvoice.CustomerName = "Rancho";
-          }
-
-        }]);
+      }]);
     </script>
   </head>
 
@@ -206,18 +200,18 @@
           </div>
           <div class="row">
             <span class="col-sm-3 col-xs-6">
-              <select class="form-control" ng-options="model for model in models" ng-model="orphan.Name"></select>
+              <select class="form-control" ng-options="k for (k, model) in models" ng-model="orphan.Model"></select>
             </span>
             <span class="col-sm-2 col-xs-6">
               <span class="input-group">
                 <span class="input-group-addon">Qty#</span>
-                <input required class="form-control" title="Quantity" type="number" ng-model="orphan.Quantity" ng-change="UpdateOrphan()" />
+                <input required class="form-control" title="Quantity" type="number" ng-model="orphan.Quantity" ng-change="UpdateOrphanCalc()" />
               </span>
             </span>
             <span class="col-sm-2 col-xs-6">
               <span class="input-group">
                 <span class="input-group-addon">Rate &#8377;</span>
-                <input required class="form-control" title="Rate" type="number" ng-model="orphan.Rate" ng-change="UpdateOrphan()" />
+                <input required class="form-control" title="Rate" type="number" ng-model="orphan.Rate" ng-change="UpdateOrphanCalc()" />
               </span>
             </span>
             <span class="col-sm-3 col-xs-6">
@@ -226,7 +220,7 @@
                 <input readonly  class="form-control" type="number" ng-model=orphan.value />
               </span>
             </span>
-            <span class="col-sm-2 col-xs-6" ng-show="orphan.Name && orphan.Rate && orphan.Quantity">
+            <span class="col-sm-2 col-xs-6" ng-show="orphan.Model.Name && orphan.Rate && orphan.Quantity">
               <button class="form-control btn-success" ng-click="AddOrphan()">Add</button>
             </span>
           </div>

@@ -79,8 +79,8 @@ func rrkDailyCashUpdateModelApiHandler(w http.ResponseWriter, r *http.Request) {
 		cashk := RRKCashRollingCounterKey(r)
 		oldE := new(oldCashGAERollingCounter)
 
-		if err := datastore.Get(c, cashk, oldE); err != nil {
-			return err
+		if err1 := datastore.Get(c, cashk, oldE); err1 != nil {
+			return err1
 		}
 
 		e := new(CashGAERollingCounter)
@@ -88,8 +88,8 @@ func rrkDailyCashUpdateModelApiHandler(w http.ResponseWriter, r *http.Request) {
 		e.DateOfTransactionAsUnixTime = oldE.DateOfTransactionAsUTC
 		e.SetByUserName = oldE.SetByUserName
 
-		if _, err := datastore.Put(c, cashk, e); err != nil {
-			return err
+		if _, err1 := datastore.Put(c, cashk, e); err1 != nil {
+			return err1
 		}
 
 		type OldCashTransaction struct {
@@ -105,20 +105,20 @@ func rrkDailyCashUpdateModelApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		unsAdvk := RRKUnsettledAdvancesKey(r)
-		olde, err := func(r *http.Request) (*OldRRKUnsettledAdvances, error) {
+		olde, err1 := func(r *http.Request) (*OldRRKUnsettledAdvances, error) {
 			olde := new(OldRRKUnsettledAdvances)
-			if err := datastore.Get(c, unsAdvk, olde); err != nil {
-				if err == datastore.ErrNoSuchEntity {
+			if err1 := datastore.Get(c, unsAdvk, olde); err1 != nil {
+				if err1 == datastore.ErrNoSuchEntity {
 					olde.Items = []OldCashTransaction{}
 					return olde, nil
 				}
-				return olde, err
+				return olde, err1
 			}
 			return olde, nil
 		}(r)
 
-		if err != nil {
-			return err
+		if err1 != nil {
+			return err1
 		}
 
 		newe := new(RRKUnsettledAdvances)

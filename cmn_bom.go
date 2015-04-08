@@ -52,6 +52,17 @@ func bomModelWithSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 }
 func bomModelWithoutSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case "GET":
+		bom, err := GetOrCreateBOMFromDS(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(bom.Models); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		return
 	case "POST":
 		newMod, err := ExtractModelFromRequest(r)
 		if err != nil {

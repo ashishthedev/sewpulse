@@ -5,6 +5,7 @@ import (
 	"appengine/datastore"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -109,4 +110,17 @@ func (bom *BOM) String() string {
 		}
 	}
 	return s
+}
+func GetModelWithName(r *http.Request, modelName string) (Model, error) {
+	bom, err := GetOrCreateBOMFromDS(r)
+	if err != nil {
+		return Model{}, err
+	}
+	for _, model := range bom.Models {
+		if model.Name == modelName {
+			return model, nil
+		}
+	}
+	return Model{}, errors.New("No model exists with name: " + modelName)
+
 }

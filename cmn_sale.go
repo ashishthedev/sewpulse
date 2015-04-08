@@ -5,9 +5,11 @@ import (
 )
 
 type InvoiceItem struct {
-	Name     string
-	Rate     float64
-	Quantity int
+	Name      string
+	Rate      float64
+	Quantity  int
+	ModelVal  Model `datastore:"-"`
+	ModelJSON []byte
 }
 
 type SaleInvoice struct {
@@ -21,4 +23,6 @@ type SaleInvoice struct {
 	TotalTax             float64
 	TotalFreight         float64
 	Remarks              string
+	UID                  string
+	DD_MMM_YY            string
 }
