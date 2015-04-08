@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <title>Roorkee Sale Invoice</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
+    <script src="/static/js/script.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
+      appMod.config(function($interpolateProvider) {
+        $interpolateProvider.startSymbol('||');
+        $interpolateProvider.endSymbol('||');
+      });
+
+      var debug;
+      debug = false;
+      debug = true;
+
+      appMod.controller('RRKSaleInvoiceCtrl', ['$scope', 'Model', 'RRKSaleInvoice', function($scope, Model, RRKSaleInvoice) {
+
+        function FetchInvoiceWithIDInAddressBar() {
+          $scope.statusNote = "Fetching RRK Sale Invoice ...";
+          $scope.invoiceIDFromAddBar = document.location.href.split('/').pop();
+          RRKSaleInvoice.get({id: $scope.invoiceIDFromAddBar}, function(data){
+            $scope.statusNote = "";
+            $scope.si = data;
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+          });
+        }
+
+        FetchInvoiceWithIDInAddressBar();
+      }]);
+    </script>
+  </head>
+
+  <body ng-app="SEWPulseApp" ng-controller="RRKSaleInvoiceCtrl">
+    <div class="well">
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+      <h1 class="text-center">RRK Sale Invoice</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <div class="panel">
+        <div class="panel-heading">
+          <strong>||si.CustomerName||</strong>
+        </div>
+        <div class="panel-content">
+          <table class="table">
+            <tr><td>Invoice#</td><td>||si.Number||</td></tr>
+            <tr><td>Invoice Date</td><td>||si.DD_MMM_YY||</td></tr>
+          </table>
+        </div>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>
