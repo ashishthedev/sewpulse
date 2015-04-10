@@ -18,7 +18,7 @@ func gzbDailyTradingSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Reque
 		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	var si SaleInvoice
+	var si GZBSaleInvoice
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&si); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -26,7 +26,6 @@ func gzbDailyTradingSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	si.DateValue = time.Unix(si.JSDateValueAsSeconds, 0)
-	myDebug(r, fmt.Sprintf("%#", si))
 
 	if err := SendMailForGZBTradingSaleInvoice(&si, r); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -57,7 +56,7 @@ func gzbDailyMfgSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	var si SaleInvoice
+	var si GZBSaleInvoice
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&si); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -65,7 +64,6 @@ func gzbDailyMfgSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	si.DateValue = time.Unix(si.JSDateValueAsSeconds, 0)
-	myDebug(r, fmt.Sprintf("%#", si))
 
 	if err := SendMailForGZBMfgSaleInvoice(&si, r); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -73,7 +71,7 @@ func gzbDailyMfgSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func SendMailForGZBMfgSaleInvoice(si *SaleInvoice, r *http.Request) (err error) {
+func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err error) {
 	siDateAsDDMMYYYY := DDMMYYFromGoTime(si.DateValue)
 
 	totalQuantitySold := 0
@@ -171,7 +169,7 @@ func SendMailForGZBMfgSaleInvoice(si *SaleInvoice, r *http.Request) (err error) 
 	}
 	return nil
 }
-func SendMailForGZBTradingSaleInvoice(si *SaleInvoice, r *http.Request) (err error) {
+func SendMailForGZBTradingSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err error) {
 	siDateAsDDMMYYYY := DDMMYYFromGoTime(si.DateValue)
 
 	totalQuantitySold := 0

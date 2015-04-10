@@ -43,7 +43,6 @@ func rrkSaleInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		myDebug(r, fmt.Sprintf("About to return:\n%#v", sis))
 		if err := WriteJson(&w, sis); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -51,7 +50,7 @@ func rrkSaleInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case "POST":
-		var si SaleInvoice
+		var si RRKSaleInvoice
 		if err := json.NewDecoder(r.Body).Decode(&si); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -83,8 +82,8 @@ func RRKSaleInvoiceKey(r *http.Request, siUID string) *datastore.Key {
 	return RRK_SEWNewKey("RRKSaleInvoice", siUID, 0, r)
 }
 
-func SaveRRKSaleInvoiceInDS(si *SaleInvoice, r *http.Request) error {
-	//Have it as a method on saleInvoice? refactor later
+func SaveRRKSaleInvoiceInDS(si *RRKSaleInvoice, r *http.Request) error {
+	//Have it as a method on RRKSaleInvoice? refactor later
 	si.DateValue = time.Unix(si.JSDateValueAsSeconds, 0)
 	si.DD_MMM_YY = DDMMYYFromGoTime(si.DateValue)
 	//BUG: If the customer name is changed or any other id is mutated, the original one should first be deleted.
@@ -102,25 +101,23 @@ func SaveRRKSaleInvoiceInDS(si *SaleInvoice, r *http.Request) error {
 		si.Items[i].ModelJSON = b.Bytes()
 	}
 
-	myDebug(r, fmt.Sprintf("Decoded si from network:\n%#v", si))
 	c := appengine.NewContext(r)
 	k := RRKSaleInvoiceKey(r, si.UID)
 	e := si
 	if _, err := datastore.Put(c, k, e); err != nil {
-		myDebug(r, "Datastore put err")
 		return err
 	}
 	return nil
 }
 
-func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]SaleInvoice, error) {
+func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
 	c := appengine.NewContext(r)
 	q := datastore.NewQuery("RRKSaleInvoice").
 		Order("-DateValue")
 	//https://cloud.google.com/appengine/docs/go/datastore/reference
-	var sis []SaleInvoice
+	var sis []RRKSaleInvoice
 	for t := q.Run(c); ; {
-		var si SaleInvoice
+		var si RRKSaleInvoice
 		_, err := t.Next(&si)
 		if err == datastore.Done {
 			break
@@ -134,18 +131,17 @@ func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]SaleInvoice, error) {
 	return sis, nil
 }
 
-func GetRRKSaleInvoiceFromDS(siUID string, r *http.Request) (*SaleInvoice, error) {
-	//Have it as a method on saleInvoice? refactor later
+func GetRRKSaleInvoiceFromDS(siUID string, r *http.Request) (*RRKSaleInvoice, error) {
 	c := appengine.NewContext(r)
 	k := RRKSaleInvoiceKey(r, siUID)
-	e := new(SaleInvoice)
-	if _, err := datastore.Put(c, k, e); err != nil {
+	e := new(RRKSaleInvoice)
+	if err := datastore.Get(c, k, e); err != nil {
 		return nil, err
 	}
 	return e, nil
 }
 
-func SendMailForRRKSaleInvoice(si *SaleInvoice, r *http.Request) error {
+func SendMailForRRKSaleInvoice(si *RRKSaleInvoice, r *http.Request) error {
 	siDateAsDDMMYYYY := DDMMYYFromGoTime(si.DateValue)
 
 	totalQuantitySold := 0
@@ -242,4 +238,33 @@ func SendMailForRRKSaleInvoice(si *SaleInvoice, r *http.Request) error {
 		return err
 	}
 	return nil
+}
+
+func HTTPsingleInvoiceHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		t := template.Must(template.ParseFiles("templates/rrk_sale_invoice.html"))
+		if err := t.Execute(w, nil); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		return
+	//case "GET":
+	//	siUID := r.URL.Path[len(HTTP_RRK_SALE_INVOICE_END):]
+	//	si, err := GetRRKSaleInvoiceWithUIDFromDS(r, siUID)
+	//	if err != nil {
+	//		http.Error(w, err.Error(), http.StatusInternalServerError)
+	//		return
+	//	}
+	//	if err := json.NewEncoder(w).Encode(si); err != nil {
+	//		http.Error(w, err.Error(), http.StatusInternalServerError)
+	//		return
+	//	}
+	//	return
+
+	default:
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+
+	}
 }

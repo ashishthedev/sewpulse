@@ -12,7 +12,7 @@ type InvoiceItem struct {
 	ModelJSON []byte
 }
 
-type SaleInvoice struct {
+type _SaleInvoice struct {
 	Items                []InvoiceItem
 	Number               string
 	DateValue            time.Time
@@ -25,4 +25,12 @@ type SaleInvoice struct {
 	Remarks              string
 	UID                  string
 	DD_MMM_YY            string
+}
+
+type GZBSaleInvoice struct {
+	_SaleInvoice
+}
+
+type RRKSaleInvoice struct {
+	_SaleInvoice
 }

@@ -87,8 +87,6 @@ func rrkAddModelNameApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	myDebug(r, fmt.Sprintf("Adding a new model with name %s ", newModelName))
-
 	modelSet.ModelNames = append(modelSet.ModelNames, newModelName)
 	RemoveDuplicates(&modelSet.ModelNames)
 
@@ -102,21 +100,30 @@ func rrkAddModelNameApiHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rrkGetModelApiHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	modelSet, err := GetModelsFromServer(r)
-	if err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			json.NewEncoder(w).Encode(ModelSet{ModelNames: []string{}})
-			return
-		} else {
+	switch r.Method {
+	case "POST":
+		modelSet, err := GetModelsFromServer(r)
+		if err != nil {
+			if err == datastore.ErrNoSuchEntity {
+				if err := json.NewEncoder(w).Encode(ModelSet{ModelNames: []string{}}); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				return
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		if err := json.NewEncoder(w).Encode(modelSet); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		return
+	default:
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
+		return
 	}
-	json.NewEncoder(w).Encode(modelSet)
 }
 
 func rrkDailyAssemblyEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {

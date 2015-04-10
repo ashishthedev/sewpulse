@@ -80,8 +80,7 @@ func DeleteArticleFromAllModels(r *http.Request, articleName string) error {
 
 func ExtractArticleFromPostData(r *http.Request) (*Article, error) {
 	article := NewArticle()
-	dec := json.NewDecoder(r.Body)
-	if err := dec.Decode(&article); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&article); err != nil {
 		return nil, err
 	}
 	return article, nil
@@ -196,6 +195,6 @@ func PrintArticleMasterListFromDS(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	myDebug(r, "masterList = "+fmt.Sprintf("%v", aml))
+	myDebug(r, fmt.Sprintf("%#v", aml))
 	return nil
 }

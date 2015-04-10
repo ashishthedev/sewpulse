@@ -34,6 +34,19 @@
 
       appMod.controller('RRKSaleInvoiceCtrl', ['$scope', 'Model', 'RRKSaleInvoice', function($scope, Model, RRKSaleInvoice) {
 
+        function FetchModelsFromServer() {
+          $scope.statusNote = "Fetching model set...";
+          Model.query(function(data){
+            $scope.models = data;
+            console.log("Models: " + $scope.models);
+            if($scope.models.length === 0) {
+              $scope.models[0] = "No model exists. Please create one.";
+            }
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+          });
+        }
+
         function FetchInvoiceWithIDInAddressBar() {
           $scope.statusNote = "Fetching RRK Sale Invoice ...";
           $scope.invoiceIDFromAddBar = document.location.href.split('/').pop();
@@ -44,7 +57,40 @@
             $scope.statusNote = error.status + ": " + error.data;
           });
         }
+        $scope.siProperties =[
+        {
+          Name:'Customer',
+          Editable:false,
+          id:'CustomerName'
+        },
+        {
+          Name:'Invoice',
+          Editable:false,
+          id:'Number'
+        },
+        {
+          Name:'Date',
+          Editable:false,
+          id:'DD_MMM_YY'
+        },
+        {
+          Name:'Total Tax',
+          Editable:true,
+          id:'TotalTax'
+        },
+        {
+          Name:'Total Freight',
+          Editable:true,
+          id:'TotalFreight'
+        },
+        {
+          Name:'Remarks',
+          Editable:true,
+          id:'Remarks'
+        },
+        ]
 
+        FetchModelsFromServer();
         FetchInvoiceWithIDInAddressBar();
       }]);
     </script>
@@ -57,14 +103,28 @@
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
-      <div class="panel">
+      <div class="panel panel-info">
         <div class="panel-heading">
           <strong>||si.CustomerName||</strong>
         </div>
         <div class="panel-content">
           <table class="table">
-            <tr><td>Invoice#</td><td>||si.Number||</td></tr>
-            <tr><td>Invoice Date</td><td>||si.DD_MMM_YY||</td></tr>
+            <tr ng-repeat="obj in siProperties">
+              <td><span ng-bind="obj['Name']"></span></td>
+              <td><input ng-readonly="!obj['Editable']" class="form-control" ng-model="si[obj['id']]"></input></td>
+            </tr>
+            <tr ng-repeat="item in si.Items">
+              <td><select>
+                <option ng-repeat="(k, m) in models" ng-selected="m.Name == item.Name">
+                ||k||
+                </option>
+            </select>
+          </td>
+                <!--
+              <td><select ng-options="m for (m, model) in models" ng-model="si['Items'][$index]['Name']"></select></td>
+              -->
+              <td><input ng-model="si['Items'][$index]['Rate']"></select></td>
+            </tr>
           </table>
         </div>
       </div>

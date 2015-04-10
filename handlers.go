@@ -16,7 +16,7 @@ type apiStruct struct {
 
 var urlMaps map[string]urlStruct
 var apiMaps map[string]apiStruct
-var PRE_BUILT_TEPLATES = make(map[string]*template.Template)
+var PRE_BUILT_TEMPLATES = make(map[string]*template.Template)
 var PAGE_NOT_FOUND_TEMPLATE = template.Must(template.ParseFiles("templates/pageNotFound.html"))
 
 const API_BOM_ARTICLE_SLASH_END = "/api/bom/article/"
@@ -27,6 +27,7 @@ const API_BOM_MODEL_END = "/api/bom/model"
 
 const API_RRK_SALE_INVOICE_SALSH_END = "/api/rrk/saleInvoice/"
 const API_RRK_SALE_INVOICE_END = "/api/rrk/saleInvoice"
+const HTTP_RRK_SALE_INVOICE_END = "/rrk/saleInvoice/"
 
 func initRootUrlMaps() {
 	urlMaps := map[string]urlStruct{
@@ -54,13 +55,13 @@ func initRootUrlMaps() {
 
 	for path, urlBlob := range urlMaps {
 		templatePath := urlBlob.templatePath
-		PRE_BUILT_TEPLATES[path] = template.Must(template.ParseFiles(templatePath))
+		PRE_BUILT_TEMPLATES[path] = template.Must(template.ParseFiles(templatePath))
 	}
 
 	for path, urlBlob := range urlMaps {
 		http.HandleFunc(path, urlBlob.handler)
 	}
-	http.HandleFunc("/rrk/saleinvoice/", singleInvoiceHandler)
+	http.HandleFunc(HTTP_RRK_SALE_INVOICE_END, HTTPsingleInvoiceHandler)
 	return
 }
 
@@ -106,20 +107,11 @@ func init() {
 }
 
 func generalPageHandler(w http.ResponseWriter, r *http.Request) {
-	t := PRE_BUILT_TEPLATES[r.URL.Path]
+	t := PRE_BUILT_TEMPLATES[r.URL.Path]
 	if t == nil {
 		t = PAGE_NOT_FOUND_TEMPLATE
 	}
 
-	if err := t.Execute(w, nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	return
-}
-
-func singleInvoiceHandler(w http.ResponseWriter, r *http.Request) {
-	t := template.Must(template.ParseFiles("templates/rrk_sale_invoice.html"))
 	if err := t.Execute(w, nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
