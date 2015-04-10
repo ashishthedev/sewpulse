@@ -411,6 +411,14 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//TODO:Create a model with specific name inside get request
 	//======================================================
 
+	//======================================================
+	//TODO:Create a sale invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Delete a sale invoice
+	//======================================================
+
 	return
 }
 

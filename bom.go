@@ -26,7 +26,7 @@ func ResetBOMToSampleState(r *http.Request) error {
 		return err
 	}
 	mod := NewModel()
-	for _, x := range []string{"PR+", "SUR", "RUBY"} {
+	for _, x := range []string{"PR+", "SURYA", "RUBY"} {
 		mod.Name = x
 		mod.Unit = "pc"
 		if err := CreateDecodedNewModel(mod, r); err != nil {
