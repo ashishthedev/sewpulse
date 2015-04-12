@@ -28,6 +28,14 @@ func rrkSaleInvoiceWithSalshApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 
+	case "DELETE":
+		siUID := r.URL.Path[len(API_RRK_SALE_INVOICE_SALSH_END):]
+		if err := DeleteRRKSaleInvoiceFromDS(siUID, r); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		return
+
 	default:
 		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -129,6 +137,12 @@ func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
 	}
 
 	return sis, nil
+}
+
+func DeleteRRKSaleInvoiceFromDS(siUID string, r *http.Request) error {
+	c := appengine.NewContext(r)
+	k := RRKSaleInvoiceKey(r, siUID)
+	return datastore.Delete(c, k)
 }
 
 func GetRRKSaleInvoiceFromDS(siUID string, r *http.Request) (*RRKSaleInvoice, error) {
@@ -243,25 +257,12 @@ func SendMailForRRKSaleInvoice(si *RRKSaleInvoice, r *http.Request) error {
 func HTTPsingleInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		t := template.Must(template.ParseFiles("templates/rrk_sale_invoice.html"))
+		t := template.Must(template.ParseFiles("templates/admin/rrk_sale_invoice_single.html"))
 		if err := t.Execute(w, nil); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
-	//case "GET":
-	//	siUID := r.URL.Path[len(HTTP_RRK_SALE_INVOICE_END):]
-	//	si, err := GetRRKSaleInvoiceWithUIDFromDS(r, siUID)
-	//	if err != nil {
-	//		http.Error(w, err.Error(), http.StatusInternalServerError)
-	//		return
-	//	}
-	//	if err := json.NewEncoder(w).Encode(si); err != nil {
-	//		http.Error(w, err.Error(), http.StatusInternalServerError)
-	//		return
-	//	}
-	//	return
-
 	default:
 		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
 		return

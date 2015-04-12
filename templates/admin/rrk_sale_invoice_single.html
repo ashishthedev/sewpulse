@@ -73,22 +73,44 @@
           Editable:false,
           id:'DD_MMM_YY'
         },
+        ]
+        $scope.siLowerProperties =[
+        {
+          Name:'Goods Value',
+          Editable:false,
+          id:'GoodsValue'
+        },
         {
           Name:'Total Tax',
-          Editable:true,
+          Editable:false,
           id:'TotalTax'
         },
         {
           Name:'Total Freight',
-          Editable:true,
+          Editable:false,
           id:'TotalFreight'
         },
         {
+          Name:'Grand Total',
+          Editable:false,
+          id:'GrandTotal'
+        },
+        {
           Name:'Remarks',
-          Editable:true,
+          Editable:false,
           id:'Remarks'
         },
         ]
+
+        $scope.deleteInvoice = function() {
+          $scope.statusNote = "Deleting invoice on server...";
+          RRKSaleInvoice.remove({id:$scope.invoiceIDFromAddBar}, function(data){
+            $scope.statusNote = "Invoice deleted...";
+            $scope.invoiceDeleted = true;
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+          });
+        }
 
         FetchModelsFromServer();
         FetchInvoiceWithIDInAddressBar();
@@ -103,31 +125,48 @@
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
-      <div class="panel panel-info">
-        <div class="panel-heading">
-          <strong>||si.CustomerName||</strong>
-        </div>
-        <div class="panel-content">
-          <table class="table">
-            <tr ng-repeat="obj in siProperties">
-              <td><span ng-bind="obj['Name']"></span></td>
-              <td><input ng-readonly="!obj['Editable']" class="form-control" ng-model="si[obj['id']]"></input></td>
-            </tr>
-            <tr ng-repeat="item in si.Items">
-              <td><select>
-                <option ng-repeat="(k, m) in models" ng-selected="m.Name == item.Name">
-                ||k||
-                </option>
-            </select>
-          </td>
-                <!--
-              <td><select ng-options="m for (m, model) in models" ng-model="si['Items'][$index]['Name']"></select></td>
-              -->
-              <td><input ng-model="si['Items'][$index]['Rate']"></select></td>
-            </tr>
-          </table>
+      <div ng-show="invoiceDeleted">
+        <div class="alert alert-success" role="alert">
+          <div class="text-center">
+            Invoice has been deleted successfully.
+          </div>
         </div>
       </div>
+      <div ng-hide="invoiceDeleted">
+        <div class="panel panel-info">
+          <div class="panel-heading">
+            <strong>||si.CustomerName||</strong>
+          </div>
+          <div class="panel-content">
+            <table class="table">
+              <tr ng-repeat="obj in siProperties">
+                <td><span ng-bind="obj['Name']"></span></td>
+                <td><input ng-readonly="!obj['Editable']" class="form-control" ng-model="si[obj['id']]"></input></td>
+              </tr>
+              <tr ng-repeat="obj in siLowerProperties">
+                <td><span ng-bind="obj['Name']"></span></td>
+                <td><input ng-readonly="!obj['Editable']" class="form-control" ng-model="si[obj['id']]"></input></td>
+              </tr>
+              <tr ng-repeat="item in si.Items">
+                <td><span ng-bind="si.Items[$index].Name"></span></td>
+                <td>
+                  <span ng-bind="si.Items[$index].Quantity"></span>pc
+                  @&#8377;<span ng-bind="si.Items[$index].Rate"></span>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div ng-hide=hideDelete>
+          <div ng-hide="stage2">
+            <button class="btn btn-xs btn-danger" ng-click="stage2=true">Delete Invoice</button>
+          </div>
+          <div ng-show="stage2">
+            <button class="btn btn-xs btn-danger pull-right" ng-click="deleteInvoice();stage2=false">Confirm deletion of invoice#||si.Number||</button>
+          </div>
+        </div>
+      </div>
+      <div class="todo">Hide intermittent stuff. Display when loading finished.</div>
     </div> <!-- container -->
   </body>
 </html>

@@ -14,10 +14,18 @@
   text-align: center;
 }
 
+.todo {
+  color: red;
+  text-align: center;
+  font-weight: bold;
+  font-family: monospace;
+}
+
 #statusNote, #result {
   color: turquoise;
   text-align: center;
   font-weight: bold;
+  font-family: monospace;
 }
 
 .red {

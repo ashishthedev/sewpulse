@@ -40,7 +40,7 @@ func initRootUrlMaps() {
 		"/a/bom/new-article":            {generalPageHandler, "templates/admin/create_article.html"},
 		"/a/gzb/view-unsettled-advance": {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
 		"/a/rrk":                        {generalPageHandler, "templates/admin/rrk_admin.html"},
-		"/a/rrk/all-sale-invoices":      {generalPageHandler, "templates/admin/rrk_all_sale_invoices.html"},
+		"/a/rrk/all-sale-invoices":      {generalPageHandler, "templates/admin/rrk_sale_invoice_all.html"},
 		"/a/rrk/view-unsettled-advance": {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
 		"/rrk/daily-polish":             {generalPageHandler, "templates/rrk_daily_polish.html"},
 		"/rrk/daily-assembly":           {generalPageHandler, "templates/rrk_daily_assembly.html"},
