@@ -88,7 +88,7 @@ func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err erro
 		// The name "title" is what the function will be called in the template text.
 		"DDMMYYFromGoTime":         DDMMYYFromGoTime,
 		"LogMsgShownForLogTime":    func(x time.Time) string { return LogMsgShownForLogTime(x, time.Now()) },
-		"SingleItemGoodsValueFunc": func(i InvoiceItem) float64 { return i.Rate * float64(i.Quantity) },
+		"SingleItemGoodsValueFunc": func(i SoldItem) float64 { return i.Rate * float64(i.Quantity) },
 	}
 
 	emailTemplate := template.Must(template.New("emailGZBDMS").Funcs(funcMap).Parse(`
@@ -186,7 +186,7 @@ func SendMailForGZBTradingSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err 
 		// The name "title" is what the function will be called in the template text.
 		"DDMMYYFromGoTime":         DDMMYYFromGoTime,
 		"LogMsgShownForLogTime":    func(x time.Time) string { return LogMsgShownForLogTime(x, time.Now()) },
-		"SingleItemGoodsValueFunc": func(i InvoiceItem) float64 { return i.Rate * float64(i.Quantity) },
+		"SingleItemGoodsValueFunc": func(i SoldItem) float64 { return i.Rate * float64(i.Quantity) },
 	}
 
 	emailTemplate := template.Must(template.New("emailGZBDTS").Funcs(funcMap).Parse(`

@@ -9,15 +9,24 @@ bomServices.factory('BOM', ['$resource', function($resource){
 
 bomServices.factory('Model', ['$resource', function($resource){
     return $resource('/api/bom/model/:id',{},{
-      'query':{method:'GET', isArrya:false}
+      'query':{method:'GET', isArray:false}
     });
   }]);
 
 bomServices.factory('Article', ['$resource', function($resource){
-    return $resource('/api/bom/article/:id' );
+    return $resource('/api/bom/article/:id',{},{
+      'query':{method:'GET', isArray:false}
+    });
   }]);
 
 bomServices.factory('RRKSaleInvoice', ['$resource', function($resource){
     return $resource('/api/rrk/saleInvoice/:id',{},{
+      'query':{method:'GET', isArray:false}
+    } );
+  }]);
+
+bomServices.factory('RRKPurchaseInvoice', ['$resource', function($resource){
+    return $resource('/api/rrk/purchaseInvoice/:id',{},{
+      'query':{method:'GET', isArray:false}
     } );
   }]);

@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>RRK Sale Bills</title>
+    <title>RRK Purchase Bills</title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/lib/angular/angular-resource.min.js"></script>
     <script src="/static/js/services.js"></script>
@@ -28,13 +28,13 @@
       });
 
 
-      appMod.controller('RRKSaleInvoiceCtrl', ['$scope', 'RRKSaleInvoice', function($scope, RRKSaleInvoice) {
-        function FetchRRKSaleInvoices(){
+      appMod.controller('RRKPurchaseInvoiceCtrl', ['$scope', 'RRKPurchaseInvoice', function($scope, RRKPurchaseInvoice) {
+        function FetchRRKPurchaseInvoices(){
           $scope.done = false;
-          $scope.statusNote = "Fetching RRK Sale Invoices...";
-          RRKSaleInvoice.query(function(data){
+          $scope.statusNote = "Fetching RRK Purchase Invoices...";
+          RRKPurchaseInvoice.query(function(data){
             $scope.statusNote = "";
-            $scope.rrkSIS = data.RRKSaleInvoices;
+            $scope.rrkSIS = data.RRKPurchaseInvoices;
             $scope.done = true;
             }, function(error){
             $scope.statusNote = error.status + ": " + error.data;
@@ -43,24 +43,24 @@
           });
         }
 
-        FetchRRKSaleInvoices();
+        FetchRRKPurchaseInvoices();
       }]);
 
     </script>
   </head>
-  <body ng-app="SEWPulseApp" ng-controller="RRKSaleInvoiceCtrl">
+  <body ng-app="SEWPulseApp" ng-controller="RRKPurchaseInvoiceCtrl">
     <div class="well">
       <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
-     <h1 class="text-center">RRK Sale Invoices</h1>
+     <h1 class="text-center">RRK Purchase Invoices</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
       <div ng-show="done">
         <li ng-repeat="si in rrkSIS">
-        <a ng-href="/rrk/saleInvoice/||si.UID||"><span ng-bind="si.DD_MMM_YY"></span> <span ng-bind="si.Number"></span> <span ng-bind="si.CustomerName"></span></a>
+        <a ng-href="/rrk/purchaseInvoice/||si.UID||"><span ng-bind="si.DD_MMM_YY"></span> Inv#<span ng-bind="si.Number"></span> M/s <span ng-bind="si.SupplierName"></span></a>
         </li>
         <div ng-if="!rrkSIS">
-          No RRK sale invoice entered yet!
+          No RRK purchase invoice entered yet!
         </div>
       </div>
       <div ng-show="!done">

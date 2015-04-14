@@ -27,9 +27,19 @@ const API_BOM_MODEL_END = "/api/bom/model"
 
 const API_RRK_SALE_INVOICE_SALSH_END = "/api/rrk/saleInvoice/"
 const API_RRK_SALE_INVOICE_END = "/api/rrk/saleInvoice"
-const HTTP_RRK_SALE_INVOICE_END = "/rrk/saleInvoice/"
+const HTTP_RRK_SALE_INVOICE_SLASH_END = "/rrk/saleInvoice/"
 
-func initRootUrlMaps() {
+const API_RRK_PURCHASE_INVOICE_SALSH_END = "/api/rrk/purchaseInvoice/"
+const API_RRK_PURCHASE_INVOICE_END = "/api/rrk/purchaseInvoice"
+const HTTP_RRK_PURCHASE_INVOICE_SLASH_END = "/rrk/purchaseInvoice/"
+
+func initDynamicHTMLUrlMaps() {
+
+	http.HandleFunc(HTTP_RRK_SALE_INVOICE_SLASH_END, HTTPSingleSaleInvoiceHandler)
+	http.HandleFunc(HTTP_RRK_PURCHASE_INVOICE_SLASH_END, HTTPSinglePurchaseInvoiceHandler)
+}
+
+func initStaticHTMLUrlMaps() {
 	urlMaps := map[string]urlStruct{
 		"/":                             {generalPageHandler, "templates/home.html"},
 		"/a":                            {generalPageHandler, "templates/admin/admin.html"},
@@ -41,16 +51,18 @@ func initRootUrlMaps() {
 		"/a/gzb/view-unsettled-advance": {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
 		"/a/rrk":                        {generalPageHandler, "templates/admin/rrk_admin.html"},
 		"/a/rrk/all-sale-invoices":      {generalPageHandler, "templates/admin/rrk_sale_invoice_all.html"},
+		"/a/rrk/all-purchase-invoices":  {generalPageHandler, "templates/admin/rrk_purchase_invoice_all.html"},
 		"/a/rrk/view-unsettled-advance": {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
 		"/rrk/daily-polish":             {generalPageHandler, "templates/rrk_daily_polish.html"},
 		"/rrk/daily-assembly":           {generalPageHandler, "templates/rrk_daily_assembly.html"},
 		"/rrk/daily-sale":               {generalPageHandler, "templates/rrk_daily_sale.html"},
-		"/rrk":                          {generalPageHandler, "templates/rrk.html"},
-		"/rrk/daily-cash":               {generalPageHandler, "templates/rrk_daily_cash.html"},
-		"/gzb":                          {generalPageHandler, "templates/gzb.html"},
-		"/gzb/daily-cash":               {generalPageHandler, "templates/gzb_daily_cash.html"},
-		"/gzb/daily-mfg-sale":           {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
-		"/gzb/daily-trading-sale":       {generalPageHandler, "templates/gzb_daily_trading_sale.html"},
+		"/rrk/enter-purchase-invoice":   {generalPageHandler, "templates/rrk_enter_purchase.html"},
+		"/rrk":                    {generalPageHandler, "templates/rrk.html"},
+		"/rrk/daily-cash":         {generalPageHandler, "templates/rrk_daily_cash.html"},
+		"/gzb":                    {generalPageHandler, "templates/gzb.html"},
+		"/gzb/daily-cash":         {generalPageHandler, "templates/gzb_daily_cash.html"},
+		"/gzb/daily-mfg-sale":     {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
+		"/gzb/daily-trading-sale": {generalPageHandler, "templates/gzb_daily_trading_sale.html"},
 	}
 
 	for path, urlBlob := range urlMaps {
@@ -61,7 +73,6 @@ func initRootUrlMaps() {
 	for path, urlBlob := range urlMaps {
 		http.HandleFunc(path, urlBlob.handler)
 	}
-	http.HandleFunc(HTTP_RRK_SALE_INVOICE_END, HTTPsingleInvoiceHandler)
 	return
 }
 
@@ -84,8 +95,10 @@ func initRootApiMaps() {
 		"/gzb/update":                              {gzbDailyCashUpdateModelApiHandler},
 		"/api/rrkDailyPolishEmailSendApi":          {rrkDailyPolishEmailSendApiHandler},
 		"/api/rrkDailyAssemblyEmailSendApi":        {rrkDailyAssemblyEmailSendApiHandler},
-		"/api/rrk/saleInvoice":                     {rrkSaleInvoiceApiHandler},
+		API_RRK_SALE_INVOICE_END:                   {rrkSaleInvoiceApiHandler},
 		API_RRK_SALE_INVOICE_SALSH_END:             {rrkSaleInvoiceWithSalshApiHandler},
+		API_RRK_PURCHASE_INVOICE_END:               {rrkPurchaseInvoiceApiHandler},
+		API_RRK_PURCHASE_INVOICE_SALSH_END:         {rrkPurchaseInvoiceWithSalshApiHandler},
 		"/api/rrkGetModelApi":                      {rrkGetModelApiHandler},
 		"/api/rrkAddModelNameApi":                  {rrkAddModelNameApiHandler},
 		"/api/rrkCashBookStoreAndEmailApi":         {rrkCashBookStoreAndEmailApiHandler},
@@ -102,7 +115,8 @@ func initRootApiMaps() {
 
 func init() {
 	initRootApiMaps()
-	initRootUrlMaps()
+	initStaticHTMLUrlMaps()
+	initDynamicHTMLUrlMaps()
 	return
 }
 

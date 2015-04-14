@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Roorkee Sale Invoice</title>
+    <title>Roorkee Purchase Invoice</title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/lib/angular/angular-resource.min.js"></script>
     <script src="/static/js/services.js"></script>
@@ -32,29 +32,27 @@
       debug = false;
       debug = true;
 
-      appMod.controller('RRKSaleInvoiceCtrl', ['$scope', 'Model', 'RRKSaleInvoice', function($scope, Model, RRKSaleInvoice) {
+      appMod.controller('RRKPurchaseInvoiceCtrl', ['$scope', 'Article', 'RRKPurchaseInvoice', function($scope, Article, RRKPurchaseInvoice) {
 
-        function FetchModelsFromServer() {
-          $scope.working=true;
-          $scope.statusNote = "Fetching model set...";
-          Model.query(function(data){
-            $scope.models = data;
-            console.log("Models: " + $scope.models);
-            if($scope.models.length === 0) {
-              $scope.models[0] = "No model exists. Please create one.";
+        function FetchArticlesFromServer() {
+          $scope.statusNote = "Fetching articles...";
+          Article.query(function(data){
+            $scope.articles = data.Articles;
+            $scope.statusNote = "";
+            console.log("articles: " + $scope.articles);
+            if($scope.articles.length === 0) {
+              $scope.articles[0] = "No article exists. Please create one.";
             }
-            $scope.working=false;
             }, function(error){
             $scope.statusNote = error.status + ": " + error.data;
-            $scope.working=false;
           });
         }
 
-        function FetchInvoiceWithIDInAddressBar() {
+        function FetchRRKPurcahseInvoiceWithIDInAddressBar() {
           $scope.working=true;
-          $scope.statusNote = "Fetching RRK Sale Invoice ...";
+          $scope.statusNote = "Fetching RRK Purchase Invoice ...";
           $scope.invoiceIDFromAddBar = document.location.href.split('/').pop();
-          RRKSaleInvoice.get({id: $scope.invoiceIDFromAddBar}, function(data){
+          RRKPurchaseInvoice.get({id: $scope.invoiceIDFromAddBar}, function(data){
             $scope.statusNote = "";
             $scope.si = data;
             $scope.working=false;
@@ -65,9 +63,9 @@
         }
         $scope.siProperties =[
         {
-          Name:'Customer',
+          Name:'Supplier',
           Editable:false,
-          id:'CustomerName'
+          id:'SupplierName'
         },
         {
           Name:'Invoice',
@@ -111,7 +109,7 @@
         $scope.deleteInvoice = function() {
           $scope.working=true;
           $scope.statusNote = "Deleting invoice on server...";
-          RRKSaleInvoice.remove({id:$scope.invoiceIDFromAddBar}, function(data){
+          RRKPurchaseInvoice.remove({id:$scope.invoiceIDFromAddBar}, function(data){
             $scope.statusNote = "Invoice deleted...";
             $scope.invoiceDeleted = true;
             $scope.working=false;
@@ -122,16 +120,16 @@
         }
 
         $scope.working=true;
-        FetchModelsFromServer();
-        FetchInvoiceWithIDInAddressBar();
+        FetchArticlesFromServer();
+        FetchRRKPurcahseInvoiceWithIDInAddressBar();
       }]);
     </script>
   </head>
 
-  <body ng-app="SEWPulseApp" ng-controller="RRKSaleInvoiceCtrl">
+  <body ng-app="SEWPulseApp" ng-controller="RRKPurchaseInvoiceCtrl">
     <div class="well">
       <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
-      <h1 class="text-center">RRK Sale Invoice</h1>
+      <h1 class="text-center">RRK Purchase Invoice</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
@@ -146,7 +144,7 @@
         <div ng-hide="invoiceDeleted">
           <div class="panel panel-info">
             <div class="panel-heading">
-              <strong>||si.CustomerName||</strong>
+              <strong>||si.SupplierName||</strong>
             </div>
             <div class="panel-content">
               <table class="table">
