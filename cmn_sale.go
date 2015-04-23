@@ -5,11 +5,10 @@ import (
 )
 
 type SoldItem struct {
-	Name      string
-	Rate      float64
-	Quantity  int
-	ModelVal  Model `datastore:"-"`
-	ModelByte []byte
+	Name     string
+	Rate     float64
+	Quantity float64
+	ModelVal Model
 }
 
 type _SaleInvoice struct {

@@ -48,6 +48,10 @@
         }
 
         $scope.DateChanged = function(){
+          var today = new Date();
+          if (today < $scope.JSDate) {
+            $scope.JSDate = today;
+          }
           $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.JSDate);
           FetchRRKStockPositionFromServer();
         }
@@ -62,7 +66,6 @@
       <a class="hidden-print" href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
       <h1 class="text-center">RRK Stock Position</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
-      <div class="todo">Date max rule place.</div>
     </div>
     <div class="container-fluid">
       <div class="row">

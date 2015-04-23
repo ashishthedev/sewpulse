@@ -86,8 +86,10 @@ func rrkSaleInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+const RRKSaleInvoiceKind = "RRKSaleInvoice"
+
 func RRKSaleInvoiceKey(r *http.Request, siUID string) *datastore.Key {
-	return RRK_SEWNewKey("RRKSaleInvoice", siUID, 0, r)
+	return RRK_SEWNewKey(RRKSaleInvoiceKind, siUID, 0, r)
 }
 
 func SaveRRKSaleInvoiceInDS(si *RRKSaleInvoice, r *http.Request) error {
@@ -106,7 +108,6 @@ func SaveRRKSaleInvoiceInDS(si *RRKSaleInvoice, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		si.Items[i].ModelByte = b
 	}
 
 	c := appengine.NewContext(r)
@@ -268,4 +269,32 @@ func HTTPSingleSaleInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
+}
+func RRKGetAllSaleInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKSaleInvoice, error) {
+	singleDate := StripTimeKeepDate(date)
+	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
+	return RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+}
+
+func RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKSaleInvoice, error) {
+	q := datastore.NewQuery(RRKSaleInvoiceKind).
+		Filter("DateValue >=", starting).
+		Filter("DateValue <=", ending).
+		Order("-DateValue")
+
+	c := appengine.NewContext(r)
+	var sis []RRKSaleInvoice
+	for t := q.Run(c); ; {
+		var si RRKSaleInvoice
+		_, err := t.Next(&si)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		sis = append(sis, si)
+	}
+
+	return sis, nil
 }
