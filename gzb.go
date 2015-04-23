@@ -72,7 +72,7 @@ func gzbDailyMfgSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err error) {
-	siDateAsDDMMYYYY := DDMMYYFromGoTime(si.DateValue)
+	siDateAsDDMMMYYYY := DDMMMYYFromGoTime(si.DateValue)
 
 	totalQuantitySold := 0
 	for _, item := range si.Items {
@@ -86,7 +86,7 @@ func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err erro
 
 	funcMap := template.FuncMap{
 		// The name "title" is what the function will be called in the template text.
-		"DDMMYYFromGoTime":         DDMMYYFromGoTime,
+		"DDMMMYYFromGoTime":        DDMMMYYFromGoTime,
 		"LogMsgShownForLogTime":    func(x time.Time) string { return LogMsgShownForLogTime(x, time.Now()) },
 		"SingleItemGoodsValueFunc": func(i SoldItem) float64 { return i.Rate * float64(i.Quantity) },
 	}
@@ -98,7 +98,7 @@ func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err erro
 	<h4></u>{{.DateValue|LogMsgShownForLogTime }}</u></h4>
 	<h4>M/s {{.CustomerName }}</h4>
 	<h4>Invoice#: {{.Number }}</h4>
-	<h4>{{.DateValue | DDMMYYFromGoTime}}</h4>
+	<h4>{{.DateValue | DDMMMYYFromGoTime}}</h4>
 	</caption>
 	<thead>
 	<tr bgcolor=#838468>
@@ -160,7 +160,7 @@ func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err erro
 		Sender:   u.String() + "<" + u.Email + ">",
 		To:       []string{toAddr},
 		Bcc:      []string{bccAddr},
-		Subject:  fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][GZBDMS]", siDateAsDDMMYYYY, si.Number, si.CustomerName, totalQuantitySold),
+		Subject:  fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][GZBDMS]", siDateAsDDMMMYYYY, si.Number, si.CustomerName, totalQuantitySold),
 		HTMLBody: finalHTML,
 	}
 
@@ -170,7 +170,7 @@ func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err erro
 	return nil
 }
 func SendMailForGZBTradingSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err error) {
-	siDateAsDDMMYYYY := DDMMYYFromGoTime(si.DateValue)
+	siDateAsDDMMMYYYY := DDMMMYYFromGoTime(si.DateValue)
 
 	totalQuantitySold := 0
 	for _, item := range si.Items {
@@ -184,7 +184,7 @@ func SendMailForGZBTradingSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err 
 
 	funcMap := template.FuncMap{
 		// The name "title" is what the function will be called in the template text.
-		"DDMMYYFromGoTime":         DDMMYYFromGoTime,
+		"DDMMMYYFromGoTime":        DDMMMYYFromGoTime,
 		"LogMsgShownForLogTime":    func(x time.Time) string { return LogMsgShownForLogTime(x, time.Now()) },
 		"SingleItemGoodsValueFunc": func(i SoldItem) float64 { return i.Rate * float64(i.Quantity) },
 	}
@@ -196,7 +196,7 @@ func SendMailForGZBTradingSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err 
 	<h4></u>{{.DateValue|LogMsgShownForLogTime }}</u></h4>
 	<h4>M/s {{.CustomerName }}</h4>
 	<h4>Invoice#: {{.Number }}</h4>
-	<h4>{{.DateValue | DDMMYYFromGoTime}}</h4>
+	<h4>{{.DateValue | DDMMMYYFromGoTime}}</h4>
 	</caption>
 	<thead>
 	<tr bgcolor=#838468>
@@ -258,7 +258,7 @@ func SendMailForGZBTradingSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err 
 		Sender:   u.String() + "<" + u.Email + ">",
 		To:       []string{toAddr},
 		Bcc:      []string{bccAddr},
-		Subject:  fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][GZBDTS]", siDateAsDDMMYYYY, si.Number, si.CustomerName, totalQuantitySold),
+		Subject:  fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][GZBDTS]", siDateAsDDMMMYYYY, si.Number, si.CustomerName, totalQuantitySold),
 		HTMLBody: finalHTML,
 	}
 

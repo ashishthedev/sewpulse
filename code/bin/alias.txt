@@ -97,3 +97,5 @@ gcam = git commit -am $*
 gb-D = git branch -D $*
 gc-b = git checkout -b $*
 gm-s = git merge --squash $*
+
+latest = dir /OD /B

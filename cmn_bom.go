@@ -48,17 +48,17 @@ func bomModelWithSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, r.Method+" Not implemented", http.StatusNotImplemented)
 		return
 	}
-
 }
+
 func bomModelWithoutSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		bom, err := GetOrCreateBOMFromDS(r)
+		models, err := GetAllModelsFromBOM(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if err := json.NewEncoder(w).Encode(bom.Models); err != nil {
+		if err := json.NewEncoder(w).Encode(models); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -190,12 +190,10 @@ type Article struct {
 	EOQ               int
 }
 
-func NewArticle() *Article {
-	return new(Article)
-}
+type ArticleMap map[string]Article
 
 type ArticleMasterList struct {
-	Articles map[string]Article
+	Articles ArticleMap
 }
 
 func NewArticleMasterList() *ArticleMasterList {
@@ -204,7 +202,7 @@ func NewArticleMasterList() *ArticleMasterList {
 	return aml
 }
 
-type QtyMap map[string]int
+type QtyMap map[string]float64
 
 type Model struct {
 	//ModelKey  *datastore.Key //If the bom gets too big, store each model as an independent entity in datastore
@@ -219,8 +217,10 @@ func NewModel() *Model {
 	return newModel
 }
 
+type ModelMap map[string]Model
+
 type BOM struct {
-	Models map[string]Model
+	Models ModelMap
 	AML    *ArticleMasterList
 }
 

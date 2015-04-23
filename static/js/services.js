@@ -30,3 +30,8 @@ bomServices.factory('RRKPurchaseInvoice', ['$resource', function($resource){
       'query':{method:'GET', isArray:false}
     } );
   }]);
+
+bomServices.factory('RRKStockPosition', ['$resource', function($resource){
+    return $resource('/api/rrk/stock-position-for-date/:id',{},{
+    } );
+  }]);

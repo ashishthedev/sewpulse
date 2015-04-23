@@ -2,6 +2,8 @@
   <head>
     <title>SEW Admin</title>
     <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
 
     <!-- Standard Favicon -->
     <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
@@ -18,18 +20,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
     <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
     <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
+
+      appMod.controller('AdminBomOperationsController', ['$scope', 'BOM', function($scope, BOM) {
+
+        $scope.resetToSampleBOM = function() {
+          $scope.hideBomSample = true;
+          $scope.statusNote = "Resetting the BOM to a predefined state...";
+          BOM.resetToSampleState(function(data){
+            $scope.statusNote = "";
+            $scope.hideBomSample = false;
+            }, function(error){
+            $scope.statusNote = status + ": " + data;
+            $scope.hideBomSample = true;
+          });
+        }
+        $scope.bomReset = function() {
+          $scope.hideReset = true;
+          $scope.statusNote = "Resetting the BOM ...";
+          BOM.reset(function(data){
+            $scope.statusNote = "";
+            $scope.hideReset = false;
+            }, function(error){
+            $scope.statusNote = status + ": " + data;
+            $scope.hideReset = true;
+          });
+        }
+      }]);
+    </script>
   </head>
-  <body>
+  <body ng-app="SEWPulseApp" ng-controller="AdminBomOperationsController">
     <div class="well">
       <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
       <h1 class="text-center">SEW Admin</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
       <div class="col-xs-12">
-        <ul class="nav nav-pills nav-stacked nav-justified">
-          <li><a href="/a/gzb"><h3>GZB Admin Area</h3></a></li><hr>
-          <li><a href="/a/rrk"><h3>RRK Admin Area</h3></a></li><hr>
-          <li><a href="/a/bom"><h3>BOM Admin Area</h3></a></li><hr>
+        <ul class="nav nav-pills nav-stacked">
+          <li><h4>GZB Admin Area:</h4></li>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="/a/gzb/view-unsettled-advance">View Unsettled Advance</a></li>
+          </ul>
+
+          <li><h4>RRK Admin Area:</h4></li>
+          <hr>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="/a/rrk/view-unsettled-advance">View Unsettled Advance</a></li>
+            <li><a href="/a/rrk/all-sale-invoices">All Sale Invoices</a></li>
+            <li><a href="/a/rrk/all-purchase-invoices">All Purchase Invoices</a></li>
+            <li><a href="/rrk/stock-position">Stock-Position(Non-admin view)</a></li>
+          </ul>
+
+          <li><h4>BOM Admin Area:</h4></li>
+          <hr>
+          <li><u>Models</u></li>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="/a/bom/new-model">Create Model</a></li>
+            <li><a href="/a/bom/model-qty-lockdown">Lockdown Quantity(TODO)</a></li>
+          </ul>
+
+          <li><u>Articles</u></li>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="/a/bom/new-article">Create Article</a></li>
+            <li><a href="/a/bom/article-qty-lockdown">Lockdown Quantity(TODO)</a></li>
+          </ul>
+
+          <li><u>BOM</u></li>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="/a/bom/view">View BOM</a></li>
+            <li><a ng-hide=hideBomSample ng-click="hideBomSample=true; resetToSampleBOM();">Bring the BOM to sample state(Delete Later)</a></li>
+          </ul>
+          <li>
+          <ul class="nav nav-pills nav-stacked">
+            <li>
+            <button ng-hide="hideReset ||stage2" class="menu-item btn btn-xs btn-danger" ng-click="stage2=true">Reset BOM</button>
+            <button ng-hide="hideReset || !stage2" class="btn btn-xs btn-danger pull-right" ng-click="bomReset();stage2=false">Confirm Resetting of BOM</button>
+            </li>
+          </ul>
+          </li>
         </ul>
       </div>
     </div> <!-- container -->

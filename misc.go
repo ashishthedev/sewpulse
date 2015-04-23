@@ -4,6 +4,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"appengine/user"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,29 +12,27 @@ import (
 	"time"
 )
 
+func GoTimeFromUnixTime(unixTime int64) time.Time {
+	return time.Unix(unixTime, 0)
+}
 func YYYYMMMDDFromUnixTime(unixTime int64) string {
-	return time.Unix(unixTime, 0).Format("2006-Jan-02")
+	return GoTimeFromUnixTime(unixTime).Format("2006-Jan-02")
 }
 
-func DDMMYYFromUnixTime(unixTime int64) string {
-	return time.Unix(unixTime, 0).Format("02-Jan-06")
+func DDMMMYYFromUnixTime(unixTime int64) string {
+	return GoTimeFromUnixTime(unixTime).Format("02-Jan-06")
 }
 
 func YYYYMMMDDFromGoTime(goTime time.Time) string {
 	return goTime.Format("2006-Jan-02")
 }
 
-func DDMMYYFromGoTime(goTime time.Time) string {
+func DDMMMYYFromGoTime(goTime time.Time) string {
 	return goTime.Format("02-Jan-06")
 }
 
-func myDebug(r *http.Request, s string) {
-	//line := "________________________"
-	//s1 := "\n" + line + "\n" + s + "\n" + line + "\n\n"
-	s1 := "\n|||||||||||||||||" + s
-	c := appengine.NewContext(r)
-	c.Debugf(s1)
-	return
+func DDMMMYYToGoTime(DD_MMM_YY string) (time.Time, error) {
+	return time.Parse("02-Jan-06", DD_MMM_YY)
 }
 
 func Reverse(s string) string {
@@ -141,6 +140,26 @@ func fromJson(v []byte, vv interface{}) error {
 	return json.Unmarshal(v, vv)
 }
 
+func JsonToStruct(data *string, v interface{}, r *http.Request) error {
+	b := bytes.NewBuffer([]byte(*data))
+	if err := json.NewDecoder(b).Decode(v); err != nil {
+		myDebug(r, "Error in JsonToStruct():"+err.Error())
+		return err
+	}
+	return nil
+}
+
+func StructToJson(v interface{}, r *http.Request) (*string, error) {
+	var b bytes.Buffer
+	if err := json.NewEncoder(&b).Encode(v); err != nil {
+		myDebug(r, "Error in StructToJson():"+err.Error())
+		return nil, err
+	}
+
+	str := string(b.Bytes())
+	return &str, nil
+}
+
 func RemoveDuplicates(xs *[]string) {
 	found := make(map[string]bool)
 	j := 0
@@ -152,4 +171,23 @@ func RemoveDuplicates(xs *[]string) {
 		}
 	}
 	*xs = (*xs)[:j]
+}
+
+func StripTimeKeepDate(dt time.Time) time.Time {
+	return time.Date(dt.Year(), dt.Month(), dt.Day(), 0, 0, 0, 0, time.UTC)
+}
+
+func spf(s string, a ...interface{}) string {
+	return fmt.Sprintf(s, a...)
+}
+
+func myDebug(r *http.Request, s string, a ...interface{}) {
+	appengine.NewContext(r).Debugf("\n>>>>|" + spf(s, a...) + "|<<<<")
+	return
+}
+
+func logErr(r *http.Request, err error, fnName string) error {
+	s := "Error returned from " + fnName + "() :\n" + err.Error()
+	appengine.NewContext(r).Errorf("\n>>>>|" + s + "|<<<<")
+	return err
 }

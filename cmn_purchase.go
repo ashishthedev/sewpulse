@@ -7,7 +7,7 @@ import (
 type PurchaseItem struct {
 	Name     string
 	Rate     float64
-	Quantity int
+	Quantity float64
 }
 
 type _PurchaseInvoice struct {

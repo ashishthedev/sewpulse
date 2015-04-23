@@ -1,4 +1,8 @@
 
+function JSDateToUnixTime(jsDate){
+  return Math.floor(jsDate.getTime()/1000);
+}
+
 function DateAsUnixTimeToDDMMMYY(unixTime) {
   var d = new Date(unixTime);
 
@@ -29,9 +33,9 @@ function DateAsUnixTimeToDDMMMYY(unixTime) {
   return pad2(day) + month + year;
 }
 
-function GetDateDiffAsText(dateValue){
+function GetDateDiffAsText(JSDate){
   var today = new Date();
-  var diff = Math.floor(today.getTime()/1000 - dateValue.getTime()/1000);
+  var diff = Math.floor(today.getTime()/1000 - JSDate.getTime()/1000);
   var day = 60 * 60 * 24;
 
   var days = Math.floor(diff/day);

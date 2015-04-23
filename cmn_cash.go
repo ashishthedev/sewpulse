@@ -16,7 +16,7 @@ type ZoneSaveUnsettledAdvInDataStoreFunc func(ctx CashTransaction, r *http.Reque
 func HTMLforDailyCash(cashTxs *CashTxsCluster, closingBalance int64, openingBalance int64, xxxEmailTag string) (emailSubject string, html string, err error) {
 
 	submissionTimeAsUnixTime := cashTxs.DateOfTransactionAsUnixTime
-	logDateDDMMYY := DDMMYYFromUnixTime(submissionTimeAsUnixTime)
+	logDateDDMMMYY := DDMMMYYFromUnixTime(submissionTimeAsUnixTime)
 
 	logTime := time.Unix(submissionTimeAsUnixTime, 0)
 	logMsg := LogMsgShownForLogTime(logTime, time.Now())
@@ -43,7 +43,7 @@ func HTMLforDailyCash(cashTxs *CashTxsCluster, closingBalance int64, openingBala
 		</tr>
 		</tfoot>
 		`,
-		logDateDDMMYY,
+		logDateDDMMMYY,
 		logMsg,
 		closingBalance,
 	)
@@ -56,7 +56,7 @@ func HTMLforDailyCash(cashTxs *CashTxsCluster, closingBalance int64, openingBala
 			<td></td>
 			</tr>`, "Opening Balance", openingBalance)
 
-	dateOfTxAsDDMMYY := DDMMYYFromUnixTime(cashTxs.DateOfTransactionAsUnixTime)
+	dateOfTxAsDDMMMYY := DDMMMYYFromUnixTime(cashTxs.DateOfTransactionAsUnixTime)
 
 	for _, ct := range cashTxs.Items {
 		html += fmt.Sprintf(`
@@ -66,13 +66,13 @@ func HTMLforDailyCash(cashTxs *CashTxsCluster, closingBalance int64, openingBala
 		<td>%v</td>
 		<td>%v</td>
 		<td>%v</td>
-		</tr>`, dateOfTxAsDDMMYY, ct.Nature, ct.Amount, ct.BillNumber, ct.Description)
+		</tr>`, dateOfTxAsDDMMMYY, ct.Nature, ct.Amount, ct.BillNumber, ct.Description)
 	}
 
 	html += "</table>"
 
 	html = fmt.Sprintf("<html><head></head><body>%s</body></html>", html)
-	emailSubject = fmt.Sprintf("Rs.%v in hand as on %s evening [SEWPULSE][%s]", closingBalance, logDateDDMMYY, xxxEmailTag)
+	emailSubject = fmt.Sprintf("Rs.%v in hand as on %s evening [SEWPULSE][%s]", closingBalance, logDateDDMMMYY, xxxEmailTag)
 	return
 
 }

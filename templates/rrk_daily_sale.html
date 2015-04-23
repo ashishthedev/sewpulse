@@ -41,7 +41,7 @@
           $scope.statusNote = "Submitting...";
           $scope.SaleInvoice.JSDateValueAsSeconds = Math.floor($scope.SaleInvoice.JSDateValue.getTime()/1000);
           RRKSaleInvoice.save($scope.SaleInvoice, function(data){
-          $scope.statusNote = "Submitting...";
+            $scope.statusNote = "Submitting...";
             if (debug){
               alert("TODO: Remove this");
               $scope.statusNote = "Posted";
@@ -60,10 +60,8 @@
           $scope.statusNote = "Fetching model set...";
           Model.query(function(data){
             $scope.models = data;
-            console.log("Models: " + $scope.models);
-            if($scope.models.length === 0) {
-              $scope.models[0] = "No model exists. Please create one.";
-            }
+            $scope.statusNote = "";
+
             }, function(error){
             $scope.statusNote = error.status + ": " + error.data;
           });

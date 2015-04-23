@@ -79,7 +79,7 @@ func DeleteArticleFromAllModels(r *http.Request, articleName string) error {
 }
 
 func ExtractArticleFromPostData(r *http.Request) (*Article, error) {
-	article := NewArticle()
+	article := new(Article)
 	if err := json.NewDecoder(r.Body).Decode(&article); err != nil {
 		return nil, err
 	}
@@ -175,6 +175,14 @@ func GetorCreateArticleMasterListFromDS(r *http.Request) (*ArticleMasterList, er
 		return nil, err
 	}
 	return bom.AML, nil
+}
+
+func GetAllArticlesFromDS(r *http.Request) (ArticleMap, error) {
+	aml, err := GetorCreateArticleMasterListFromDS(r)
+	if err != nil {
+		return nil, err
+	}
+	return aml.Articles, nil
 }
 
 func SaveArticleMasterList(masterList *ArticleMasterList, r *http.Request) error {

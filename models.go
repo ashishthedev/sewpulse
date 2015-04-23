@@ -32,3 +32,11 @@ func CreateDecodedNewModel(newMod *Model, r *http.Request) error {
 	}
 	return nil
 }
+
+func GetAllModelsFromBOM(r *http.Request) (ModelMap, error) {
+	bom, err := GetOrCreateBOMFromDS(r)
+	if err != nil {
+		return nil, err
+	}
+	return bom.Models, nil
+}

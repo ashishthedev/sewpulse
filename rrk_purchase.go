@@ -58,15 +58,17 @@ func rrkPurchaseInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case "POST":
+
 		var pi RRKPurchaseInvoice
 		if err := json.NewDecoder(r.Body).Decode(&pi); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		pi.DateValue = time.Unix(pi.JSDateValueAsSeconds, 0)
 
 		c := appengine.NewContext(r)
 		err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-			if err1 := SaveRRKPurchaseInvoiceInDS(&pi, r); err1 != nil {
+			if err1 := pi.SaveInDS(r); err1 != nil {
 				return err1
 			}
 			if err1 := SendMailForRRKPurchaseInvoice(&pi, r); err1 != nil {
@@ -86,23 +88,31 @@ func rrkPurchaseInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+const RRKPurchaseInvoiceKeyKind = "RRKPurchaseInvoiceKey"
+
 func RRKPurchaseInvoiceKey(r *http.Request, piUID string) *datastore.Key {
-	return RRK_SEWNewKey("RRKPurchaseInvoice", piUID, 0, r)
+	return RRK_SEWNewKey(RRKPurchaseInvoiceKeyKind, piUID, 0, r)
 }
 
-func SaveRRKPurchaseInvoiceInDS(pi *RRKPurchaseInvoice, r *http.Request) error {
-	//Have it as a method on RRKPurchaseInvoice? refactor later
-	pi.DateValue = time.Unix(pi.JSDateValueAsSeconds, 0)
-	pi.DD_MMM_YY = DDMMYYFromGoTime(pi.DateValue)
-	//BUG: If the customer name is changed or any other id is mutated, the original one should first be deleted.
-	pi.UID = fmt.Sprintf("%s-%s-%s", pi.DD_MMM_YY, pi.Number, pi.SupplierName)
-	//TODO: UID should be generated from the method on invoice
+func (pi *RRKPurchaseInvoice) UID() string {
+	return fmt.Sprintf("%s-%s-%s", pi.DD_MMM_YY, pi.SupplierName, pi.Number)
+}
 
+func (pi *RRKPurchaseInvoice) SaveInDS(r *http.Request) error {
 	c := appengine.NewContext(r)
-	k := RRKPurchaseInvoiceKey(r, pi.UID)
-	e := pi
-	if _, err := datastore.Put(c, k, e); err != nil {
-		return err
+	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
+		pi.DateValue = time.Unix(pi.JSDateValueAsSeconds, 0)
+		pi.DD_MMM_YY = DDMMMYYFromGoTime(pi.DateValue)
+
+		k := RRKPurchaseInvoiceKey(r, pi.UID())
+		e := pi
+		if _, err1 := datastore.Put(c, k, e); err1 != nil {
+			return err1
+		}
+		return RRKIntelligentlySetDD(r, pi.DateValue)
+	}, nil)
+	if err != nil {
+		return logErr(r, err, "Inside (pi *RRKPurchaseInvoice) SaveInDS()")
 	}
 	return nil
 }
@@ -145,23 +155,23 @@ func GetRRKPurchaseInvoiceFromDS(piUID string, r *http.Request) (*RRKPurchaseInv
 }
 
 func SendMailForRRKPurchaseInvoice(pi *RRKPurchaseInvoice, r *http.Request) error {
-	piDateAsDDMMYYYY := DDMMYYFromGoTime(pi.DateValue)
+	piDateAsDDMMMYYYY := DDMMMYYFromGoTime(pi.DateValue)
 
-	totalQuantitySold := 0
+	totalQuantitySold := float64(0)
 	for _, item := range pi.Items {
 		totalQuantitySold += item.Quantity
 	}
 
-	goodsValue := 0
+	goodsValue := float64(0)
 	for _, item := range pi.Items {
-		goodsValue += item.Quantity * int(item.Rate)
+		goodsValue += item.Quantity * item.Rate
 	}
 
 	funcMap := template.FuncMap{
 		// The name "title" is what the function will be called in the template text.
-		"DDMMYYFromGoTime":         DDMMYYFromGoTime,
+		"DDMMMYYFromGoTime":        DDMMMYYFromGoTime,
 		"LogMsgShownForLogTime":    func(x time.Time) string { return LogMsgShownForLogTime(x, time.Now()) },
-		"SingleItemGoodsValueFunc": func(i PurchaseItem) float64 { return i.Rate * float64(i.Quantity) },
+		"SingleItemGoodsValueFunc": func(i PurchaseItem) float64 { return i.Rate * i.Quantity },
 	}
 
 	emailTemplate := template.Must(template.New("emailRRKDPUR").Funcs(funcMap).Parse(`
@@ -171,7 +181,7 @@ func SendMailForRRKPurchaseInvoice(pi *RRKPurchaseInvoice, r *http.Request) erro
 	<h4></u>{{.DateValue|LogMsgShownForLogTime }}</u></h4>
 	<h4>M/s {{.SupplierName }}</h4>
 	<h4>Invoice#: {{.Number }}</h4>
-	<h4>{{.DateValue | DDMMYYFromGoTime}}</h4>
+	<h4>{{.DateValue | DDMMMYYFromGoTime}}</h4>
 	</caption>
 	<thead>
 	<tr bgcolor=#838468>
@@ -233,7 +243,7 @@ func SendMailForRRKPurchaseInvoice(pi *RRKPurchaseInvoice, r *http.Request) erro
 		Sender:   u.String() + "<" + u.Email + ">",
 		To:       []string{toAddr},
 		Bcc:      []string{bccAddr},
-		Subject:  fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][RRKPUR]", piDateAsDDMMYYYY, pi.Number, pi.SupplierName, totalQuantitySold),
+		Subject:  fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][RRKPUR]", piDateAsDDMMMYYYY, pi.Number, pi.SupplierName, totalQuantitySold),
 		HTMLBody: finalHTML,
 	}
 
@@ -257,4 +267,32 @@ func HTTPSinglePurchaseInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
+}
+func RRKGetAllPurchaseInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKPurchaseInvoice, error) {
+	singleDate := StripTimeKeepDate(date)
+	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
+	return RRKGetAllPurchaseInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+}
+func RRKGetAllPurchaseInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKPurchaseInvoice, error) {
+
+	q := datastore.NewQuery(RRKPurchaseInvoiceKeyKind).
+		Filter("DateValue >=", starting).
+		Filter("DateValue <=", ending).
+		Order("-DateValue")
+
+	c := appengine.NewContext(r)
+	var pis []RRKPurchaseInvoice
+	for t := q.Run(c); ; {
+		var pi RRKPurchaseInvoice
+		_, err := t.Next(&pi)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		pis = append(pis, pi)
+	}
+
+	return pis, nil
 }

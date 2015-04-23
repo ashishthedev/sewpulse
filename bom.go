@@ -12,15 +12,6 @@ import (
 
 var GLOBAL_BOM *BOM = nil
 
-func BOMAsBytesKey(r *http.Request) *datastore.Key {
-	const BOMAsBytesType = "BOMAsBytes"
-	return CMN_SEWNewKey(BOMAsBytesType, "BOMAsBytesKey", 0, r)
-}
-
-type BOMAsBytes struct {
-	Content []byte //GAE DS does not allow us to store slice of slices, therefore we need to convert the BOM as json string and store in the DS
-}
-
 func ResetBOMToSampleState(r *http.Request) error {
 	if err := ResetBOM(r); err != nil {
 		return err
@@ -48,6 +39,40 @@ func ResetBOM(r *http.Request) error {
 	return SaveBomInDS(NewBOM(), r)
 }
 
+func SaveBOMRcvdInHttpRequest(r *http.Request) error {
+	bom := NewBOM()
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(bom); err != nil {
+		return err
+	}
+	return SaveBomInDS(bom, r)
+
+}
+
+func BOMAsBytesKey(r *http.Request) *datastore.Key {
+	const BOMAsBytesType = "BOMAsBytes"
+	return CMN_SEWNewKey(BOMAsBytesType, "BOMAsBytesKey", 0, r)
+}
+
+type BOMAsBytes struct {
+	Content []byte //GAE DS does not allow us to store slice of slices, therefore we need to convert the BOM as json string and store in the DS
+}
+
+func SaveBomInDS(bom *BOM, r *http.Request) error {
+	bomAsBytes := &BOMAsBytes{Content: []byte{}}
+	var b bytes.Buffer
+	if err := json.NewEncoder(&b).Encode(*bom); err != nil {
+		return err
+	}
+	bomAsBytes.Content = b.Bytes()
+	if _, err := datastore.Put(appengine.NewContext(r), BOMAsBytesKey(r), bomAsBytes); err != nil {
+		return err
+	}
+
+	GLOBAL_BOM = bom
+	return nil
+}
+
 func GetOrCreateBOMFromDS(r *http.Request) (bom *BOM, err error) {
 	if GLOBAL_BOM != nil {
 		return GLOBAL_BOM, nil
@@ -72,30 +97,6 @@ func GetOrCreateBOMFromDS(r *http.Request) (bom *BOM, err error) {
 
 	GLOBAL_BOM = bom
 	return
-}
-
-func SaveBOMRcvdInHttpRequest(r *http.Request) error {
-	bom := NewBOM()
-	dec := json.NewDecoder(r.Body)
-	if err := dec.Decode(bom); err != nil {
-		return err
-	}
-	return SaveBomInDS(bom, r)
-
-}
-func SaveBomInDS(bom *BOM, r *http.Request) error {
-	bomAsBytes := &BOMAsBytes{Content: []byte{}}
-	var b bytes.Buffer
-	if err := json.NewEncoder(&b).Encode(*bom); err != nil {
-		return err
-	}
-	bomAsBytes.Content = b.Bytes()
-	if _, err := datastore.Put(appengine.NewContext(r), BOMAsBytesKey(r), bomAsBytes); err != nil {
-		return err
-	}
-
-	GLOBAL_BOM = bom
-	return nil
 }
 
 func (bom *BOM) String() string {

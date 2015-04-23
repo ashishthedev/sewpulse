@@ -33,23 +33,23 @@ const API_RRK_PURCHASE_INVOICE_SALSH_END = "/api/rrk/purchaseInvoice/"
 const API_RRK_PURCHASE_INVOICE_END = "/api/rrk/purchaseInvoice"
 const HTTP_RRK_PURCHASE_INVOICE_SLASH_END = "/rrk/purchaseInvoice/"
 
+const API_RRK_STOCK_POSITION_FOR_DATE_SLASH_END = "/api/rrk/stock-position-for-date/"
+
 func initDynamicHTMLUrlMaps() {
 
 	http.HandleFunc(HTTP_RRK_SALE_INVOICE_SLASH_END, HTTPSingleSaleInvoiceHandler)
 	http.HandleFunc(HTTP_RRK_PURCHASE_INVOICE_SLASH_END, HTTPSinglePurchaseInvoiceHandler)
+	http.HandleFunc(API_RRK_STOCK_POSITION_FOR_DATE_SLASH_END, rrkStockPositionForDateSlashApiHandler)
 }
 
 func initStaticHTMLUrlMaps() {
 	urlMaps := map[string]urlStruct{
 		"/":                             {generalPageHandler, "templates/home.html"},
 		"/a":                            {generalPageHandler, "templates/admin/admin.html"},
-		"/a/gzb":                        {generalPageHandler, "templates/admin/gzb_admin.html"},
-		"/a/bom":                        {generalPageHandler, "templates/admin/bom_admin.html"},
 		"/a/bom/view":                   {generalPageHandler, "templates/admin/bom_view.html"},
 		"/a/bom/new-model":              {generalPageHandler, "templates/admin/create_model.html"},
 		"/a/bom/new-article":            {generalPageHandler, "templates/admin/create_article.html"},
 		"/a/gzb/view-unsettled-advance": {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
-		"/a/rrk":                        {generalPageHandler, "templates/admin/rrk_admin.html"},
 		"/a/rrk/all-sale-invoices":      {generalPageHandler, "templates/admin/rrk_sale_invoice_all.html"},
 		"/a/rrk/all-purchase-invoices":  {generalPageHandler, "templates/admin/rrk_purchase_invoice_all.html"},
 		"/a/rrk/view-unsettled-advance": {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
@@ -57,12 +57,13 @@ func initStaticHTMLUrlMaps() {
 		"/rrk/daily-assembly":           {generalPageHandler, "templates/rrk_daily_assembly.html"},
 		"/rrk/daily-sale":               {generalPageHandler, "templates/rrk_daily_sale.html"},
 		"/rrk/enter-purchase-invoice":   {generalPageHandler, "templates/rrk_enter_purchase.html"},
-		"/rrk":                    {generalPageHandler, "templates/rrk.html"},
-		"/rrk/daily-cash":         {generalPageHandler, "templates/rrk_daily_cash.html"},
-		"/gzb":                    {generalPageHandler, "templates/gzb.html"},
-		"/gzb/daily-cash":         {generalPageHandler, "templates/gzb_daily_cash.html"},
-		"/gzb/daily-mfg-sale":     {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
-		"/gzb/daily-trading-sale": {generalPageHandler, "templates/gzb_daily_trading_sale.html"},
+		"/rrk/stock-position":           {generalPageHandler, "templates/rrk_view_stock_position.html"},
+		"/rrk":                          {generalPageHandler, "templates/rrk.html"},
+		"/rrk/daily-cash":               {generalPageHandler, "templates/rrk_daily_cash.html"},
+		"/gzb":                          {generalPageHandler, "templates/gzb.html"},
+		"/gzb/daily-cash":               {generalPageHandler, "templates/gzb_daily_cash.html"},
+		"/gzb/daily-mfg-sale":           {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
+		"/gzb/daily-trading-sale":       {generalPageHandler, "templates/gzb_daily_trading_sale.html"},
 	}
 
 	for path, urlBlob := range urlMaps {
@@ -94,7 +95,7 @@ func initRootApiMaps() {
 		"/api/gzbGetModelApi":                      {gzbGetModelApiHandler},
 		"/gzb/update":                              {gzbDailyCashUpdateModelApiHandler},
 		"/api/rrkDailyPolishEmailSendApi":          {rrkDailyPolishEmailSendApiHandler},
-		"/api/rrkDailyAssemblyEmailSendApi":        {rrkDailyAssemblyEmailSendApiHandler},
+		"/api/rrkDailyAssemblySubmissionApi":       {rrkDailyAssemblySubmissionApiHandler},
 		API_RRK_SALE_INVOICE_END:                   {rrkSaleInvoiceApiHandler},
 		API_RRK_SALE_INVOICE_SALSH_END:             {rrkSaleInvoiceWithSalshApiHandler},
 		API_RRK_PURCHASE_INVOICE_END:               {rrkPurchaseInvoiceApiHandler},

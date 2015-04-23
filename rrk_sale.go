@@ -93,7 +93,7 @@ func RRKSaleInvoiceKey(r *http.Request, siUID string) *datastore.Key {
 func SaveRRKSaleInvoiceInDS(si *RRKSaleInvoice, r *http.Request) error {
 	//Have it as a method on RRKSaleInvoice? refactor later
 	si.DateValue = time.Unix(si.JSDateValueAsSeconds, 0)
-	si.DD_MMM_YY = DDMMYYFromGoTime(si.DateValue)
+	si.DD_MMM_YY = DDMMMYYFromGoTime(si.DateValue)
 	//BUG: If the customer name is changed or any other id is mutated, the original one should first be deleted.
 	si.UID = fmt.Sprintf("%s-%s-%s", si.DD_MMM_YY, si.Number, si.CustomerName)
 	for i, item := range si.Items {
@@ -115,7 +115,7 @@ func SaveRRKSaleInvoiceInDS(si *RRKSaleInvoice, r *http.Request) error {
 	if _, err := datastore.Put(c, k, e); err != nil {
 		return err
 	}
-	return nil
+	return RRKIntelligentlySetDD(r, si.DateValue)
 }
 
 func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
@@ -156,7 +156,7 @@ func GetRRKSaleInvoiceFromDS(siUID string, r *http.Request) (*RRKSaleInvoice, er
 }
 
 func SendMailForRRKSaleInvoice(si *RRKSaleInvoice, r *http.Request) error {
-	siDateAsDDMMYYYY := DDMMYYFromGoTime(si.DateValue)
+	siDateAsDDMMMYYYY := DDMMMYYFromGoTime(si.DateValue)
 
 	totalQuantitySold := 0
 	for _, item := range si.Items {
@@ -170,7 +170,7 @@ func SendMailForRRKSaleInvoice(si *RRKSaleInvoice, r *http.Request) error {
 
 	funcMap := template.FuncMap{
 		// The name "title" is what the function will be called in the template text.
-		"DDMMYYFromGoTime":         DDMMYYFromGoTime,
+		"DDMMMYYFromGoTime":        DDMMMYYFromGoTime,
 		"LogMsgShownForLogTime":    func(x time.Time) string { return LogMsgShownForLogTime(x, time.Now()) },
 		"SingleItemGoodsValueFunc": func(i SoldItem) float64 { return i.Rate * float64(i.Quantity) },
 	}
@@ -182,7 +182,7 @@ func SendMailForRRKSaleInvoice(si *RRKSaleInvoice, r *http.Request) error {
 	<h4></u>{{.DateValue|LogMsgShownForLogTime }}</u></h4>
 	<h4>M/s {{.CustomerName }}</h4>
 	<h4>Invoice#: {{.Number }}</h4>
-	<h4>{{.DateValue | DDMMYYFromGoTime}}</h4>
+	<h4>{{.DateValue | DDMMMYYFromGoTime}}</h4>
 	</caption>
 	<thead>
 	<tr bgcolor=#838468>
@@ -244,7 +244,7 @@ func SendMailForRRKSaleInvoice(si *RRKSaleInvoice, r *http.Request) error {
 		Sender:   u.String() + "<" + u.Email + ">",
 		To:       []string{toAddr},
 		Bcc:      []string{bccAddr},
-		Subject:  fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][RRKDS]", siDateAsDDMMYYYY, si.Number, si.CustomerName, totalQuantitySold),
+		Subject:  fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][RRKDS]", siDateAsDDMMMYYYY, si.Number, si.CustomerName, totalQuantitySold),
 		HTMLBody: finalHTML,
 	}
 
