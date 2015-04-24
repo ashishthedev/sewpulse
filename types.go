@@ -1,5 +1,9 @@
 package sewpulse
 
+import (
+	"time"
+)
+
 //======================================================
 // Design:
 // The whole BOM can be visualized as a table with rows and columns being articles and models. Every individual cell represents the amount of articles used in that particular model.
@@ -94,4 +98,48 @@ func NewBOM() *BOM {
 
 type ArticleLister interface {
 	ArticleList() []string
+}
+
+//======================================================
+// SoldItem
+//======================================================
+type SoldItem struct {
+	Name             string
+	Rate             float64
+	Quantity         float64
+	ModelWithFullBOM Model
+}
+
+//======================================================
+// _SaleInvoice
+//======================================================
+
+type _SaleInvoice struct {
+	Items                []SoldItem
+	Number               string
+	DateValue            time.Time
+	JSDateValueAsSeconds int64
+	GoodsValue           float64
+	GrandTotal           float64
+	CustomerName         string
+	TotalTax             float64
+	TotalFreight         float64
+	Remarks              string
+	UID                  string
+	DD_MMM_YY            string
+}
+
+//======================================================
+// GZBSaleInvoice
+//======================================================
+
+type GZBSaleInvoice struct {
+	_SaleInvoice
+}
+
+//======================================================
+// RRKSaleInvoice
+//======================================================
+type RRKSaleInvoice struct {
+	_SaleInvoice
 }

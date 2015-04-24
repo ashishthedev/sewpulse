@@ -5,7 +5,6 @@ import (
 	"appengine/datastore"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 )

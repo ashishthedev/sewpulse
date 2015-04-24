@@ -51,6 +51,7 @@ func rrkSaleInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		myDebug(r, "Fetched sale invoices: %#v", sis)
 		if err := WriteJson(&w, struct{ RRKSaleInvoices []RRKSaleInvoice }{sis}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -63,6 +64,7 @@ func rrkSaleInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		myDebug(r, "Just decoded new SI from Web: \n%#v", si)
 
 		c := appengine.NewContext(r)
 		err := datastore.RunInTransaction(c, func(c appengine.Context) error {
@@ -92,11 +94,12 @@ func RRKSaleInvoiceKey(r *http.Request, siUID string) *datastore.Key {
 	return RRK_SEWNewKey(RRKSaleInvoiceKind, siUID, 0, r)
 }
 
+func (si *RRKSaleInvoice) UID() string {
+	return fmt.Sprintf("%s-%s-%s", si.DD_MMM_YY, si.Number, si.CustomerName)
+}
 func (si *RRKSaleInvoice) SaveRRKSaleInvoiceInDS(r *http.Request) error {
-	//Have it as a method on RRKSaleInvoice? refactor later
-	si.DateValue = time.Unix(si.JSDateValueAsSeconds, 0)
+	si.DateValue = GoTimeFromUnixTime(si.JSDateValueAsSeconds)
 	si.DD_MMM_YY = DDMMMYYFromGoTime(si.DateValue)
-	si.UID = fmt.Sprintf("%s-%s-%s", si.DD_MMM_YY, si.Number, si.CustomerName)
 	for i, item := range si.Items {
 		model, err := GetModelWithName(r, item.Name)
 		if err != nil {
@@ -106,33 +109,18 @@ func (si *RRKSaleInvoice) SaveRRKSaleInvoiceInDS(r *http.Request) error {
 	}
 
 	c := appengine.NewContext(r)
-	k := RRKSaleInvoiceKey(r, si.UID)
-	e := si
+	k := RRKSaleInvoiceKey(r, si.UID())
+	e := new(RRKSaleInvoiceAsString)
+	data, err := StructToJson(si, r)
+	if err != nil {
+		return err
+	}
+	e.StringData = *data
+	myDebug(r, "About to save this RRKSaleInvoice in DS as string:\n %#v", *e)
 	if _, err := datastore.Put(c, k, e); err != nil {
 		return err
 	}
 	return RRKIntelligentlySetDD(r, si.DateValue)
-}
-
-func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery("RRKSaleInvoice").
-		Order("-DateValue")
-	//https://cloud.google.com/appengine/docs/go/datastore/reference
-	var sis []RRKSaleInvoice
-	for t := q.Run(c); ; {
-		var si RRKSaleInvoice
-		_, err := t.Next(&si)
-		if err == datastore.Done {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		sis = append(sis, si)
-	}
-
-	return sis, nil
 }
 
 func DeleteRRKSaleInvoiceFromDS(siUID string, r *http.Request) error {
@@ -141,14 +129,23 @@ func DeleteRRKSaleInvoiceFromDS(siUID string, r *http.Request) error {
 	return datastore.Delete(c, k)
 }
 
+type RRKSaleInvoiceAsString struct {
+	StringData string
+}
+
 func GetRRKSaleInvoiceFromDS(siUID string, r *http.Request) (*RRKSaleInvoice, error) {
 	c := appengine.NewContext(r)
 	k := RRKSaleInvoiceKey(r, siUID)
-	e := new(RRKSaleInvoice)
+	e := new(RRKSaleInvoiceAsString)
+
 	if err := datastore.Get(c, k, e); err != nil {
 		return nil, err
 	}
-	return e, nil
+	si := new(RRKSaleInvoice)
+	if err := JsonToStruct(&(e.StringData), si, r); err != nil {
+		return nil, err
+	}
+	return si, nil
 }
 
 func (si *RRKSaleInvoice) SendMailForRRKSaleInvoice(r *http.Request) error {
@@ -271,6 +268,31 @@ func RRKGetAllSaleInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKSal
 	return RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
 }
 
+func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
+	c := appengine.NewContext(r)
+	q := datastore.NewQuery(RRKSaleInvoiceKind)
+	//https://cloud.google.com/appengine/docs/go/datastore/reference
+	var sis []RRKSaleInvoice
+	for t := q.Run(c); ; {
+		var e RRKSaleInvoiceAsString
+		var si RRKSaleInvoice
+		_, err := t.Next(&e)
+		myDebug(r, "PreConverted struct of sale Invoice :\n%#v", e)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := JsonToStruct(&(e.StringData), &si, r); err != nil {
+			return nil, err
+		}
+		sis = append(sis, si)
+	}
+
+	return sis, nil
+}
+
 func RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKSaleInvoice, error) {
 	q := datastore.NewQuery(RRKSaleInvoiceKind).
 		Filter("DateValue >=", starting).
@@ -280,12 +302,16 @@ func RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r *http.Request, starting t
 	c := appengine.NewContext(r)
 	var sis []RRKSaleInvoice
 	for t := q.Run(c); ; {
+		var e RRKSaleInvoiceAsString
 		var si RRKSaleInvoice
-		_, err := t.Next(&si)
+		_, err := t.Next(&e)
 		if err == datastore.Done {
 			break
 		}
 		if err != nil {
+			return nil, err
+		}
+		if err := JsonToStruct(&(e.StringData), &si, r); err != nil {
 			return nil, err
 		}
 		sis = append(sis, si)

@@ -56,3 +56,7 @@ function GetDateDiffAsText(JSDate){
 function UpdateDateDiffAsText($scope) {
   $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.dateValue);
 }
+
+function Debug(){
+  return true;
+}

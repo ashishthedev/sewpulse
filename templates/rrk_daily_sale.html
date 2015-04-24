@@ -23,10 +23,6 @@
     <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
     <script>
       var appMod = angular.module('SEWPulseApp', ['bomServices']);
-      var debug;
-      debug = false;
-      debug = true;
-
       appMod.controller('RRKDailySaleCtrl', ['$scope', 'Model', 'RRKSaleInvoice', function($scope, Model, RRKSaleInvoice) {
 
         $scope.DateChanged = function() {
@@ -42,8 +38,7 @@
           $scope.SaleInvoice.JSDateValueAsSeconds = Math.floor($scope.SaleInvoice.JSDateValue.getTime()/1000);
           RRKSaleInvoice.save($scope.SaleInvoice, function(data){
             $scope.statusNote = "Submitting...";
-            if (debug){
-              alert("TODO: Remove this");
+            if (Debug()){
               $scope.statusNote = "Posted";
               $scope.isLogSubmitted = false;
               } else{
@@ -115,7 +110,7 @@
         $scope.statusNote = "";
         $scope.isLogSubmitted = false;
         FetchModelsFromServer();
-        if(debug == true) {
+        if(Debug()) {
           $scope.SaleInvoice.Number="111";
           $scope.tempGrandTotal = 3;
           $scope.SaleInvoice.CustomerName = "Rancho";
