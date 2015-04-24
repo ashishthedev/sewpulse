@@ -94,12 +94,13 @@ func RRKSaleInvoiceKey(r *http.Request, siUID string) *datastore.Key {
 	return RRK_SEWNewKey(RRKSaleInvoiceKind, siUID, 0, r)
 }
 
-func (si *RRKSaleInvoice) UID() string {
+func (si *RRKSaleInvoice) GetUID() string {
 	return fmt.Sprintf("%s-%s-%s", si.DD_MMM_YY, si.Number, si.CustomerName)
 }
 func (si *RRKSaleInvoice) SaveRRKSaleInvoiceInDS(r *http.Request) error {
 	si.DateValue = GoTimeFromUnixTime(si.JSDateValueAsSeconds)
 	si.DD_MMM_YY = DDMMMYYFromGoTime(si.DateValue)
+	si.UID = si.GetUID()
 	for i, item := range si.Items {
 		model, err := GetModelWithName(r, item.Name)
 		if err != nil {
@@ -109,7 +110,7 @@ func (si *RRKSaleInvoice) SaveRRKSaleInvoiceInDS(r *http.Request) error {
 	}
 
 	c := appengine.NewContext(r)
-	k := RRKSaleInvoiceKey(r, si.UID())
+	k := RRKSaleInvoiceKey(r, si.UID)
 	e := new(RRKSaleInvoiceAsString)
 	data, err := StructToJson(si, r)
 	if err != nil {
