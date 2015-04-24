@@ -108,18 +108,16 @@ func (si *RRKSaleInvoice) SaveRRKSaleInvoiceInDS(r *http.Request) error {
 			if err != nil {
 				return err
 			}
-			si.Items[i].ModelWithFullBOM = model
+			data, err := StructToJson(model, r)
+			if err != nil {
+				return err
+			}
+
+			si.Items[i].ModelWithFullBOMAsString = *data
 		}
 
 		k := RRKSaleInvoiceKey(r, si.UID)
-		e := new(Stringer)
-		data, err := StructToJson(si, r)
-		if err != nil {
-			return err
-		}
-		e.StringData = *data
-		myDebug(r, "About to save this RRKSaleInvoice in DS as string:\n %#v", *e)
-		if _, err := datastore.Put(c, k, e); err != nil {
+		if _, err := datastore.Put(c, k, si); err != nil {
 			return err
 		}
 		return RRKIntelligentlySetDD(r, si.DateValue)
@@ -136,16 +134,12 @@ func DeleteRRKSaleInvoiceFromDS(siUID string, r *http.Request) error {
 func GetRRKSaleInvoiceFromDS(siUID string, r *http.Request) (*RRKSaleInvoice, error) {
 	c := appengine.NewContext(r)
 	k := RRKSaleInvoiceKey(r, siUID)
-	e := new(Stringer)
+	e := new(RRKSaleInvoice)
 
 	if err := datastore.Get(c, k, e); err != nil {
 		return nil, err
 	}
-	si := new(RRKSaleInvoice)
-	if err := JsonToStruct(&(e.StringData), si, r); err != nil {
-		return nil, err
-	}
-	return si, nil
+	return e, nil
 }
 
 func (si *RRKSaleInvoice) SendMailForRRKSaleInvoice(r *http.Request) error {
@@ -274,17 +268,12 @@ func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
 	//https://cloud.google.com/appengine/docs/go/datastore/reference
 	var sis []RRKSaleInvoice
 	for t := q.Run(c); ; {
-		var e Stringer
 		var si RRKSaleInvoice
-		_, err := t.Next(&e)
-		myDebug(r, "PreConverted struct of sale Invoice :\n%#v", e)
+		_, err := t.Next(&si)
 		if err == datastore.Done {
 			break
 		}
 		if err != nil {
-			return nil, err
-		}
-		if err := JsonToStruct(&(e.StringData), &si, r); err != nil {
 			return nil, err
 		}
 		sis = append(sis, si)
@@ -301,16 +290,12 @@ func RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r *http.Request, starting t
 	c := appengine.NewContext(r)
 	var sis []RRKSaleInvoice
 	for t := q.Run(c); ; {
-		var e Stringer
 		var si RRKSaleInvoice
-		_, err := t.Next(&e)
+		_, err := t.Next(&si)
 		if err == datastore.Done {
 			break
 		}
 		if err != nil {
-			return nil, err
-		}
-		if err := JsonToStruct(&(e.StringData), &si, r); err != nil {
 			return nil, err
 		}
 		sis = append(sis, si)
