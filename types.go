@@ -104,10 +104,11 @@ type ArticleLister interface {
 // SoldItem
 //======================================================
 type SoldItem struct {
-	Name             string
-	Rate             float64
-	Quantity         float64
-	ModelWithFullBOM Model
+	Name                     string
+	Rate                     float64
+	Quantity                 float64
+	ModelWithFullBOM         Model  `datastore:"-"`
+	ModelWithFullBOMAsString string `datastore:"noindex"`
 }
 
 //======================================================
@@ -142,4 +143,11 @@ type GZBSaleInvoice struct {
 //======================================================
 type RRKSaleInvoice struct {
 	_SaleInvoice
+}
+
+//======================================================
+// Stringer
+//======================================================
+type Stringer struct {
+	StringData string `datastore:"noindex"`
 }
