@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+func UnixTimeFromGoTime(goTime time.Time) int64 {
+	return goTime.Unix()
+}
+
 func GoTimeFromUnixTime(unixTime int64) time.Time {
 	return time.Unix(unixTime, 0)
 }

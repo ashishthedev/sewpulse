@@ -172,13 +172,10 @@ func (rrksas *RRKStockAsString) _GetOrCreateInDS(r *http.Request, uid string) (*
 
 	rrksp := new(RRKStockPos)
 	data := rrksas.StringData
-	myDebug(r, "\nString Data:\n%v", data)
 	if err := JsonToStruct(&data, &rrksp, r); err != nil {
 		myDebug(r, "Error from: JsonToStruct():"+err.Error())
 		return nil, err
 	}
-	myDebug(r, "\nConverted Json:\n%#v", rrksp)
-
 	return rrksp, nil
 }
 
@@ -327,6 +324,28 @@ func RRKRecalculateStockSinceDirtyDate(r *http.Request) error {
 	return nil
 }
 
+func rrkStockPristineDateApiHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		rrkStockPristineTime, err := GetRRKDD(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		rrkStockPristineTime = rrkStockPristineTime.Add(-1 * 24 * time.Hour)
+		if err := WriteJson(&w, struct{ PristineTime int64 }{rrkStockPristineTime.Unix()}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		return
+
+	default:
+		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+}
 func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) error {
 	//Thing about how task ques can be used.
 

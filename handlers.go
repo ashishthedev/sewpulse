@@ -106,6 +106,7 @@ func initRootApiMaps() {
 		"/api/rrkDailyCashOpeningBalanceApi":       {rrkDailyCashGetOpeningBalanceHandler},
 		"/api/rrkDailyCashGetUnsettledAdvancesApi": {rrkDailyCashGetUnsettledAdvancesHandler},
 		"/api/rrkDailyCashSettleAccForOneEntryApi": {rrkDailyCashSettleAccForOneEntryApiHandler},
+		"/api/rrk/stock-pristine-date":             {rrkStockPristineDateApiHandler},
 		"/rrk/update":                              {rrkDailyCashUpdateModelApiHandler},
 	}
 	for path, apiBlob := range apiMaps {

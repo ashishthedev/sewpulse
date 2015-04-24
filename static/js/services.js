@@ -35,3 +35,8 @@ bomServices.factory('RRKStockPosition', ['$resource', function($resource){
     return $resource('/api/rrk/stock-position-for-date/:id',{},{
     } );
   }]);
+
+bomServices.factory('RRKStockPristineDate', ['$resource', function($resource){
+    return $resource('/api/rrk/stock-pristine-date',{},{
+    } );
+  }]);
