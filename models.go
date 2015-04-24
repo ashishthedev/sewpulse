@@ -40,3 +40,17 @@ func GetAllModelsFromBOM(r *http.Request) (ModelMap, error) {
 	}
 	return bom.Models, nil
 }
+
+func GetModelWithName(r *http.Request, modelName string) (Model, error) {
+	bom, err := GetOrCreateBOMFromDS(r)
+	if err != nil {
+		return Model{}, err
+	}
+	for _, model := range bom.Models {
+		if model.Name == modelName {
+			return model, nil
+		}
+	}
+	return Model{}, errors.New("No model exists with name: " + modelName)
+
+}

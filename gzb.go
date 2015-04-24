@@ -74,14 +74,14 @@ func gzbDailyMfgSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) 
 func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err error) {
 	siDateAsDDMMMYYYY := DDMMMYYFromGoTime(si.DateValue)
 
-	totalQuantitySold := 0
+	totalQuantitySold := float64(0)
 	for _, item := range si.Items {
 		totalQuantitySold += item.Quantity
 	}
 
-	goodsValue := 0
+	goodsValue := float64(0)
 	for _, item := range si.Items {
-		goodsValue += item.Quantity * int(item.Rate)
+		goodsValue += item.Quantity * item.Rate
 	}
 
 	funcMap := template.FuncMap{
@@ -172,14 +172,14 @@ func SendMailForGZBMfgSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err erro
 func SendMailForGZBTradingSaleInvoice(si *GZBSaleInvoice, r *http.Request) (err error) {
 	siDateAsDDMMMYYYY := DDMMMYYFromGoTime(si.DateValue)
 
-	totalQuantitySold := 0
+	totalQuantitySold := float64(0)
 	for _, item := range si.Items {
 		totalQuantitySold += item.Quantity
 	}
 
-	goodsValue := 0
+	goodsValue := float64(0)
 	for _, item := range si.Items {
-		goodsValue += item.Quantity * int(item.Rate)
+		goodsValue += item.Quantity * item.Rate
 	}
 
 	funcMap := template.FuncMap{

@@ -66,10 +66,10 @@ func rrkSaleInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 
 		c := appengine.NewContext(r)
 		err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-			if err1 := SaveRRKSaleInvoiceInDS(&si, r); err1 != nil {
+			if err1 := si.SaveRRKSaleInvoiceInDS(r); err1 != nil {
 				return err1
 			}
-			if err1 := SendMailForRRKSaleInvoice(&si, r); err1 != nil {
+			if err1 := si.SendMailForRRKSaleInvoice(r); err1 != nil {
 				return err1
 			}
 			return nil
@@ -92,22 +92,17 @@ func RRKSaleInvoiceKey(r *http.Request, siUID string) *datastore.Key {
 	return RRK_SEWNewKey(RRKSaleInvoiceKind, siUID, 0, r)
 }
 
-func SaveRRKSaleInvoiceInDS(si *RRKSaleInvoice, r *http.Request) error {
+func (si *RRKSaleInvoice) SaveRRKSaleInvoiceInDS(r *http.Request) error {
 	//Have it as a method on RRKSaleInvoice? refactor later
 	si.DateValue = time.Unix(si.JSDateValueAsSeconds, 0)
 	si.DD_MMM_YY = DDMMMYYFromGoTime(si.DateValue)
-	//BUG: If the customer name is changed or any other id is mutated, the original one should first be deleted.
 	si.UID = fmt.Sprintf("%s-%s-%s", si.DD_MMM_YY, si.Number, si.CustomerName)
 	for i, item := range si.Items {
 		model, err := GetModelWithName(r, item.Name)
 		if err != nil {
 			return err
 		}
-		si.Items[i].ModelVal = model
-		b, err := json.Marshal(model)
-		if err != nil {
-			return err
-		}
+		si.Items[i].ModelWithFullBOM = model
 	}
 
 	c := appengine.NewContext(r)
@@ -156,17 +151,17 @@ func GetRRKSaleInvoiceFromDS(siUID string, r *http.Request) (*RRKSaleInvoice, er
 	return e, nil
 }
 
-func SendMailForRRKSaleInvoice(si *RRKSaleInvoice, r *http.Request) error {
+func (si *RRKSaleInvoice) SendMailForRRKSaleInvoice(r *http.Request) error {
 	siDateAsDDMMMYYYY := DDMMMYYFromGoTime(si.DateValue)
 
-	totalQuantitySold := 0
+	totalQuantitySold := float64(0)
 	for _, item := range si.Items {
 		totalQuantitySold += item.Quantity
 	}
 
-	goodsValue := 0
+	goodsValue := 0.0
 	for _, item := range si.Items {
-		goodsValue += item.Quantity * int(item.Rate)
+		goodsValue += item.Quantity * item.Rate
 	}
 
 	funcMap := template.FuncMap{

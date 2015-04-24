@@ -49,13 +49,17 @@ func SaveBOMRcvdInHttpRequest(r *http.Request) error {
 
 }
 
-func BOMAsBytesKey(r *http.Request) *datastore.Key {
-	const BOMAsBytesType = "BOMAsBytes"
-	return CMN_SEWNewKey(BOMAsBytesType, "BOMAsBytesKey", 0, r)
-}
+//======================================================
+// BOMAsBytes
+//======================================================
 
 type BOMAsBytes struct {
 	Content []byte //GAE DS does not allow us to store slice of slices, therefore we need to convert the BOM as json string and store in the DS
+}
+
+func BOMAsBytesKey(r *http.Request) *datastore.Key {
+	const BOMAsBytesType = "BOMAsBytes"
+	return CMN_SEWNewKey(BOMAsBytesType, "BOMAsBytesKey", 0, r)
 }
 
 func SaveBomInDS(bom *BOM, r *http.Request) error {
@@ -111,17 +115,4 @@ func (bom *BOM) String() string {
 		}
 	}
 	return s
-}
-func GetModelWithName(r *http.Request, modelName string) (Model, error) {
-	bom, err := GetOrCreateBOMFromDS(r)
-	if err != nil {
-		return Model{}, err
-	}
-	for _, model := range bom.Models {
-		if model.Name == modelName {
-			return model, nil
-		}
-	}
-	return Model{}, errors.New("No model exists with name: " + modelName)
-
 }
