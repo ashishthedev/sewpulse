@@ -6,54 +6,53 @@ import (
 	"appengine/mail"
 	"appengine/user"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
 )
 
-type RRKAssembledItem struct {
-	ModelName        string
-	Quantity         float64
-	Unit             string
-	AssemblyLineName string
-	Remarks          string
-}
-
-type RRKAssembledItems struct {
-	JSDateValueAsSeconds int64 `datastore:"-"`
-	Items                []RRKAssembledItem
-	DateValue            time.Time
-}
-
-func (ais RRKAssembledItems) UID() string {
+func (ai RRKAssembledItem) UID() string {
 	const layout = "02Jan2006_304pm_MST"
-	//10Nov2009_1100am
-	t := time.Unix(ais.JSDateValueAsSeconds, 0)
-	return fmt.Sprintf(t.UTC().Format(layout))
+	//10Nov2009_1100am_UTC
+	return fmt.Sprintf("%s-%s", ai.ModelName, ai.DateValue.Format(layout))
 }
 
-func (ais RRKAssembledItems) GetOrCreateInDS(r *http.Request) error {
-	c := appengine.NewContext(r)
-	k := ais.KeyDS(r)
-	e := &ais
-	return datastore.Get(c, k, e)
+const RRKAssembledItemKind = "RRKAssembledItem"
+
+func (ai RRKAssembledItem) KeyDS(r *http.Request) *datastore.Key {
+	return RRK_SEWNewKey(RRKAssembledItemKind, "RRKAsmbldItem_"+ai.UID(), 0, r)
 }
 
-const RRKAssembledItemsKind = "RRKAssembledItems"
-
-func (ais RRKAssembledItems) KeyDS(r *http.Request) *datastore.Key {
-	return RRK_SEWNewKey(RRKAssembledItemsKind, "RRKAssItems_"+ais.UID(), 0, r)
-}
-
-func (ais RRKAssembledItems) SaveInDS(r *http.Request) error {
-	//TODO: All save in DS should be done in transactions. Find pattern and do it on mass scale.
-	c := appengine.NewContext(r)
-	k := ais.KeyDS(r)
-	e := &ais
-	if _, err := datastore.Put(c, k, e); err != nil {
+func (ai RRKAssembledItem) SaveInDS(r *http.Request) error {
+	if ai.DateValue.IsZero() {
+		return errors.New("Trying to save assembled item without Date.")
+	}
+	model, err := GetModelWithName(r, ai.ModelName)
+	if err != nil {
 		return err
 	}
-	return RRKIntelligentlySetDD(r, ais.DateValue)
+	data, err := StructToJson(model, r)
+	if err != nil {
+		return err
+	}
+
+	ai.ModelWithFullBOMAsString = *data
+
+	c := appengine.NewContext(r)
+	k := ai.KeyDS(r)
+	e := &ai
+	err1 := datastore.RunInTransaction(c, func(c appengine.Context) error {
+		if _, err := datastore.Put(c, k, e); err != nil {
+			return err
+		}
+		return RRKIntelligentlySetDD(r, ai.DateValue)
+	}, nil)
+
+	if err1 != nil {
+		return err1
+	}
+	return nil
 }
 
 func rrkDailyAssemblySubmissionApiHandler(w http.ResponseWriter, r *http.Request) {
@@ -71,19 +70,22 @@ func rrkDailyAssemblySubmissionApiHandler(w http.ResponseWriter, r *http.Request
 	ais.DateValue = time.Unix(ais.JSDateValueAsSeconds, 0)
 
 	c := appengine.NewContext(r)
-	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-		if err1 := ais.SaveInDS(r); err1 != nil {
-			return err1
+	err1 := datastore.RunInTransaction(c, func(c appengine.Context) error {
+		for _, ai := range ais.Items {
+			ai.DateValue = ais.DateValue
+			if err := ai.SaveInDS(r); err != nil {
+				return err
+			}
 		}
 
-		if err1 := SendEmailForDailyAssembly(&ais, r); err1 != nil {
-			return err1
+		if err := SendEmailForDailyAssembly(&ais, r); err != nil {
+			return err
 		}
 		return nil
 	}, nil)
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err1 != nil {
+		http.Error(w, err1.Error(), http.StatusInternalServerError)
 		return
 	}
 	return
@@ -168,26 +170,29 @@ func SendEmailForDailyAssembly(ais *RRKAssembledItems, r *http.Request) error {
 	return nil
 }
 
-func RRKGetAllAssembledItemsOnSingleDay(r *http.Request, date time.Time) ([]RRKAssembledItems, error) {
+func RRKGetAllAssembledItemsOnSingleDay(r *http.Request, date time.Time) ([]RRKAssembledItem, error) {
 	singleDate := StripTimeKeepDate(date)
 	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
 	return RRKGetAllAssembledItemsBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
 }
-func RRKGetAllAssembledItemsBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKAssembledItems, error) {
-	q := datastore.NewQuery(RRKAssembledItemsKind).
+func RRKGetAllAssembledItemsBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKAssembledItem, error) {
+	q := datastore.NewQuery(RRKAssembledItemKind).
 		Filter("DateValue >=", starting).
 		Filter("DateValue <=", ending).
 		Order("-DateValue")
 
 	c := appengine.NewContext(r)
-	var ais []RRKAssembledItems
+	var ais []RRKAssembledItem
 	for t := q.Run(c); ; {
-		var ai RRKAssembledItems
+		var ai RRKAssembledItem
 		_, err := t.Next(&ai)
 		if err == datastore.Done {
 			break
 		}
 		if err != nil {
+			return nil, err
+		}
+		if err := JsonToStruct(&(ai.ModelWithFullBOMAsString), &(ai.ModelWithFullBOM), r); err != nil {
 			return nil, err
 		}
 		ais = append(ais, ai)

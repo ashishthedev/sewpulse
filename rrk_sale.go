@@ -98,24 +98,25 @@ func (si *RRKSaleInvoice) GetUID() string {
 	return fmt.Sprintf("%s-%s-%s", si.DD_MMM_YY, si.Number, si.CustomerName)
 }
 func (si *RRKSaleInvoice) SaveRRKSaleInvoiceInDS(r *http.Request) error {
-	c := appengine.NewContext(r)
-	err1 := datastore.RunInTransaction(c, func(c appengine.Context) error {
-		si.DateValue = GoTimeFromUnixTime(si.JSDateValueAsSeconds)
-		si.DD_MMM_YY = DDMMMYYFromGoTime(si.DateValue)
-		si.UID = si.GetUID()
-		for i, item := range si.Items {
-			model, err := GetModelWithName(r, item.Name)
-			if err != nil {
-				return err
-			}
-			data, err := StructToJson(model, r)
-			if err != nil {
-				return err
-			}
-
-			si.Items[i].ModelWithFullBOMAsString = *data
+	si.DateValue = GoTimeFromUnixTime(si.JSDateValueAsSeconds)
+	si.DD_MMM_YY = DDMMMYYFromGoTime(si.DateValue)
+	si.UID = si.GetUID()
+	for i, item := range si.Items {
+		model, err := GetModelWithName(r, item.Name)
+		if err != nil {
+			return err
+		}
+		data, err := StructToJson(model, r)
+		if err != nil {
+			return err
 		}
 
+		si.Items[i].ModelWithFullBOMAsString = *data
+		//TODO: This may not be necessary. Because we are saving the ArticleAndQty in assembled items.
+	}
+
+	c := appengine.NewContext(r)
+	err1 := datastore.RunInTransaction(c, func(c appengine.Context) error {
 		k := RRKSaleInvoiceKey(r, si.UID)
 		if _, err := datastore.Put(c, k, si); err != nil {
 			return err

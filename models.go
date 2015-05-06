@@ -51,6 +51,6 @@ func GetModelWithName(r *http.Request, modelName string) (Model, error) {
 			return model, nil
 		}
 	}
-	return Model{}, errors.New("No model exists with name: " + modelName)
 
+	return Model{}, errors.New("No model exists with name: " + modelName)
 }

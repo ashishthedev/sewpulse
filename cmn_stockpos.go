@@ -116,12 +116,14 @@ type RRKStockAsString struct {
 }
 
 func RRKBlankStockStruct(r *http.Request) (*RRKStockPos, error) {
+	//TODO: This function is called many times. See if you can just return a copy of static blank stock struct.
 
 	rrksp := new(RRKStockPos)
 	models, err := GetAllModelsFromBOM(r)
 	if err != nil {
 		return nil, err
 	}
+
 	rrksp.Models = make(QtyMap)
 	for _, model := range models {
 		rrksp.Models[model.Name] = 0
@@ -364,80 +366,96 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	/////////////////////////////////////////////////////////////////////////
 	//1. Get the yesterday's stock pos as reference for today's stock
 	/////////////////////////////////////////////////////////////////////////
+	todaysStock, err := RRKBlankStockStruct(r)
+	if err != nil {
+		return logErr(r, err, "RRKBlankStockStruct()")
+	}
+	todaysStock.DD_MMM_YY = DDMMMYYFromGoTime(yesterday)
+
+	if err := todaysStock._GetOrCreateInDS(r); err != nil {
+		return logErr(r, err, "todaysStock._GetOrCreateInDS")
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	//2. Calculate the effect of all transactions on this reference Stock
+	/////////////////////////////////////////////////////////////////////////
+	todaysStock.DD_MMM_YY = DDMMMYYFromGoTime(dirtyDate)
+	todaysStock.DateValue, err = DDMMMYYToGoTime(todaysStock.DD_MMM_YY)
+	if err != nil {
+		return logErr(r, err, " DDMMMYYToGoTime(todaysStock.DD_MMM_YY)")
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	//2a. Add daily assembled items to models
+	/////////////////////////////////////////////////////////////////////////
+	ais, err := RRKGetAllAssembledItemsOnSingleDay(r, dirtyDate)
+	if err != nil {
+		return err
+	}
+	for _, ai := range ais {
+		todaysStock.Models[ai.ModelName] += ai.Quantity
+
+		for articleName, articleQuantityUsed := range ai.ModelWithFullBOM.ArticleAndQty {
+			/////////////////////////////////////////////////////////////////////////
+			//2b. Subtract daily assembly consumed articles from articles
+			/////////////////////////////////////////////////////////////////////////
+			todaysStock.Articles[articleName] -= articleQuantityUsed * ai.Quantity
+		}
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	//2c. Subtract daily sale from models
+	/////////////////////////////////////////////////////////////////////////
+	asi, err := RRKGetAllSaleInvoicesOnSingleDay(r, dirtyDate)
+	if err != nil {
+		return err
+	}
+	for _, si := range asi {
+		for _, item := range si.Items {
+			todaysStock.Models[item.Name] -= item.Quantity
+		}
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	//2d. Subtract outward stock transfer
+	/////////////////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////////////////
+	//2e. Add inward stock transfer
+	/////////////////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////////////////
+	//2f. Add daily purchase to articles
+	/////////////////////////////////////////////////////////////////////////
+	rrkpis, err := RRKGetAllPurchaseInvoicesOnSingleDay(r, dirtyDate)
+	if err != nil {
+		return err
+	}
+
+	for _, pi := range rrkpis {
+		for _, item := range pi.Items {
+			todaysStock.Articles[item.Name] += item.Quantity
+		}
+	}
+	/////////////////////////////////////////////////////////////////////////
+	//2g. Add polished materials
+	/////////////////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////////////////
+	//2h. Accommodate adhoc adjustments in models
+	/////////////////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////////////////
+	//2i. Accommodate adhoc adjustments in articles
+	/////////////////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////////////////
+	//2. Save the stock and set the new dirty date inside a transaction.
+	/////////////////////////////////////////////////////////////////////////
+
 	c := appengine.NewContext(r)
 	err1 := datastore.RunInTransaction(c, func(c appengine.Context) error {
 		//TODO: See if everything inside a transaction is slowing things up?
-		todaysStock, err := RRKBlankStockStruct(r)
-		if err != nil {
-			return logErr(r, err, "RRKBlankStockStruct()")
-		}
-		todaysStock.DD_MMM_YY = DDMMMYYFromGoTime(yesterday)
-
-		if err := todaysStock._GetOrCreateInDS(r); err != nil {
-			return logErr(r, err, "todaysStock._GetOrCreateInDS")
-		}
-
-		/////////////////////////////////////////////////////////////////////////
-		//2. Calculate the effect of all transactions on this reference Stock
-		/////////////////////////////////////////////////////////////////////////
-		todaysStock.DD_MMM_YY = DDMMMYYFromGoTime(dirtyDate)
-		todaysStock.DateValue, err = DDMMMYYToGoTime(todaysStock.DD_MMM_YY)
-		if err != nil {
-			return logErr(r, err, " DDMMMYYToGoTime(todaysStock.DD_MMM_YY)")
-		}
-
-		/////////////////////////////////////////////////////////////////////////
-		//2a. Add daily assembled items to models
-		/////////////////////////////////////////////////////////////////////////
-		ais, err := RRKGetAllAssembledItemsOnSingleDay(r, dirtyDate)
-		if err != nil {
-			return err
-		}
-		for _, ai := range ais {
-			for _, item := range ai.Items {
-				todaysStock.Models[item.ModelName] += item.Quantity
-			}
-		}
-
-		/////////////////////////////////////////////////////////////////////////
-		//2b. Subtract daily sale from models
-		/////////////////////////////////////////////////////////////////////////
-		asi, err := RRKGetAllSaleInvoicesOnSingleDay(r, dirtyDate)
-		if err != nil {
-			return err
-		}
-		for _, si := range asi {
-			for _, item := range si.Items {
-				todaysStock.Models[item.Name] -= item.Quantity
-			}
-		}
-
-		/////////////////////////////////////////////////////////////////////////
-		//2c. Subtract daily production consumed articles from articles
-		/////////////////////////////////////////////////////////////////////////
-
-		/////////////////////////////////////////////////////////////////////////
-		//2d. Subtract outward stock transfer
-		/////////////////////////////////////////////////////////////////////////
-
-		/////////////////////////////////////////////////////////////////////////
-		//2e. Add inward stock transfer
-		/////////////////////////////////////////////////////////////////////////
-
-		/////////////////////////////////////////////////////////////////////////
-		//2f. Add daily purchase to articles
-		/////////////////////////////////////////////////////////////////////////
-		rrkpis, err := RRKGetAllPurchaseInvoicesOnSingleDay(r, dirtyDate)
-		if err != nil {
-			return err
-		}
-
-		for _, pi := range rrkpis {
-			for _, item := range pi.Items {
-				todaysStock.Articles[item.Name] += item.Quantity
-			}
-		}
-
 		err = todaysStock._SaveInDS(r)
 		if err != nil {
 			return logErr(r, err, "todaysStock._SaveInDS(r)")

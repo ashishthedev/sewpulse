@@ -107,7 +107,7 @@ type SoldItem struct {
 	Name                     string
 	Rate                     float64
 	Quantity                 float64
-	ModelWithFullBOM         Model  `datastore:"-"`
+	ModelWithFullBOM         Model  `datastore:"-"` //TODO: This may not be necessary. Because we are saving the ArticleAndQty in assembled items.
 	ModelWithFullBOMAsString string `datastore:"noindex"`
 }
 
@@ -150,4 +150,27 @@ type RRKSaleInvoice struct {
 //======================================================
 type Stringer struct {
 	StringData string `datastore:"noindex"`
+}
+
+//======================================================
+// RRKAssembledItem
+//======================================================
+type RRKAssembledItem struct {
+	ModelName                string
+	Quantity                 float64
+	Unit                     string
+	AssemblyLineName         string
+	Remarks                  string
+	ModelWithFullBOM         Model  `datastore:"-"`
+	ModelWithFullBOMAsString string `datastore:"noindex"`
+	DateValue                time.Time
+}
+
+//======================================================
+// RRKAssembledItems
+//======================================================
+type RRKAssembledItems struct {
+	Items                []RRKAssembledItem
+	JSDateValueAsSeconds int64 `datastore:"-"`
+	DateValue            time.Time
 }
