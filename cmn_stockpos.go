@@ -419,6 +419,15 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	/////////////////////////////////////////////////////////////////////////
 	//2d. Subtract outward stock transfer
 	/////////////////////////////////////////////////////////////////////////
+	rmosts, err := RRKGetAllRMOSTInvoicesOnSingleDay(r, dirtyDate)
+	if err != nil {
+		return err
+	}
+	for _, rmost := range rmosts {
+		for _, item := range rmost.Items {
+			todaysStock.Articles[item.Name] -= item.Quantity
+		}
+	}
 
 	/////////////////////////////////////////////////////////////////////////
 	//2e. Add inward stock transfer

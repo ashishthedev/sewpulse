@@ -31,6 +31,12 @@ bomServices.factory('RRKPurchaseInvoice', ['$resource', function($resource){
     } );
   }]);
 
+bomServices.factory('RRKRMOutwardStkTrfrInvoice', ['$resource', function($resource){
+    return $resource('/api/rrk/rmOutwardStkTrfInvoice/:id',{},{
+      'query':{method:'GET', isArray:false}
+    } );
+  }]);
+
 bomServices.factory('RRKStockPosition', ['$resource', function($resource){
     return $resource('/api/rrk/stock-position-for-date/:id',{},{
     } );

@@ -171,7 +171,7 @@ func SendMailForRRKPurchaseInvoice(pi *RRKPurchaseInvoice, r *http.Request) erro
 		// The name "title" is what the function will be called in the template text.
 		"DDMMMYYFromGoTime":        DDMMMYYFromGoTime,
 		"LogMsgShownForLogTime":    func(x time.Time) string { return LogMsgShownForLogTime(x, time.Now()) },
-		"SingleItemGoodsValueFunc": func(i PurchaseItem) float64 { return i.Rate * i.Quantity },
+		"SingleItemGoodsValueFunc": func(i NameRateQuantity) float64 { return i.Rate * i.Quantity },
 	}
 
 	emailTemplate := template.Must(template.New("emailRRKDPUR").Funcs(funcMap).Parse(`
@@ -268,6 +268,7 @@ func HTTPSinglePurchaseInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+
 func RRKGetAllPurchaseInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKPurchaseInvoice, error) {
 	singleDate := StripTimeKeepDate(date)
 	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)

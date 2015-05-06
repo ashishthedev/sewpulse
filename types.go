@@ -104,9 +104,7 @@ type ArticleLister interface {
 // SoldItem
 //======================================================
 type SoldItem struct {
-	Name                     string
-	Rate                     float64
-	Quantity                 float64
+	NameRateQuantity
 	ModelWithFullBOM         Model  `datastore:"-"` //TODO: This may not be necessary. Because we are saving the ArticleAndQty in assembled items.
 	ModelWithFullBOMAsString string `datastore:"noindex"`
 }
@@ -119,7 +117,7 @@ type _SaleInvoice struct {
 	Items                []SoldItem
 	Number               string
 	DateValue            time.Time
-	JSDateValueAsSeconds int64
+	JSDateValueAsSeconds int64 `datastore:"-"`
 	GoodsValue           float64
 	GrandTotal           float64
 	CustomerName         string
@@ -173,4 +171,58 @@ type RRKAssembledItems struct {
 	Items                []RRKAssembledItem
 	JSDateValueAsSeconds int64 `datastore:"-"`
 	DateValue            time.Time
+}
+
+//======================================================
+// NameRateQuantity
+//======================================================
+type NameRateQuantity struct {
+	Name     string
+	Rate     float64
+	Quantity float64
+}
+
+type _BillFields struct {
+	Number               string
+	GoodsValue           float64
+	GrandTotal           float64
+	TotalTax             float64
+	TotalFreight         float64
+	Remarks              string
+	DateValue            time.Time
+	JSDateValueAsSeconds int64 `datastore:"-"`
+	UID                  string
+	DD_MMM_YY            string
+}
+
+//======================================================
+// _PurchaseInvoice
+//======================================================
+type _PurchaseInvoice struct {
+	Items        []NameRateQuantity
+	SupplierName string
+	_BillFields
+}
+
+//======================================================
+// GZBPurchaseInvoice
+//======================================================
+type GZBPurchaseInvoice struct {
+	_PurchaseInvoice
+}
+
+//======================================================
+// RRKPurchaseInvoice
+//======================================================
+type RRKPurchaseInvoice struct {
+	_PurchaseInvoice
+}
+
+//======================================================
+// RRKRMOutwardStkTrfrInvoice
+//======================================================
+type RRKRMOSTInvoice struct {
+	Items       []NameRateQuantity
+	ToPartyName string
+	_BillFields
 }
