@@ -219,10 +219,19 @@ type RRKPurchaseInvoice struct {
 }
 
 //======================================================
-// RRKRMOutwardStkTrfrInvoice
+// RRKRMISTInvoice
+//======================================================
+type RRKRMISTInvoice struct {
+	Items     []NameRateQuantity
+	PartyName string
+	_BillFields
+}
+
+//======================================================
+// RRKRMOSTInvoice
 //======================================================
 type RRKRMOSTInvoice struct {
-	Items       []NameRateQuantity
-	ToPartyName string
+	Items     []NameRateQuantity
+	PartyName string
 	_BillFields
 }

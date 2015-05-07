@@ -21,7 +21,7 @@ func (x *RRKRMOSTInvoice) SaveInDS(r *http.Request) error {
 	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
 		x.DateValue = time.Unix(x.JSDateValueAsSeconds, 0)
 		x.DD_MMM_YY = DDMMMYYFromGoTime(x.DateValue)
-		x.UID = fmt.Sprintf("%s-%s-%s", x.DD_MMM_YY, x.ToPartyName, x.Number)
+		x.UID = fmt.Sprintf("%s-%s-%s", x.DD_MMM_YY, x.PartyName, x.Number)
 
 		k := RRKRMOSTInvoiceKey(r, x.UID)
 		e := x
@@ -93,7 +93,7 @@ func (x *RRKRMOSTInvoice) SendMailForRMOSTInvoice(r *http.Request) error {
 	<table border=1 cellpadding=5>
 	<caption>
 	<h4></u>{{.DateValue|LogMsgShownForLogTime }}</u></h4>
-	<h4>M/s {{.ToPartyName }}</h4>
+	<h4>M/s {{.PartyName }}</h4>
 	<h4>Invoice#: {{.Number }}</h4>
 	<h4>{{.DateValue | DDMMMYYFromGoTime}}</h4>
 	</caption>
@@ -143,7 +143,7 @@ func (x *RRKRMOSTInvoice) SendMailForRMOSTInvoice(r *http.Request) error {
 	}
 	finalHTML := buf.String()
 
-	subject := fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][RRK-RM-OST]", DDMMMYYYY, x.Number, x.ToPartyName, totalQuantity)
+	subject := fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][RRK-RM-OST]", DDMMMYYYY, x.Number, x.PartyName, totalQuantity)
 	if err := SendSEWMail(r, subject, finalHTML); err != nil {
 		return err
 	}

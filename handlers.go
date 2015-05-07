@@ -33,6 +33,9 @@ const API_RRK_PURCHASE_INVOICE_SALSH_END = "/api/rrk/purchaseInvoice/"
 const API_RRK_PURCHASE_INVOICE_END = "/api/rrk/purchaseInvoice"
 const HTTP_RRK_PURCHASE_INVOICE_SLASH_END = "/rrk/purchaseInvoice/"
 
+const API_RRK_RM_INWARD_STK_TRFR_SLASH_END = "/api/rrk/rmInwardStkTrfInvoice/"
+const API_RRK_RM_INWARD_STK_TRFR_END = "/api/rrk/rmInwardStkTrfInvoice"
+
 const API_RRK_RM_OUTWARD_STK_TRFR_SLASH_END = "/api/rrk/rmOutwardStkTrfInvoice/"
 const API_RRK_RM_OUTWARD_STK_TRFR_END = "/api/rrk/rmOutwardStkTrfInvoice"
 
@@ -64,6 +67,7 @@ func initStaticHTMLUrlMaps() {
 		"/rrk":                                     {generalPageHandler, "templates/rrk.html"},
 		"/rrk/daily-cash":                          {generalPageHandler, "templates/rrk_daily_cash.html"},
 		"/rrk/raw-material-outward-stock-transfer": {generalPageHandler, "templates/rrk_rm_outward_stock_transfer_raw_material.html"},
+		"/rrk/raw-material-inward-stock-transfer":  {generalPageHandler, "templates/rrk_rm_inward_stock_transfer_raw_material.html"},
 		"/gzb":                    {generalPageHandler, "templates/gzb.html"},
 		"/gzb/daily-cash":         {generalPageHandler, "templates/gzb_daily_cash.html"},
 		"/gzb/daily-mfg-sale":     {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
@@ -112,6 +116,7 @@ func initRootApiMaps() {
 		"/api/rrkDailyCashSettleAccForOneEntryApi": {rrkDailyCashSettleAccForOneEntryApiHandler},
 		"/api/rrk/stock-pristine-date":             {rrkStockPristineDateApiHandler},
 		API_RRK_RM_OUTWARD_STK_TRFR_END:            {RRKRMOSTInvoiceNoSalshApiHandler},
+		API_RRK_RM_INWARD_STK_TRFR_END:             {RRKRMISTInvoiceNoSalshApiHandler},
 		"/rrk/update":                              {rrkDailyCashUpdateModelApiHandler},
 		"/api/":                                    {apiNotImplementedHandler},
 	}

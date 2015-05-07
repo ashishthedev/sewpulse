@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Roorkee Raw Material - Outward Stock Transfer</title>
+    <title>Roorkee Raw Material - Inward Stock Transfer</title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/lib/angular/angular-resource.min.js"></script>
     <script src="/static/js/services.js"></script>
@@ -24,7 +24,7 @@
     <script>
       var appMod = angular.module('SEWPulseApp', ['bomServices']);
 
-      appMod.controller('RRKRawMaterialOutwardStockTransfer', ['$scope', 'Article', 'RRKRMOutwardStkTrfrInvoice', function($scope, Article, RRKRMOutwardStkTrfrInvoice) {
+      appMod.controller('RRKRawMaterialInwardStockTransfer', ['$scope', 'Article', 'RRKRMInwardStkTrfrInvoice', function($scope, Article, RRKRMInwardStkTrfrInvoice) {
 
         $scope.DateChanged = function() {
           var today = new Date();
@@ -37,7 +37,7 @@
         $scope.submitTodaysLog = function() {
           $scope.statusNote = "Submitting...";
           $scope.tRMOutStockTrfrInvoice.JSDateValueAsSeconds = Math.floor($scope.tRMOutStockTrfrInvoice.JSDateValue.getTime()/1000);
-          RRKRMOutwardStkTrfrInvoice.save($scope.tRMOutStockTrfrInvoice, function(data){
+          RRKRMInwardStkTrfrInvoice.save($scope.tRMOutStockTrfrInvoice, function(data){
             $scope.statusNote = "Submitting...";
             if (Debug()){
               $scope.statusNote = "Posted";
@@ -124,10 +124,10 @@
     </script>
   </head>
 
-  <body ng-app="SEWPulseApp" ng-controller="RRKRawMaterialOutwardStockTransfer">
+  <body ng-app="SEWPulseApp" ng-controller="RRKRawMaterialInwardStockTransfer">
     <div class="well">
       <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
-      <h1 class="text-center">RRK Raw Material Outward Stock Transfer</h1>
+      <h1 class="text-center">RRK Raw Material Inward Stock Transfer</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
