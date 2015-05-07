@@ -1,0 +1,274 @@
+<html>
+  <head>
+    <title>Roorkee Finished Products - Inward Stock Transfer</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
+    <script src="/static/js/script.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
+
+      appMod.controller('RRKFinishedProductsInwardStockTransferCtrlr', ['$scope', 'Model', 'RRKFPInwardStkTrfrInvoice', function($scope, Model, RRKFPInwardStkTrfrInvoice) {
+
+        $scope.DateChanged = function() {
+          var today = new Date();
+          if (today < $scope.tStockTrfrInvoice.Date) {
+            $scope.tStockTrfrInvoice.Date = today;
+          }
+          $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.tStockTrfrInvoice.JSDateValue);
+        }
+
+        $scope.submitTodaysLog = function() {
+          $scope.statusNote = "Submitting...";
+          $scope.tStockTrfrInvoice.JSDateValueAsSeconds = Math.floor($scope.tStockTrfrInvoice.JSDateValue.getTime()/1000);
+          RRKFPInwardStkTrfrInvoice.save($scope.tStockTrfrInvoice, function(data){
+            $scope.statusNote = "Submitting...";
+            if (Debug()){
+              $scope.statusNote = "Posted";
+              $scope.isLogSubmitted = false;
+              } else{
+              $scope.statusNote = "";
+              $scope.isLogSubmitted = true;
+            }
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+            $scope.isLogSubmitted = false;
+          });
+        }
+
+        function FetchModelsFromServer() {
+          $scope.working = true;
+          $scope.statusNote = "Fetching model set...";
+          Model.query(function(data){
+            $scope.models = data;
+            $scope.statusNote = "";
+            for (var k in $scope.models){
+              $scope.orphan.Name = k;
+              break;//Set to first value
+            }
+            $scope.working = false;
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+            $scope.working = false;
+          });
+        }
+
+        $scope.ReCalculateInvoiceGT = function() {
+          var si = $scope.tStockTrfrInvoice;
+          var items = si.Items;
+          var l = items.length;
+          var gt = 0;
+          var gv = 0;
+          for (var i = 0; i<l; i++){
+            var item = items[i];
+            gv += item.Rate * item.Quantity;
+          }
+          gt += gv;
+          gt += si.TotalFreight;
+          gt += si.TotalTax;
+          $scope.tStockTrfrInvoice.GrandTotal = gt;
+          $scope.tStockTrfrInvoice.GoodsValue = gv;
+          return;
+        }
+
+
+        $scope.RemoveItem = function(index) {
+          $scope.tStockTrfrInvoice.Items.splice(index, 1);
+          $scope.ReCalculateInvoiceGT();
+        }
+
+        $scope.AddItem = function() {
+          var l = $scope.tStockTrfrInvoice.Items.length;
+          $scope.tStockTrfrInvoice.Items.splice(l, 0, angular.copy($scope.orphan));
+          $scope.ReCalculateInvoiceGT();
+          $scope.orphan = {};
+        }
+
+
+        $scope.UpdateOrphanCalc = function () {
+          $scope.orphan.value = $scope.orphan.Rate * $scope.orphan.Quantity;
+        }
+
+
+        $scope.tStockTrfrInvoice = {};
+        $scope.tStockTrfrInvoice.Items = [];
+        $scope.tStockTrfrInvoice.JSDateValue =  new Date();
+        $scope.tStockTrfrInvoice.TotalTax = 0;
+        $scope.tStockTrfrInvoice.TotalFreight = 0;
+        $scope.orphan = {}
+        $scope.DateChanged();
+        $scope.statusNote = "";
+        $scope.isLogSubmitted = false;
+        FetchModelsFromServer();
+        $scope.tStockTrfrInvoice.PartyName = "SEW Ghaziabad";
+        if(Debug()) {
+          $scope.tStockTrfrInvoice.Number="111";
+          $scope.tempGrandTotal = 3;
+        }
+
+      }]);
+    </script>
+  </head>
+
+  <body ng-app="SEWPulseApp" ng-controller="RRKFinishedProductsInwardStockTransferCtrlr">
+    <div class="well">
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+      <h1 class="text-center">RRK Finished Products Inward Stock Transfer</h1>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <div ng-show="isLogSubmitted">
+        <div class="alert alert-success" role="alert">
+          <div class="text-center">
+            Thanks. The log has been submitted successfully.
+          </div>
+        </div>
+      </div>
+      <div ng-hide="isLogSubmitted">
+        <div class="row">
+          <input required class="center-block" autofocus="true" title="Date of
+          purchase" type="date" ng-model="tStockTrfrInvoice.JSDateValue" ng-change="DateChanged()" />
+          <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
+        </div>
+        <hr>
+        <div class="row">
+          <span class="col-sm-4 col-xs-6">
+            <span class="input-group">
+              <span class="input-group-addon">Customer:</span>
+              <input required class="form-control" title="Customer Name" type="text" ng-model="tStockTrfrInvoice.PartyName" />
+            </span>
+          </span>
+          <span class="col-sm-4 col-xs-6">
+            <span class="input-group">
+              <span class="input-group-addon">Inv #</span>
+              <input required class="form-control" title="Invoice Number" type="text" ng-model="tStockTrfrInvoice.Number" />
+            </span>
+          </span>
+          <span class="col-sm-4 col-xs-6">
+            <span class="input-group">
+              <span class="input-group-addon">Total &#8377;</span>
+              <input required class="form-control" title="Grand Total" type="number" ng-model="tempGrandTotal" />
+            </span>
+          </span>
+        </div>
+        <hr> <!-- Show Purchase Invoice Current Items as already entered -->
+        <div ng-show="tStockTrfrInvoice.PartyName && tStockTrfrInvoice.JSDateValue && tStockTrfrInvoice.Number && tempGrandTotal">
+          <h5 class="text-center"><u>Item Details:</u></h5>
+          <div class="row" ng-repeat="item in tStockTrfrInvoice.Items">
+            <span class="col-sm-3 col-xs-6">
+              <span readonly class="form-control" ng-bind="item.Name" ></span>
+            </span>
+            <span class="col-sm-2 col-xs-6">
+              <span class="input-group">
+                <span class="input-group-addon">Qty#</span>
+                <span  class="form-control" title="Quantity" type="number" ng-bind="item.Quantity" ></span>
+              </span>
+            </span>
+            <span class="col-sm-2 col-xs-6">
+              <span class="input-group">
+                <span class="input-group-addon">Rate &#8377;</span>
+                <span class="form-control" title="Rate" type="number" ng-bind="item.Rate">
+                </span>
+              </span>
+            </span>
+            <span class="col-sm-3 col-xs-6">
+              <span class="input-group">
+                <span class="input-group-addon">&#8377;</span>
+                <span class="form-control readonly " ng-bind="item.Rate * item.Quantity"></span>
+              </span>
+            </span>
+            <span class="col-sm-2 col-xs-6">
+              <button class="form-control btn-danger" ng-click="RemoveItem($index)">Remove</button>
+            </span>
+          </div>
+          <div class="row">                <!--Add row -->
+            <span class="col-sm-3 col-xs-6">
+              <select required class="form-control" ng-options="name as name for (name, model) in models" ng-model="orphan.Name">
+              </select>
+            </span>
+            <span class="col-sm-2 col-xs-6">
+              <span class="input-group">
+                <span class="input-group-addon">Qty#</span>
+                <input required class="form-control" title="Quantity" type="number" ng-model="orphan.Quantity" ng-change="UpdateOrphanCalc()" /></span>
+            </span>
+            <span class="col-sm-2 col-xs-6">
+              <span class="input-group">
+                <span class="input-group-addon">Rate &#8377;</span>
+                <input required class="form-control" title="Rate" type="number" ng-model="orphan.Rate" ng-change="UpdateOrphanCalc()" />
+              </span>
+            </span>
+            <span class="col-sm-3 col-xs-6">
+              <span class="input-group">
+                <span class="input-group-addon">&#8377;</span>
+                <input readonly  class="form-control" type="number" ng-model=orphan.value />
+              </span>
+            </span>
+            <span class="col-sm-2 col-xs-6" ng-show="orphan.Name && orphan.Rate && orphan.Quantity">
+              <button class="form-control btn-success" ng-click="AddItem()">Add</button>
+            </span>
+          </div>
+          <hr>
+          <div class="row">
+            <span class="col-sm-5 col-sm-offset-6 col-xs-10 col-xs-offset-1">
+              <div class="row">
+                <span class="input-group col-sm-offset-2 col-sm-10">
+                  <span class="input-group-addon mdaddon">Goods Value &#8377;</span>
+                  <input readonly class="form-control" title="Grand Total" type="number" ng-model="tStockTrfrInvoice.GoodsValue" />
+                </span>
+              </div>
+              <div class="row">
+                <span class="input-group col-sm-offset-2 col-sm-10">
+                  <span class="input-group-addon mdaddon">Total Tax &#8377;</span>
+                  <input required class="form-control" title="Total Tax"
+                  type="number" ng-model="tStockTrfrInvoice.TotalTax" ng-change="ReCalculateInvoiceGT()" />
+                </span>
+              </div>
+              <div class="row">
+                <span class="input-group col-sm-offset-2 col-sm-10">
+                  <span class="input-group-addon mdaddon">Total Freight &#8377;</span>
+                  <input required class="form-control" title="Total Freight" type="number" ng-model="tStockTrfrInvoice.TotalFreight" ng-change="ReCalculateInvoiceGT()" />
+                </span>
+              </div>
+              <div class="row">
+                <span class="input-group col-sm-offset-2 col-sm-10">
+                  <span class="input-group-addon mdaddon">Grand Total &#8377;</span>
+                  <input readonly class="form-control" title="Grand Total" type="number" ng-model="tStockTrfrInvoice.GrandTotal" />
+                </span>
+              </div>
+              <div class="row">
+                <span class="input-group col-sm-offset-2 col-sm-10">
+                  <span class="input-group-addon mdaddon">Remarks</span>
+                  <input class="form-control"  title="Remarks" type="text" ng-model="tStockTrfrInvoice.Remarks" placeholder="optional..."/>
+                </span>
+              </div>
+              <div class="row">
+                <span class="input-group col-sm-offset-2 col-sm-10">
+                  <span ng-show="tempGrandTotal == tStockTrfrInvoice.GrandTotal">
+                    <button ng-click="submitTodaysLog()" class="form-control btn-info">Submit</button>
+                  </span>
+                </span>
+              </div>
+            </span>
+          </div> <!-- row -->
+          <hr>
+        </div>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>

@@ -441,6 +441,15 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 			todaysStock.Articles[item.Name] += item.Quantity
 		}
 	}
+	fpists, err := RRKGetAllFPISTInvoicesOnSingleDay(r, dirtyDate)
+	if err != nil {
+		return err
+	}
+	for _, fpist := range fpists {
+		for _, item := range fpist.Items {
+			todaysStock.Models[item.Name] += item.Quantity
+		}
+	}
 
 	/////////////////////////////////////////////////////////////////////////
 	//2f. Add daily purchase to articles

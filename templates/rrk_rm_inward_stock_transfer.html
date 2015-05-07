@@ -28,16 +28,16 @@
 
         $scope.DateChanged = function() {
           var today = new Date();
-          if (today < $scope.tRMOutStockTrfrInvoice.Date) {
-            $scope.tRMOutStockTrfrInvoice.Date = today;
+          if (today < $scope.tStockTrfrInvoice.Date) {
+            $scope.tStockTrfrInvoice.Date = today;
           }
-          $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.tRMOutStockTrfrInvoice.JSDateValue);
+          $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.tStockTrfrInvoice.JSDateValue);
         }
 
         $scope.submitTodaysLog = function() {
           $scope.statusNote = "Submitting...";
-          $scope.tRMOutStockTrfrInvoice.JSDateValueAsSeconds = Math.floor($scope.tRMOutStockTrfrInvoice.JSDateValue.getTime()/1000);
-          RRKRMInwardStkTrfrInvoice.save($scope.tRMOutStockTrfrInvoice, function(data){
+          $scope.tStockTrfrInvoice.JSDateValueAsSeconds = Math.floor($scope.tStockTrfrInvoice.JSDateValue.getTime()/1000);
+          RRKRMInwardStkTrfrInvoice.save($scope.tStockTrfrInvoice, function(data){
             $scope.statusNote = "Submitting...";
             if (Debug()){
               $scope.statusNote = "Posted";
@@ -71,12 +71,12 @@
         }
 
         $scope.RemoveItem = function(index) {
-          $scope.tRMOutStockTrfrInvoice.Items.splice(index, 1);
+          $scope.tStockTrfrInvoice.Items.splice(index, 1);
           $scope.ReCalculateInvoiceGT();
         }
 
         $scope.AddOrphan = function() {
-          var items = $scope.tRMOutStockTrfrInvoice.Items;
+          var items = $scope.tStockTrfrInvoice.Items;
           var l = items.length;
           var newItem = {};
           newItem.Name = $scope.orphan.Article;
@@ -88,7 +88,7 @@
         }
 
         $scope.ReCalculateInvoiceGT = function() {
-          var si = $scope.tRMOutStockTrfrInvoice;
+          var si = $scope.tStockTrfrInvoice;
           var items = si.Items;
           var l = items.length;
           var gt = 0;
@@ -100,23 +100,23 @@
           gt += gv;
           gt += si.TotalFreight;
           gt += si.TotalTax;
-          $scope.tRMOutStockTrfrInvoice.GrandTotal = gt;
-          $scope.tRMOutStockTrfrInvoice.GoodsValue = gv;
+          $scope.tStockTrfrInvoice.GrandTotal = gt;
+          $scope.tStockTrfrInvoice.GoodsValue = gv;
           return;
         }
 
-        $scope.tRMOutStockTrfrInvoice = {};
-        $scope.tRMOutStockTrfrInvoice.Items = [];
-        $scope.tRMOutStockTrfrInvoice.JSDateValue =  new Date();
-        $scope.tRMOutStockTrfrInvoice.TotalTax = 0;
-        $scope.tRMOutStockTrfrInvoice.TotalFreight = 0;
+        $scope.tStockTrfrInvoice = {};
+        $scope.tStockTrfrInvoice.Items = [];
+        $scope.tStockTrfrInvoice.JSDateValue =  new Date();
+        $scope.tStockTrfrInvoice.TotalTax = 0;
+        $scope.tStockTrfrInvoice.TotalFreight = 0;
         $scope.DateChanged();
         $scope.statusNote = "";
         $scope.isLogSubmitted = false;
         FetchArticlesFromServer();
-        $scope.tRMOutStockTrfrInvoice.PartyName = "SEW Ghaziabad";
+        $scope.tStockTrfrInvoice.PartyName = "SEW Ghaziabad";
         if(Debug()) {
-          $scope.tRMOutStockTrfrInvoice.Number="111";
+          $scope.tStockTrfrInvoice.Number="111";
           $scope.tempGrandTotal = 3;
         }
 
@@ -141,7 +141,7 @@
       <div ng-hide="isLogSubmitted">
         <div class="row">
           <input required class="center-block" autofocus="true" title="Date of
-          purchase" type="date" ng-model="tRMOutStockTrfrInvoice.JSDateValue" ng-change="DateChanged()" />
+          purchase" type="date" ng-model="tStockTrfrInvoice.JSDateValue" ng-change="DateChanged()" />
           <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
         </div>
         <hr>
@@ -149,13 +149,13 @@
           <span class="col-sm-4 col-xs-6">
             <span class="input-group">
               <span class="input-group-addon">Customer:</span>
-              <input required class="form-control" title="Customer Name" type="text" ng-model="tRMOutStockTrfrInvoice.PartyName" />
+              <input required class="form-control" title="Customer Name" type="text" ng-model="tStockTrfrInvoice.PartyName" />
             </span>
           </span>
           <span class="col-sm-4 col-xs-6">
             <span class="input-group">
               <span class="input-group-addon">Inv #</span>
-              <input required class="form-control" title="Invoice Number" type="text" ng-model="tRMOutStockTrfrInvoice.Number" />
+              <input required class="form-control" title="Invoice Number" type="text" ng-model="tStockTrfrInvoice.Number" />
             </span>
           </span>
           <span class="col-sm-4 col-xs-6">
@@ -166,9 +166,9 @@
           </span>
         </div>
         <hr> <!-- Show Purchase Invoice Current Items as already entered -->
-        <div ng-show="tRMOutStockTrfrInvoice.PartyName && tRMOutStockTrfrInvoice.JSDateValue && tRMOutStockTrfrInvoice.Number && tempGrandTotal">
+        <div ng-show="tStockTrfrInvoice.PartyName && tStockTrfrInvoice.JSDateValue && tStockTrfrInvoice.Number && tempGrandTotal">
           <h5 class="text-center"><u>Item Details:</u></h5>
-          <div class="row" ng-repeat="item in tRMOutStockTrfrInvoice.Items">
+          <div class="row" ng-repeat="item in tStockTrfrInvoice.Items">
             <span class="col-sm-3 col-xs-6">
               <span readonly class="form-control" ng-bind="item.Name" ></span>
             </span>
@@ -228,37 +228,37 @@
               <div class="row">
                 <span class="input-group col-sm-offset-2 col-sm-10">
                   <span class="input-group-addon mdaddon">Goods Value &#8377;</span>
-                  <input readonly class="form-control" title="Grand Total" type="number" ng-model="tRMOutStockTrfrInvoice.GoodsValue" />
+                  <input readonly class="form-control" title="Grand Total" type="number" ng-model="tStockTrfrInvoice.GoodsValue" />
                 </span>
               </div>
               <div class="row">
                 <span class="input-group col-sm-offset-2 col-sm-10">
                   <span class="input-group-addon mdaddon">Total Tax &#8377;</span>
                   <input required class="form-control" title="Total Tax"
-                  type="number" ng-model="tRMOutStockTrfrInvoice.TotalTax" ng-change="ReCalculateInvoiceGT()" />
+                  type="number" ng-model="tStockTrfrInvoice.TotalTax" ng-change="ReCalculateInvoiceGT()" />
                 </span>
               </div>
               <div class="row">
                 <span class="input-group col-sm-offset-2 col-sm-10">
                   <span class="input-group-addon mdaddon">Total Freight &#8377;</span>
-                  <input required class="form-control" title="Total Freight" type="number" ng-model="tRMOutStockTrfrInvoice.TotalFreight" ng-change="ReCalculateInvoiceGT()" />
+                  <input required class="form-control" title="Total Freight" type="number" ng-model="tStockTrfrInvoice.TotalFreight" ng-change="ReCalculateInvoiceGT()" />
                 </span>
               </div>
               <div class="row">
                 <span class="input-group col-sm-offset-2 col-sm-10">
                   <span class="input-group-addon mdaddon">Grand Total &#8377;</span>
-                  <input readonly class="form-control" title="Grand Total" type="number" ng-model="tRMOutStockTrfrInvoice.GrandTotal" />
+                  <input readonly class="form-control" title="Grand Total" type="number" ng-model="tStockTrfrInvoice.GrandTotal" />
                 </span>
               </div>
               <div class="row">
                 <span class="input-group col-sm-offset-2 col-sm-10">
                   <span class="input-group-addon mdaddon">Remarks</span>
-                  <input class="form-control"  title="Remarks" type="text" ng-model="tRMOutStockTrfrInvoice.Remarks" placeholder="optional..."/>
+                  <input class="form-control"  title="Remarks" type="text" ng-model="tStockTrfrInvoice.Remarks" placeholder="optional..."/>
                 </span>
               </div>
               <div class="row">
                 <span class="input-group col-sm-offset-2 col-sm-10">
-                  <span ng-show="tempGrandTotal == tRMOutStockTrfrInvoice.GrandTotal">
+                  <span ng-show="tempGrandTotal == tStockTrfrInvoice.GrandTotal">
                     <button ng-click="submitTodaysLog()" class="form-control btn-info">Submit</button>
                   </span>
                 </span>
