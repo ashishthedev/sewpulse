@@ -63,7 +63,7 @@ func initStaticHTMLUrlMaps() {
 		"/rrk/stock-position":                      {generalPageHandler, "templates/rrk_view_stock_position.html"},
 		"/rrk":                                     {generalPageHandler, "templates/rrk.html"},
 		"/rrk/daily-cash":                          {generalPageHandler, "templates/rrk_daily_cash.html"},
-		"/rrk/raw-material-outward-stock-transfer": {generalPageHandler, "templates/rrk_outward_stock_transfer_raw_material.html"},
+		"/rrk/raw-material-outward-stock-transfer": {generalPageHandler, "templates/rrk_rm_outward_stock_transfer_raw_material.html"},
 		"/gzb":                    {generalPageHandler, "templates/gzb.html"},
 		"/gzb/daily-cash":         {generalPageHandler, "templates/gzb_daily_cash.html"},
 		"/gzb/daily-mfg-sale":     {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},

@@ -149,7 +149,7 @@
           <span class="col-sm-4 col-xs-6">
             <span class="input-group">
               <span class="input-group-addon">Customer:</span>
-              <input required class="form-control" title="Customer Name" type="text" ng-model="tRMOutStockTrfrInvoice.SupplierName" />
+              <input required class="form-control" title="Customer Name" type="text" ng-model="tRMOutStockTrfrInvoice.ToPartyName" />
             </span>
           </span>
           <span class="col-sm-4 col-xs-6">
@@ -166,7 +166,7 @@
           </span>
         </div>
         <hr> <!-- Show Purchase Invoice Current Items as already entered -->
-        <div ng-show="tRMOutStockTrfrInvoice.SupplierName && tRMOutStockTrfrInvoice.JSDateValue && tRMOutStockTrfrInvoice.Number && tempGrandTotal">
+        <div ng-show="tRMOutStockTrfrInvoice.ToPartyName && tRMOutStockTrfrInvoice.JSDateValue && tRMOutStockTrfrInvoice.Number && tempGrandTotal">
           <h5 class="text-center"><u>Item Details:</u></h5>
           <div class="row" ng-repeat="item in tRMOutStockTrfrInvoice.Items">
             <span class="col-sm-3 col-xs-6">
