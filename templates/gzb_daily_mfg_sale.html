@@ -57,23 +57,6 @@
             });
           }
 
-          function FetchModelsFromServer() {
-            $scope.statusNote = "Fetching model set...";
-            var api = "/api/gzbGetModelApi";
-            var postData = {};
-
-            $http.post(api, postData).success(function(data, status, headers, config) {
-              $scope.statusNote = "";
-              $scope.models = data.ModelNames;
-              console.log("data.ModelNames : "+ data.ModelNames)
-              if($scope.models.length === 0) {
-                $scope.models[0] = "No model exists. Please create one.";
-              }
-              }).error(function(data, status, headers, config) {
-              $scope.statusNote = status + ": " + data;
-            });
-          }
-
           $scope.UpdateOrphan = function () {
             $scope.orphan.value = $scope.orphan.Rate * $scope.orphan.Quantity;
           }
@@ -120,12 +103,11 @@
           $scope.DateChanged();
           $scope.statusNote = "";
           $scope.isLogSubmitted = false;
-          FetchModelsFromServer();
           if(debug == true) {
 
             $scope.SaleInvoice.Number="111";
             $scope.tempGrandTotal = 3;
-            $scope.SaleInvoice.CustomerName = "Rancho";
+            $scope.SaleInvoice.CustomerName = "Django";
           }
 
         }]);
