@@ -42,6 +42,9 @@ const API_RRK_RM_OUTWARD_STK_TRFR_END = "/api/rrk/rmOutwardStkTrfInvoice"
 const API_RRK_FP_INWARD_STK_TRFR_SLASH_END = "/api/rrk/fpInwardStkTrfInvoice/"
 const API_RRK_FP_INWARD_STK_TRFR_END = "/api/rrk/fpInwardStkTrfInvoice"
 
+const API_RRK_FP_OUTWARD_STK_TRFR_SLASH_END = "/api/rrk/fpOutwardStkTrfInvoice/"
+const API_RRK_FP_OUTWARD_STK_TRFR_END = "/api/rrk/fpOutwardStkTrfInvoice"
+
 const API_RRK_STOCK_POSITION_FOR_DATE_SLASH_END = "/api/rrk/stock-position-for-date/"
 
 func initDynamicHTMLUrlMaps() {
@@ -53,25 +56,26 @@ func initDynamicHTMLUrlMaps() {
 
 func initStaticHTMLUrlMaps() {
 	urlMaps := map[string]urlStruct{
-		"/":                                            {generalPageHandler, "templates/home.html"},
-		"/a":                                           {generalPageHandler, "templates/admin/admin.html"},
-		"/a/bom/view":                                  {generalPageHandler, "templates/admin/bom_view.html"},
-		"/a/bom/new-model":                             {generalPageHandler, "templates/admin/create_model.html"},
-		"/a/bom/new-article":                           {generalPageHandler, "templates/admin/create_article.html"},
-		"/a/gzb/view-unsettled-advance":                {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
-		"/a/rrk/all-sale-invoices":                     {generalPageHandler, "templates/admin/rrk_sale_invoice_all.html"},
-		"/a/rrk/all-purchase-invoices":                 {generalPageHandler, "templates/admin/rrk_purchase_invoice_all.html"},
-		"/a/rrk/view-unsettled-advance":                {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
-		"/rrk/daily-polish":                            {generalPageHandler, "templates/rrk_daily_polish.html"},
-		"/rrk/daily-assembly":                          {generalPageHandler, "templates/rrk_daily_assembly.html"},
-		"/rrk/daily-sale":                              {generalPageHandler, "templates/rrk_daily_sale.html"},
-		"/rrk/enter-purchase-invoice":                  {generalPageHandler, "templates/rrk_enter_purchase.html"},
-		"/rrk/stock-position":                          {generalPageHandler, "templates/rrk_view_stock_position.html"},
-		"/rrk":                                         {generalPageHandler, "templates/rrk.html"},
-		"/rrk/daily-cash":                              {generalPageHandler, "templates/rrk_daily_cash.html"},
-		"/rrk/raw-material-outward-stock-transfer":     {generalPageHandler, "templates/rrk_rm_outward_stock_transfer.html"},
-		"/rrk/raw-material-inward-stock-transfer":      {generalPageHandler, "templates/rrk_rm_inward_stock_transfer.html"},
-		"/rrk/finished-products-inward-stock-transfer": {generalPageHandler, "templates/rrk_fp_inward_stock_transfer.html"},
+		"/":                                             {generalPageHandler, "templates/home.html"},
+		"/a":                                            {generalPageHandler, "templates/admin/admin.html"},
+		"/a/bom/view":                                   {generalPageHandler, "templates/admin/bom_view.html"},
+		"/a/bom/new-model":                              {generalPageHandler, "templates/admin/create_model.html"},
+		"/a/bom/new-article":                            {generalPageHandler, "templates/admin/create_article.html"},
+		"/a/gzb/view-unsettled-advance":                 {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
+		"/a/rrk/all-sale-invoices":                      {generalPageHandler, "templates/admin/rrk_sale_invoice_all.html"},
+		"/a/rrk/all-purchase-invoices":                  {generalPageHandler, "templates/admin/rrk_purchase_invoice_all.html"},
+		"/a/rrk/view-unsettled-advance":                 {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
+		"/rrk/daily-polish":                             {generalPageHandler, "templates/rrk_daily_polish.html"},
+		"/rrk/daily-assembly":                           {generalPageHandler, "templates/rrk_daily_assembly.html"},
+		"/rrk/daily-sale":                               {generalPageHandler, "templates/rrk_daily_sale.html"},
+		"/rrk/enter-purchase-invoice":                   {generalPageHandler, "templates/rrk_enter_purchase.html"},
+		"/rrk/stock-position":                           {generalPageHandler, "templates/rrk_view_stock_position.html"},
+		"/rrk":                                          {generalPageHandler, "templates/rrk.html"},
+		"/rrk/daily-cash":                               {generalPageHandler, "templates/rrk_daily_cash.html"},
+		"/rrk/raw-material-outward-stock-transfer":      {generalPageHandler, "templates/rrk_rm_outward_stock_transfer.html"},
+		"/rrk/raw-material-inward-stock-transfer":       {generalPageHandler, "templates/rrk_rm_inward_stock_transfer.html"},
+		"/rrk/finished-products-inward-stock-transfer":  {generalPageHandler, "templates/rrk_fp_inward_stock_transfer.html"},
+		"/rrk/finished-products-outward-stock-transfer": {generalPageHandler, "templates/rrk_fp_outward_stock_transfer.html"},
 		"/gzb":                    {generalPageHandler, "templates/gzb.html"},
 		"/gzb/daily-cash":         {generalPageHandler, "templates/gzb_daily_cash.html"},
 		"/gzb/daily-mfg-sale":     {generalPageHandler, "templates/gzb_daily_mfg_sale.html"},
@@ -122,6 +126,7 @@ func initRootApiMaps() {
 		API_RRK_RM_OUTWARD_STK_TRFR_END:            {RRKRMOSTInvoiceNoSalshApiHandler},
 		API_RRK_RM_INWARD_STK_TRFR_END:             {RRKRMISTInvoiceNoSalshApiHandler},
 		API_RRK_FP_INWARD_STK_TRFR_END:             {RRKFPISTInvoiceNoSalshApiHandler},
+		API_RRK_FP_OUTWARD_STK_TRFR_END:            {RRKFPOSTInvoiceNoSalshApiHandler},
 		"/rrk/update":                              {rrkDailyCashUpdateModelApiHandler},
 		"/api/":                                    {apiNotImplementedHandler},
 	}

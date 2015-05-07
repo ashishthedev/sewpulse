@@ -31,11 +31,18 @@ bomServices.factory('RRKPurchaseInvoice', ['$resource', function($resource){
     } );
   }]);
 
+bomServices.factory('RRKFPOutwardStkTrfrInvoice', ['$resource', function($resource){
+    return $resource('/api/rrk/fpOutwardStkTrfInvoice/:id',{},{
+      'query':{method:'GET', isArray:false}
+    } );
+  }]);
+
 bomServices.factory('RRKFPInwardStkTrfrInvoice', ['$resource', function($resource){
     return $resource('/api/rrk/fpInwardStkTrfInvoice/:id',{},{
       'query':{method:'GET', isArray:false}
     } );
   }]);
+
 bomServices.factory('RRKRMInwardStkTrfrInvoice', ['$resource', function($resource){
     return $resource('/api/rrk/rmInwardStkTrfInvoice/:id',{},{
       'query':{method:'GET', isArray:false}

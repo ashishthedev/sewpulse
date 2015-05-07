@@ -429,6 +429,16 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 		}
 	}
 
+	fposts, err := RRKGetAllFPOSTInvoicesOnSingleDay(r, dirtyDate)
+	if err != nil {
+		return err
+	}
+	for _, fpost := range fposts {
+		for _, item := range fpost.Items {
+			todaysStock.Models[item.Name] -= item.Quantity
+		}
+	}
+
 	/////////////////////////////////////////////////////////////////////////
 	//2e. Add inward stock transfer
 	/////////////////////////////////////////////////////////////////////////

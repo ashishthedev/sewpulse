@@ -244,3 +244,12 @@ type RRKFPISTInvoice struct {
 	PartyName string
 	_BillFields
 }
+
+//======================================================
+// RRKFPOSTInvoice
+//======================================================
+type RRKFPOSTInvoice struct {
+	Items     []NameRateQuantity
+	PartyName string
+	_BillFields
+}
