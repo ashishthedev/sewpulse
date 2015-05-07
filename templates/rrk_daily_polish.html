@@ -2,6 +2,8 @@
   <head>
     <title>Roorkee Daily Polish</title>
     <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
     <script src="/static/js/script.js"></script>
 
     <!-- Standard Favicon -->
@@ -21,9 +23,9 @@
     <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
     <script>
 
-      var appMod = angular.module('ngSEWPulseApp', []);
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
 
-      appMod.controller('ngRRKDailyPolishController', ['$scope', '$http', function($scope, $http) {
+      appMod.controller('ngRRKDailyPolishController', ['$scope', '$http', 'Model', function($scope, $http, Model) {
         function UpdateTotalQty() {
           var t = 0;
           for (var i=0; i < $scope.polishedItems.Items.length; i++) {
@@ -55,7 +57,7 @@
         $scope.submitTodaysLog = function() {
           $scope.statusNote = "Submitting...";
           var api = "/api/rrkDailyPolishEmailSendApi";
-          polishedItems.JSDateValueAsSeconds= Math.floor($scope.polishedItems.JSDate.getTime()/1000);
+          $scope.polishedItems.JSDateValueAsSeconds= Math.floor($scope.polishedItems.JSDate.getTime()/1000);
           var postData = $scope.polishedItems;
 
           $http.post(api, postData).success(function(data, status, headers, config) {
@@ -67,43 +69,28 @@
           });
         }
 
-        $scope.createModelOnServerWithName = function() {
-          $scope.statusNote = "Creating new model...";
-          var api = "/api/rrkAddModelNameApi";
-          var postData = {"NewModelName": $scope.newModelName};
-
-          $http.post(api, postData).success(function(data, status, headers, config) {
-            $scope.statusNote = "";
-            $scope.models = data.ModelNames;
-            FetchModelsFromServer();
-            $scope.newModelName = "";
-            }).error(function(data, status, headers, config){
-            $scope.statusNote = status + ": " + data;
-          });
-        }
-
         function FetchModelsFromServer() {
+          $scope.working = true;
           $scope.statusNote = "Fetching model set...";
-          var api = "/api/rrkGetModelApi";
-          var postData = {};
-
-          $http.post(api, postData).success(function(data, status, headers, config) {
+          Model.query(function(data){
+            $scope.models = data;
             $scope.statusNote = "";
-            $scope.models = data.ModelNames;
-            console.log("data.ModelNames : "+ data.ModelNames)
-            if( $scope.models.length === 0){
-              $scope.models[0] = "No model exists. Please create one.";
+            for (var k in $scope.models){
+              $scope.entry.Name = k;
+              break;//Set to first value
             }
-            $scope.entry.modelName = $scope.models[0];
-            console.log("setting the entry.Modelname to : "+ $scope.entry.modelName)
-            }).error(function(data, status, headers, config){
-            $scope.statusNote = status + ": " + data;
+            $scope.working = false;
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+            $scope.working = false;
           });
         }
 
+
+        $scope.polishedItems = {};
         $scope.polishedItems.JSDate =  new Date();
         $scope.polishedItems.Items = [];
-        $scope.entry = {modelName:"Premium Plus", quantity:5, assemblyLineName: "Line1", unit:"pc"};
+        $scope.entry = {};
         $scope.statusNote = "";
         $scope.isLogSubmitted = false;
         $scope.totalQuantityProduced = 0;
@@ -112,11 +99,10 @@
       }]);
     </script>
   </head>
-  <body ng-app="ngSEWPulseApp" ng-controller="ngRRKDailyPolishController">
+  <body ng-app="SEWPulseApp" ng-controller="ngRRKDailyPolishController">
     <div class="well">
       <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
       <h1 class="text-center">RRK Daily Polish</h1>
-      <div class="todo"> Models should be picked up from bom. Delete dead code.</div>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
@@ -154,7 +140,7 @@
                 </tfoot>
                 <tr ng-repeat="item in polishedItems.Items">
                   <td><span ng-bind="$index + 1"></span><span>.</span></td>
-                  <td><span ng-bind="item.modelName"></span></td>
+                  <td><span ng-bind="item.Name"></span></td>
                   <td><span ng-bind="item.assemblyLineName"></span></td>
                   <td><span ng-bind="item.quantity"></span></td>
                   <td><span ng-bind="item.unit"></span></td>
@@ -171,7 +157,8 @@
           <div class="row">
             <div class="form-group">
               <div class="col-xs-6 col-sm-4">
-                <select class="form-control" ng-options="model for model in models" ng-model="entry.modelName"></select>
+                <select required class="form-control" ng-options="name as name for (name, model) in models" ng-model="entry.Name">
+                </select>
               </div>
               <div class="col-xs-6 col-sm-3">
                 <select class="form-control" ng-model="entry.assemblyLineName">
@@ -195,18 +182,6 @@
           <hr>
         </form>
         <br>
-        <form role="form" class="form-horizontal" ng-submit="createModelOnServerWithName()">
-          <div class="row">
-            <div class="col-xs-6">
-              <input required type="text" class="form-control" ng-model="newModelName" placeholder="New model name..."/>
-            </div>
-            <div ng-show="newModelName">
-              <div class="col-xs-6">
-                <button type="submit" class="btn col-xs-12 btn-danger">Create New Model</button>
-              </div>
-            </div> <!-- newModelName -->
-          </div> <!-- row -->
-        </form>
       </div>
       <div ng-show="isLogSubmitted">
         <div class="alert alert-success" role="alert">

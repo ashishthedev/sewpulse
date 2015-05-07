@@ -2,7 +2,6 @@ package sewpulse
 
 import (
 	"appengine"
-	"appengine/datastore"
 	"appengine/mail"
 	"appengine/user"
 	"bytes"
@@ -31,24 +30,6 @@ func gzbDailyTradingSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-}
-
-func gzbGetModelApiHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, r.Method+" Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	modelSet, err := GetModelsFromServer(r)
-	if err != nil {
-		if err == datastore.ErrNoSuchEntity {
-			json.NewEncoder(w).Encode(ModelSet{ModelNames: []string{}})
-			return
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-	json.NewEncoder(w).Encode(modelSet)
 }
 
 func gzbDailyMfgSaleEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
