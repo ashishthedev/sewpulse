@@ -32,11 +32,11 @@ type GZBStockPos struct {
 //       RRKStockDirtyDate
 //===================================================================
 
-var GLOBAL_RRK_STOCK_DIRTY_DATE RRKStockDirtyDate
-
 type RRKStockDirtyDate struct {
 	DateValue time.Time
 }
+
+var GLOBAL_RRK_STOCK_DIRTY_DATE RRKStockDirtyDate
 
 func GetRRKDD(r *http.Request) (time.Time, error) {
 	d := new(RRKStockDirtyDate)
@@ -318,7 +318,6 @@ func RRKRecalculateStockSinceDirtyDate(r *http.Request) error {
 	dd = StripTimeKeepDate(dd)
 	today := StripTimeKeepDate(time.Now())
 	for ; !dd.After(today); dd = dd.Add(24 * time.Hour) {
-		//TODO: Do it in a transaction.
 		if err := _CalculateAndSaveRRKStockForDate(r, dd); err != nil {
 			return err
 		}
@@ -349,7 +348,7 @@ func rrkStockPristineDateApiHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) error {
-	//Thing about how task ques can be used.
+	//Think about how task ques can be used.
 
 	/////////////////////////////////////////////////////////////////////////
 	//Logic:
@@ -492,7 +491,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 
 	c := appengine.NewContext(r)
 	err1 := datastore.RunInTransaction(c, func(c appengine.Context) error {
-		//TODO: See if everything inside a transaction is slowing things up?
+		//TODO: See if you are masking err variable
 		err = todaysStock._SaveInDS(r)
 		if err != nil {
 			return logErr(r, err, "todaysStock._SaveInDS(r)")

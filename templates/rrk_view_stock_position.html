@@ -39,7 +39,7 @@
           });
         }
 
-        function FetchRRKStockPositionFromServer() {
+        $scope.FetchRRKStockPositionFromServer = function() {
           $scope.working = true;
           $scope.stockAvailable = false;
           $scope.statusNote = "Fetching stock position ...";
@@ -63,9 +63,9 @@
             $scope.JSDate = today;
           }
           $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.JSDate);
-          FetchRRKStockPositionFromServer();
         }
 
+        $scope.JSDate = new Date();
         $scope.statusNote = "";
         FetchRRKStockPristineDate();
       }]);
@@ -77,12 +77,17 @@
       <a class="hidden-print" href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
       <h1 class="text-center">RRK Stock Position</h1>
       <div id="statusNote" ng-bind="statusNote"></div>
-      <div class="text-center"> Stock Pristine Date: <span id="result" ng-bind="stockPristineDate"></span></div>
+      <div class="text-center hidden-print"> Stock already calculated till: <span id="result" ng-bind="stockPristineDate"></span></div>
     </div>
     <div class="container-fluid">
       <div class="row">
-        <input required class="center-block" autofocus="true" title="View Stock for this date" type="date" ng-model="JSDate" ng-change="DateChanged()" />
-        <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
+        <span class="col-xs-offset-1 col-xs-6">
+          <input required class="center-block" autofocus="true" title="View Stock for this date" type="date" ng-model="JSDate" ng-change="DateChanged()" />
+          <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
+        </span>
+        <span class="col-xs-3 col-sm-2">
+          <button class="form-control btn-info" ng-click="FetchRRKStockPositionFromServer()">Go</button>
+        </span>
       </div>
       <hr>
       <div ng-show="working">
