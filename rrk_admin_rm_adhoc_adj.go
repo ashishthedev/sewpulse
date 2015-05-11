@@ -11,20 +11,20 @@ import (
 	"time"
 )
 
-const RRKFinProdInwardStockTransferInvoiceKind = "RRKFinProdInwardStockTransferInvoice"
+const RRKRawMatAdhocAdjInvoiceKind = "RRKRawMatAdhocAdjInvoice"
 
-func RRKFPISTInvoiceKey(r *http.Request, UID string) *datastore.Key {
-	return RRK_SEWNewKey(RRKFinProdInwardStockTransferInvoiceKind, UID, 0, r)
+func RRKRMAAInvoiceKey(r *http.Request, UID string) *datastore.Key {
+	return RRK_SEWNewKey(RRKRawMatAdhocAdjInvoiceKind, UID, 0, r)
 }
 
-func (x *RRKFPISTInvoice) SaveInDS(r *http.Request) error {
+func (x *RRKRMAAInvoice) SaveInDS(r *http.Request) error {
 	c := appengine.NewContext(r)
 	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
 		x.DateValue = time.Unix(x.JSDateValueAsSeconds, 0)
 		x.DD_MMM_YY = DDMMMYYFromGoTime(x.DateValue)
-		x.UID = fmt.Sprintf("%s-%s-%s", x.DD_MMM_YY, x.PartyName, x.Number)
+		x.UID = fmt.Sprintf("%s-%v", x.DD_MMM_YY, x.JSDateValueAsSeconds)
 
-		k := RRKFPISTInvoiceKey(r, x.UID)
+		k := RRKRMAAInvoiceKey(r, x.UID)
 		e := x
 		if _, err1 := datastore.Put(c, k, e); err1 != nil {
 			return err1
@@ -32,27 +32,27 @@ func (x *RRKFPISTInvoice) SaveInDS(r *http.Request) error {
 		return RRKIntelligentlySetDD(r, x.DateValue)
 	}, nil)
 	if err != nil {
-		return logErr(r, err, "Inside (x *RRKFPISTInvoice) SaveInDS()")
+		return logErr(r, err, "Inside (x *RRKRMAAInvoice) SaveInDS()")
 	}
 	return nil
 }
 
-func RRKFPISTInvoiceNoSalshApiHandler(w http.ResponseWriter, r *http.Request) {
+func RRKRMAAInvoiceNoSalshApiHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		var fpist = new(RRKFPISTInvoice)
-		if err := json.NewDecoder(r.Body).Decode(fpist); err != nil {
+		var rmaa = new(RRKRMAAInvoice)
+		if err := json.NewDecoder(r.Body).Decode(rmaa); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fpist.DateValue = time.Unix(fpist.JSDateValueAsSeconds, 0)
+		rmaa.DateValue = time.Unix(rmaa.JSDateValueAsSeconds, 0)
 
 		c := appengine.NewContext(r)
 		err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-			if err1 := fpist.SaveInDS(r); err1 != nil {
+			if err1 := rmaa.SaveInDS(r); err1 != nil {
 				return err1
 			}
-			if err1 := fpist.SendMailForFPISTInvoice(r); err1 != nil {
+			if err1 := rmaa.SendMailForRMAAInvoice(r); err1 != nil {
 				return err1
 			}
 			return nil
@@ -70,12 +70,16 @@ func RRKFPISTInvoiceNoSalshApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (x *RRKFPISTInvoice) SendMailForFPISTInvoice(r *http.Request) error {
+func (x *RRKRMAAInvoice) SendMailForRMAAInvoice(r *http.Request) error {
 	DDMMMYYYY := DDMMMYYFromGoTime(x.DateValue)
 
 	totalQuantity := 0.0
 	for _, item := range x.Items {
-		totalQuantity += item.Quantity
+		if item.Quantity < 0 {
+			totalQuantity -= item.Quantity
+		} else {
+			totalQuantity += item.Quantity
+		}
 	}
 
 	goodsValue := 0.0
@@ -90,13 +94,12 @@ func (x *RRKFPISTInvoice) SendMailForFPISTInvoice(r *http.Request) error {
 		"SingleItemGoodsValueFunc": func(i NameRateQuantity) float64 { return i.Rate * i.Quantity },
 	}
 
-	emailTemplate := template.Must(template.New("emailRRKfpist").Funcs(funcMap).Parse(`
+	emailTemplate := template.Must(template.New("emailRRKrmaa").Funcs(funcMap).Parse(`
 	<html><body>
 	<table border=1 cellpadding=5>
 	<caption>
 	<h4></u>{{.DateValue|LogMsgShownForLogTime }}</u></h4>
-	<h4>M/s {{.PartyName }}</h4>
-	<h4>Invoice#: {{.Number }}</h4>
+	<h4>AD HOC STOCK ADJUSTMENT FOR RAW MATERIAL</h4>
 	<h4>{{.DateValue | DDMMMYYFromGoTime}}</h4>
 	</caption>
 	<thead>
@@ -135,7 +138,7 @@ func (x *RRKFPISTInvoice) SendMailForFPISTInvoice(r *http.Request) error {
 	{{end}}
 	</table>
 	<h4>Remarks:{{if .Remarks}} <font color="#DD472F">{{.Remarks }}</font>{{else}} No remarks. {{end}}</h4>
-	<font color="grey">SEW RRK FINISHED PRODUCT INWARD STOCK TRANSFER</font>
+	<font color="grey">SEW RRK RAW MATERIAL AD HOC ADJUSTMENT</font>
 	</body></html>
 	`))
 
@@ -145,39 +148,39 @@ func (x *RRKFPISTInvoice) SendMailForFPISTInvoice(r *http.Request) error {
 	}
 	finalHTML := buf.String()
 
-	subject := fmt.Sprintf("%s: Inv#%v | %v | %v pc transferred [SEWPULSE][RRK-FP-IST]", DDMMMYYYY, x.Number, x.PartyName, totalQuantity)
+	subject := fmt.Sprintf("%s: %v | %v pc adjustment [SEWPULSE][RRK-RM-ADHOCADJ]", DDMMMYYYY, x.DateValue.Local(), totalQuantity)
 	if err := SendSEWMail(r, subject, finalHTML); err != nil {
 		return err
 	}
 	return nil
 }
 
-func RRKGetAllFPISTInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKFPISTInvoice, error) {
+func RRKGetAllRMAAInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKRMAAInvoice, error) {
 	singleDate := StripTimeKeepDate(date)
 	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
-	return RRKGetAllFPISTInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+	return RRKGetAllRMAAInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
 }
 
-func RRKGetAllFPISTInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKFPISTInvoice, error) {
+func RRKGetAllRMAAInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKRMAAInvoice, error) {
 
-	q := datastore.NewQuery(RRKFinProdInwardStockTransferInvoiceKind).
+	q := datastore.NewQuery(RRKRawMatAdhocAdjInvoiceKind).
 		Filter("DateValue >=", starting).
 		Filter("DateValue <=", ending).
 		Order("-DateValue")
 
 	c := appengine.NewContext(r)
-	var fpists []RRKFPISTInvoice
+	var rmaas []RRKRMAAInvoice
 	for t := q.Run(c); ; {
-		var fpist RRKFPISTInvoice
-		_, err := t.Next(&fpist)
+		var rmaa RRKRMAAInvoice
+		_, err := t.Next(&rmaa)
 		if err == datastore.Done {
 			break
 		}
 		if err != nil {
 			return nil, err
 		}
-		fpists = append(fpists, fpist)
+		rmaas = append(rmaas, rmaa)
 	}
 
-	return fpists, nil
+	return rmaas, nil
 }

@@ -1,9 +1,9 @@
 var bomServices = angular.module('bomServices', ['ngResource']);
 
 bomServices.factory('BOM', ['$resource', function($resource){
-    return $resource('/api/bom', {}, {
-      'reset': {method: 'POST', url: '/api/bom/reset'},
-      'resetToSampleState': {method: 'POST', url: '/api/bom/resetToSampleBOM'}
+    return $resource('/a/api/bom', {}, {
+      'reset': {method: 'POST', url: '.a/api/bom/reset'},
+      'resetToSampleState': {method: 'POST', url: '/a/api/bom/resetToSampleBOM'}
     });
   }]);
 
@@ -39,6 +39,18 @@ bomServices.factory('RRKFPOutwardStkTrfrInvoice', ['$resource', function($resour
 
 bomServices.factory('RRKFPInwardStkTrfrInvoice', ['$resource', function($resource){
     return $resource('/api/rrk/fpInwardStkTrfInvoice/:id',{},{
+      'query':{method:'GET', isArray:false}
+    } );
+  }]);
+
+bomServices.factory('RRKFPAdhocAdjInvoice', ['$resource', function($resource){
+    return $resource('/a/api/rrk/fpAAInvoice/:id',{},{
+      'query':{method:'GET', isArray:false}
+    } );
+  }]);
+
+bomServices.factory('RRKRMAdhocAdjInvoice', ['$resource', function($resource){
+    return $resource('/a/api/rrk/rmAAInvoice/:id',{},{
       'query':{method:'GET', isArray:false}
     } );
   }]);

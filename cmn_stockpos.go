@@ -480,10 +480,28 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	/////////////////////////////////////////////////////////////////////////
 	//2h. Accommodate adhoc adjustments in models
 	/////////////////////////////////////////////////////////////////////////
+	fpinvoices, err := RRKGetAllFPAAInvoicesOnSingleDay(r, dirtyDate)
+	if err != nil {
+		return err
+	}
+	for _, invoice := range fpinvoices {
+		for _, item := range invoice.Items {
+			todaysStock.Models[item.Name] += item.Quantity
+		}
+	}
 
 	/////////////////////////////////////////////////////////////////////////
 	//2i. Accommodate adhoc adjustments in articles
 	/////////////////////////////////////////////////////////////////////////
+	invoices, err := RRKGetAllRMAAInvoicesOnSingleDay(r, dirtyDate)
+	if err != nil {
+		return err
+	}
+	for _, invoice := range invoices {
+		for _, item := range invoice.Items {
+			todaysStock.Articles[item.Name] += item.Quantity
+		}
+	}
 
 	/////////////////////////////////////////////////////////////////////////
 	//2. Save the stock and set the new dirty date inside a transaction.

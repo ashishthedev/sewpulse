@@ -145,7 +145,7 @@ func (x *RRKFPOSTInvoice) SendMailForFPOSTInvoice(r *http.Request) error {
 	}
 	finalHTML := buf.String()
 
-	subject := fmt.Sprintf("%s: Inv#%v | %v | %v pc sold [SEWPULSE][RRK-FP-OST]", DDMMMYYYY, x.Number, x.PartyName, totalQuantity)
+	subject := fmt.Sprintf("%s: Inv#%v | %v | %v pc transferred [SEWPULSE][RRK-FP-OST]", DDMMMYYYY, x.Number, x.PartyName, totalQuantity)
 	if err := SendSEWMail(r, subject, finalHTML); err != nil {
 		return err
 	}

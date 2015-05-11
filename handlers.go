@@ -46,6 +46,8 @@ const API_RRK_FP_OUTWARD_STK_TRFR_SLASH_END = "/api/rrk/fpOutwardStkTrfInvoice/"
 const API_RRK_FP_OUTWARD_STK_TRFR_END = "/api/rrk/fpOutwardStkTrfInvoice"
 
 const API_RRK_STOCK_POSITION_FOR_DATE_SLASH_END = "/api/rrk/stock-position-for-date/"
+const API_RRK_RM_ADHOC_ADJ_END = "/a/api/rrk/rmAAInvoice"
+const API_RRK_FP_ADHOC_ADJ_END = "/a/api/rrk/fpAAInvoice"
 
 func initDynamicHTMLUrlMaps() {
 
@@ -54,17 +56,33 @@ func initDynamicHTMLUrlMaps() {
 	http.HandleFunc(API_RRK_STOCK_POSITION_FOR_DATE_SLASH_END, rrkStockPositionForDateSlashApiHandler)
 }
 
+func initStaticAdminHTMLUrlMaps() {
+	urlMaps := map[string]urlStruct{
+		"/a":                                        {generalPageHandler, "templates/admin/admin.html"},
+		"/a/bom/view":                               {generalPageHandler, "templates/admin/bom_view.html"},
+		"/a/bom/new-model":                          {generalPageHandler, "templates/admin/create_model.html"},
+		"/a/bom/new-article":                        {generalPageHandler, "templates/admin/create_article.html"},
+		"/a/gzb/view-unsettled-advance":             {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
+		"/a/rrk/all-sale-invoices":                  {generalPageHandler, "templates/admin/rrk_sale_invoice_all.html"},
+		"/a/rrk/all-purchase-invoices":              {generalPageHandler, "templates/admin/rrk_purchase_invoice_all.html"},
+		"/a/rrk/view-unsettled-advance":             {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
+		"/a/rrk/raw-material-adhoc-adjustment":      {generalPageHandler, "templates/admin/rrk_admin_rm_adhoc_adj.html"},
+		"/a/rrk/finished-products-adhoc-adjustment": {generalPageHandler, "templates/admin/rrk_admin_fp_adhoc_adj.html"},
+	}
+
+	for path, urlBlob := range urlMaps {
+		templatePath := urlBlob.templatePath
+		PRE_BUILT_TEMPLATES[path] = template.Must(template.ParseFiles(templatePath))
+	}
+
+	for path, urlBlob := range urlMaps {
+		http.HandleFunc(path, urlBlob.handler)
+	}
+	return
+}
 func initStaticHTMLUrlMaps() {
 	urlMaps := map[string]urlStruct{
 		"/":                                             {generalPageHandler, "templates/home.html"},
-		"/a":                                            {generalPageHandler, "templates/admin/admin.html"},
-		"/a/bom/view":                                   {generalPageHandler, "templates/admin/bom_view.html"},
-		"/a/bom/new-model":                              {generalPageHandler, "templates/admin/create_model.html"},
-		"/a/bom/new-article":                            {generalPageHandler, "templates/admin/create_article.html"},
-		"/a/gzb/view-unsettled-advance":                 {generalPageHandler, "templates/admin/gzb_admin_view_unsettled_advance.html"},
-		"/a/rrk/all-sale-invoices":                      {generalPageHandler, "templates/admin/rrk_sale_invoice_all.html"},
-		"/a/rrk/all-purchase-invoices":                  {generalPageHandler, "templates/admin/rrk_purchase_invoice_all.html"},
-		"/a/rrk/view-unsettled-advance":                 {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
 		"/rrk/daily-polish":                             {generalPageHandler, "templates/rrk_daily_polish.html"},
 		"/rrk/daily-assembly":                           {generalPageHandler, "templates/rrk_daily_assembly.html"},
 		"/rrk/daily-sale":                               {generalPageHandler, "templates/rrk_daily_sale.html"},
@@ -95,8 +113,8 @@ func initStaticHTMLUrlMaps() {
 
 func initRootApiMaps() {
 	apiMaps := map[string]apiStruct{
-		"/api/bom/reset":                           {bomResetAPIHandler},
-		"/api/bom/resetToSampleBOM":                {bomResetToSampleState},
+		"/a/api/bom/reset":                         {bomResetAPIHandler},
+		"/a/api/bom/resetToSampleBOM":              {bomResetToSampleState},
 		API_BOM_MODEL_END:                          {bomModelWithoutSlashAPIHandler},
 		API_BOM_MODEL_SLASH_END:                    {bomModelWithSlashAPIHandler},
 		API_BOM_ARTICLE_END:                        {bomArticleWithoutSalshAPIHandler},
@@ -124,8 +142,11 @@ func initRootApiMaps() {
 		API_RRK_RM_INWARD_STK_TRFR_END:             {RRKRMISTInvoiceNoSalshApiHandler},
 		API_RRK_FP_INWARD_STK_TRFR_END:             {RRKFPISTInvoiceNoSalshApiHandler},
 		API_RRK_FP_OUTWARD_STK_TRFR_END:            {RRKFPOSTInvoiceNoSalshApiHandler},
+		API_RRK_RM_ADHOC_ADJ_END:                   {RRKRMAAInvoiceNoSalshApiHandler},
+		API_RRK_FP_ADHOC_ADJ_END:                   {RRKFPAAInvoiceNoSalshApiHandler},
 		"/rrk/update":                              {rrkDailyCashUpdateModelApiHandler},
 		"/api/":                                    {apiNotImplementedHandler},
+		"/a/api/":                                  {apiNotImplementedHandler},
 	}
 	for path, apiBlob := range apiMaps {
 		http.HandleFunc(path, apiBlob.handler)
@@ -136,6 +157,7 @@ func initRootApiMaps() {
 func init() {
 	initRootApiMaps()
 	initStaticHTMLUrlMaps()
+	initStaticAdminHTMLUrlMaps()
 	initDynamicHTMLUrlMaps()
 	return
 }

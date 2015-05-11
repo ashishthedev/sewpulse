@@ -1,0 +1,210 @@
+<html>
+  <head>
+    <title>Roorkee Finished Products - Ad hoc adjustment</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
+    <script src="/static/js/script.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
+
+      appMod.controller('RRKAdminFinishedProductsAdHocAdj', ['$scope', 'Model',
+      'RRKFPAdhocAdjInvoice', 'RRKStockPosition','RRKStockPristineDate',
+      function($scope, Model, RRKFPAdhocAdjInvoice, RRKStockPosition,
+      RRKStockPristineDate) {
+
+        $scope.DateChanged = function() {
+          var today = new Date();
+          if (today < $scope.tInvoice.Date) {
+            $scope.tInvoice.Date = today;
+          }
+          $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.tInvoice.JSDateValue);
+        }
+
+        $scope.submitTodaysLog = function() {
+          $scope.statusNote = "Submitting...";
+          $scope.tInvoice.JSDateValueAsSeconds = Math.floor($scope.tInvoice.JSDateValue.getTime()/1000);
+          RRKFPAdhocAdjInvoice.save($scope.tInvoice, function(data){
+            $scope.statusNote = "Submitting...";
+            if (Debug()){
+              $scope.statusNote = "Posted";
+              $scope.isLogSubmitted = false;
+              } else{
+              $scope.statusNote = "";
+              $scope.isLogSubmitted = true;
+            }
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+            $scope.isLogSubmitted = false;
+          });
+        }
+
+        function FetchRRKStockPristineDate(){
+          $scope.statusNote = "Fetching stock date...";
+
+          RRKStockPristineDate.get(function(data){
+            $scope.stockPristineDate = DateAsUnixTimeToDDMMMYY(data.PristineTime);
+            $scope.statusNote = "";
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+          });
+        }
+
+        FetchRRKStockPositionFromServer = function() {
+          $scope.working = true;
+          $scope.stockAvailable = false;
+          $scope.statusNote = "Fetching stock position ...";
+          RRKStockPosition.get({id:JSDateToUnixTime($scope.tInvoice.JSDateValue)}, function(data){
+            $scope.Models = data.Models;
+            $scope.Articles = data.Articles;
+            FetchRRKStockPristineDate();
+            $scope.working = false;
+            $scope.stockAvailable = true;
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+            $scope.stockAvailable = false;
+            $scope.working = false;
+          });
+        }
+
+        $scope.UpdateOrphanCalc = function () {
+          var name = $scope.orphan.Name;
+          $scope.orphan.OriginalQuantity = $scope.Models[name];
+          $scope.orphan.NewQuantity = parseInt($scope.orphan.OriginalQuantity) + parseInt($scope.orphan.Quantity);
+        }
+
+        $scope.RemoveItem = function(index) {
+          $scope.tInvoice.Items.splice(index, 1);
+        }
+
+        $scope.AddOrphan = function() {
+          var items = $scope.tInvoice.Items;
+          var l = items.length;
+          var newItem = {};
+          newItem.Name = $scope.orphan.Name;
+          newItem.Quantity = $scope.orphan.Quantity;
+          items.splice(l, 0, angular.copy(newItem));
+          $scope.orphan = {};
+        }
+
+        $scope.tInvoice = {};
+        $scope.tInvoice.Items = [];
+        $scope.tInvoice.JSDateValue =  new Date();
+        $scope.DateChanged();
+        $scope.statusNote = "";
+        $scope.isLogSubmitted = false;
+        FetchRRKStockPositionFromServer();
+        $scope.tInvoice.Number="Adhoc";
+        if(Debug()) {
+          $scope.tempGrandTotal = 3;
+        }
+
+      }]);
+    </script>
+  </head>
+
+  <body ng-app="SEWPulseApp" ng-controller="RRKAdminFinishedProductsAdHocAdj">
+    <div class="well">
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+      <h1 class="text-center">RRK Finished Products - Ad hoc adjustment</h1>
+      <div ng-show="stockPristineDate" class="text-center hidden-print"> Stock digested till: <span id="result" ng-bind="stockPristineDate"></span></div>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <div ng-show="isLogSubmitted">
+        <div class="alert alert-success" role="alert">
+          <div class="text-center">
+            Thanks. The log has been submitted successfully.
+          </div>
+        </div>
+      </div>
+      <div ng-hide="isLogSubmitted">
+        <div class="row">
+          <span class="col-sm-offset-4 col-sm-2">
+            <input required class="center-block" autofocus="true" title="Date of adjustment" type="date" ng-model="tInvoice.JSDateValue" ng-change="DateChanged()" />
+            <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
+          </span>
+        </div>
+        <hr> <!-- Show Purchase Invoice Current Items as already entered -->
+
+        <div ng-show="tInvoice.Items.length > 0">
+          <h5 class="text-center"><u>Item Details:</u></h5>
+          <div class="row" ng-repeat="item in tInvoice.Items">
+            <span class="col-xs-5">
+              <span readonly class="form-control" ng-bind="item.Name" ></span>
+            </span>
+            <span class="col-xs-5">
+              <span class="input-group">
+                <span class="input-group-addon">Adjustment</span>
+                <span  class="form-control" title="Quantity" type="number" ng-bind="item.Quantity" >
+                </span>
+              </span>
+            </span>
+            <span class="col-sm-2 col-xs-6">
+              <button class="form-control btn-danger" ng-click="RemoveItem($index)">Remove</button>
+            </span>
+          </div>
+          <hr>
+        </div>
+        <div class="row">
+          <span class="col-xs-10">
+
+            <div class="row">
+              <span class="col-xs-6">
+                <select class="form-control" ng-options="k as k for (k, model) in Models" ng-model="orphan.Name"></select>
+              </span>
+              <span class="col-xs-6">
+                <span class="input-group">
+                  <span class="input-group-addon">Adjustment</span>
+                  <input required class="form-control" title="Quantity" type="number" ng-model="orphan.Quantity" ng-change="UpdateOrphanCalc()" />
+                </span>
+              </span>
+            </div>
+            <div class="row">
+              <span class="col-xs-6">
+                <span class="input-group">
+                  <span class="input-group-addon">Original Qty</span>
+                  <input readonly class="form-control" title="Original Qty"
+                  type="number" ng-model="orphan.OriginalQuantity" ng-change="UpdateOrphanCalc()" />
+                </span>
+              </span>
+              <span class="col-xs-6">
+                <span class="input-group">
+                  <span class="input-group-addon">New Qty</span>
+                  <input readonly class="form-control" title="New Qty" type="number" ng-model="orphan.NewQuantity" ng-change="UpdateOrphanCalc()" />
+                </span>
+              </span>
+            </div>
+          </span>
+          <span class="col-xs-2" ng-show="orphan.Name && orphan.Quantity">
+            <button class="form-control btn-success" ng-click="AddOrphan()">Add</button>
+          </span>
+        </div>
+        <hr>
+        <div class="row">
+          <span class="col-sm-offset-4 col-sm-2">
+            <span ng-show="tInvoice.Items.length > 0">
+              <button ng-click="submitTodaysLog()" class="form-control btn-info">Submit</button>
+            </span>
+          </span>
+        </div>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>
