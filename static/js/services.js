@@ -1,7 +1,7 @@
 var bomServices = angular.module('bomServices', ['ngResource']);
 
 bomServices.factory('BOM', ['$resource', function($resource){
-    return $resource('/a/api/bom', {}, {
+    return $resource('/api/bom', {}, {
       'reset': {method: 'POST', url: '.a/api/bom/reset'},
       'resetToSampleState': {method: 'POST', url: '/a/api/bom/resetToSampleBOM'}
     });

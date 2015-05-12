@@ -36,7 +36,7 @@ type RRKStockDirtyDate struct {
 	DateValue time.Time
 }
 
-var GLOBAL_RRK_STOCK_DIRTY_DATE RRKStockDirtyDate
+var GLOBAL_RRK_STOCK_DIRTY_DATE *RRKStockDirtyDate
 
 func GetRRKDD(r *http.Request) (time.Time, error) {
 	d := new(RRKStockDirtyDate)
@@ -67,8 +67,8 @@ func RRKIntelligentlySetDD(r *http.Request, dv time.Time) error {
 }
 
 func (d *RRKStockDirtyDate) _GetOrCreateInDS(r *http.Request) error {
-	if !GLOBAL_RRK_STOCK_DIRTY_DATE.DateValue.IsZero() {
-		*d = GLOBAL_RRK_STOCK_DIRTY_DATE
+	if GLOBAL_RRK_STOCK_DIRTY_DATE != nil {
+		*d = *GLOBAL_RRK_STOCK_DIRTY_DATE
 		return nil
 	}
 	c := appengine.NewContext(r)
@@ -80,7 +80,6 @@ func (d *RRKStockDirtyDate) _GetOrCreateInDS(r *http.Request) error {
 		d.DateValue = time.Now()
 		return d._SaveInDS(r)
 	}
-	GLOBAL_RRK_STOCK_DIRTY_DATE = *d
 	return nil
 }
 
@@ -99,7 +98,7 @@ func (d *RRKStockDirtyDate) _SaveInDS(r *http.Request) error {
 		return err
 	}
 
-	GLOBAL_RRK_STOCK_DIRTY_DATE = *d
+	GLOBAL_RRK_STOCK_DIRTY_DATE = d
 	return nil
 }
 func RRKUnconditionalSaveDD(r *http.Request, dv time.Time) error {
@@ -356,7 +355,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	// Find good condition stock from yesterday(yesterday)
 	// Apply operations
 	// Save the new stock for dirty date
-	// Increment the dirty date stock by 1.
+	// Increment the stock dirty date by 1.
 	/////////////////////////////////////////////////////////////////////////
 
 	dirtyDate = StripTimeKeepDate(dirtyDate)
