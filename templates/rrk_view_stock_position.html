@@ -62,34 +62,39 @@
           if (today < $scope.JSDate) {
             $scope.JSDate = today;
           }
+          $scope.requestedStockOnDateDDMMYY = DDMMMYYFromUnixTime(JSDateToUnixTime($scope.JSDate));
           $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.JSDate);
         }
 
         $scope.JSDate = new Date();
+        $scope.DateChanged();
         $scope.statusNote = "";
+        $scope.todayDDMMYY = DDMMMYYFromUnixTime(JSDateToUnixTime(new Date()));
         FetchRRKStockPristineDate();
       }]);
     </script>
   </head>
   <body ng-app="SEWPulseApp" ng-controller="RRKStockPositionController">
     <div class="well">
-      <a class="visible-print"><img class="center-block" src="/static/img/sew57.png" /></a>
       <a class="hidden-print" href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
-      <h1 class="text-center">RRK Stock Position</h1>
+      <h2 class="text-center">RRK Stock Position</h2>
+      <div class="text-center hidden-print" ng-show="stockPristineDate"> Digested stock available upto: <span id="result" ng-bind="stockPristineDate"></span></div>
+      <div class="text-center visible-print"><big><span id="result" ng-bind="requestedStockOnDateDDMMYY"></span></big></div>
+      <div class="pull-right visible-print"> <small>Printed on <span ng-bind="todayDDMMYY"></span></small> </div>
       <div id="statusNote" ng-bind="statusNote"></div>
-      <div class="text-center hidden-print"> Stock digested till: <span id="result" ng-bind="stockPristineDate"></span></div>
     </div>
     <div class="container-fluid">
-      <div class="row">
-        <span class="col-xs-offset-1 col-xs-6">
-          <input required class="center-block" autofocus="true" title="View Stock for this date" type="date" ng-model="JSDate" ng-change="DateChanged()" />
-          <div class="text-center" ng-bind="dateDiffFromTodayAsText"></div>
-        </span>
-        <span class="col-xs-3 col-sm-2">
-          <button class="form-control btn-info" ng-click="FetchRRKStockPositionFromServer()">Go</button>
+      <div class="row hidden-print">
+        <span class="col-xs-offset-3 col-xs-6 col-sm-offset-4 col-sm-4 col-lg-offset-5 col-lg-2">
+          <div class="input-group">
+            <input required class="center-block form-control" autofocus="true" title="View Stock for this date" type="date" ng-model="JSDate" ng-change="DateChanged()" />
+            <span class="input-group-btn">
+              <button class="btn btn-info" type="button" ng-click="FetchRRKStockPositionFromServer()">Go!</button>
+            </span>
+          </div><!-- /input-group -->
         </span>
       </div>
-      <hr>
+      <hr class="hidden-print">
       <div ng-show="working">
         <img class="center-block" src="/static/img/working.gif" />
       </div>
@@ -104,9 +109,10 @@
               </tr>
             </thead>
             <tr ng-repeat="(modelName, quantity) in Models">
-              <td><span ng-bind="modelName"></span></td>
+              <td class="hidden-print"><span ng-bind="modelName"></span></td>
+              <td class="visible-print"><small><span ng-bind="modelName"></small></span></td>
               <td class="hidden-print"> <a ng-href="/trace/model/||modelName||"><span ng-bind="quantity"></span></a> </td>
-              <td class="visible-print"> <span ng-bind="quantity"></span></td>
+              <td class="visible-print"> <small><span ng-bind="quantity"></span></small></td>
             </tr>
           </table>
           <table class="table table-striped table-condensed">
@@ -117,9 +123,10 @@
               </tr>
             </thead>
             <tr ng-repeat="(name, quantity) in Articles">
-              <td><span ng-bind="name"></span></td>
+              <td class="hidden-print"><span ng-bind="name"></span></td>
+              <td class="visible-print"><small><span ng-bind="name"></span></small></td>
               <td class="hidden-print"> <a ng-href="/trace/article/||name||"><span ng-bind="quantity"></span></a> </td>
-              <td class="visible-print"> <span ng-bind="quantity"></span></td>
+              <td class="visible-print"> <small><span ng-bind="quantity"></span></small></td>
             </tr>
           </table>
         </div><!-- stockAvailable -->

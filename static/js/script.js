@@ -3,6 +3,9 @@ function JSDateToUnixTime(jsDate){
   return Math.floor(jsDate.getTime()/1000);
 }
 
+function DDMMMYYFromUnixTime(unixTime){
+  return DateAsUnixTimeToDDMMMYY(unixTime);
+}
 function DateAsUnixTimeToDDMMMYY(unixTime) {
   var d = new Date(unixTime);
 
