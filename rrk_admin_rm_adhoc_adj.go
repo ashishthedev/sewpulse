@@ -156,9 +156,7 @@ func (x *RRKRMAAInvoice) SendMailForRMAAInvoice(r *http.Request) error {
 }
 
 func RRKGetAllRMAAInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKRMAAInvoice, error) {
-	singleDate := StripTimeKeepDate(date)
-	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
-	return RRKGetAllRMAAInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+	return RRKGetAllRMAAInvoicesBetweenTheseDatesInclusive(r, BOD(date), EOD(date))
 }
 
 func RRKGetAllRMAAInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKRMAAInvoice, error) {
@@ -183,4 +181,10 @@ func RRKGetAllRMAAInvoicesBetweenTheseDatesInclusive(r *http.Request, starting t
 	}
 
 	return rmaas, nil
+}
+
+func RRKGetAllRMAAInvoicesBeforeThisDateInclusiveKeysOnly(r *http.Request, date time.Time) ([]*datastore.Key, error) {
+	q := datastore.NewQuery(RRKRawMatAdhocAdjInvoiceKind).
+		Filter("DateValue <=", EOD(date)).KeysOnly()
+	return q.GetAll(appengine.NewContext(r), nil)
 }

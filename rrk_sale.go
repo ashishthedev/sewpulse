@@ -257,10 +257,9 @@ func HTTPSingleSaleInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+
 func RRKGetAllSaleInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKSaleInvoice, error) {
-	singleDate := StripTimeKeepDate(date)
-	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
-	return RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+	return RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r, BOD(date), EOD(date))
 }
 
 func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
@@ -283,6 +282,11 @@ func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
 	return sis, nil
 }
 
+func RRKGetAllSaleInvoicesBeforeThisDateInclusiveKeysOnly(r *http.Request, ending time.Time) ([]*datastore.Key, error) {
+	q := datastore.NewQuery(RRKSaleInvoiceKind).
+		Filter("DateValue <=", ending).KeysOnly()
+	return q.GetAll(appengine.NewContext(r), nil)
+}
 func RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKSaleInvoice, error) {
 	q := datastore.NewQuery(RRKSaleInvoiceKind).
 		Filter("DateValue >=", starting).

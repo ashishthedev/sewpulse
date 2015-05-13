@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <title>Roorkee Mass Deletion</title>
+    <script src="/static/lib/angular/angular.min.js"></script>
+    <script src="/static/lib/angular/angular-resource.min.js"></script>
+    <script src="/static/js/services.js"></script>
+    <script src="/static/js/script.js"></script>
+
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+
+    <!-- For iPhone 4 Retina display: -->
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+
+    <!-- For iPad: -->
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+
+    <!-- For iPhone: -->
+    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+    <script>
+      var appMod = angular.module('SEWPulseApp', ['bomServices']);
+      appMod.config(function($interpolateProvider) {
+        $interpolateProvider.startSymbol('||');
+        $interpolateProvider.endSymbol('||');
+      });
+
+      appMod.controller('RRKDeleteEverythingController', ['$scope', 'RRKDeleteAllBeforeAndIncludingDate', function($scope, RRKDeleteAllBeforeAndIncludingDate) {
+        $scope.InvokeDeletion = function(){
+          $scope.working = true;
+          $scope.statusNote = "Deleting everything before date " + DDMMMYYFromUnixTime(JSDateToUnixTime($scope.JSDate)) + " ...";
+          RRKDeleteAllBeforeAndIncludingDate.get({id:JSDateToUnixTime($scope.JSDate)}, function(data){
+            $scope.statusNote = "";
+            $scope.working = false;
+            $scope.isLogSubmitted = true;
+            }, function(error){
+            $scope.statusNote = error.status + ": " + error.data;
+            $scope.working = false;
+            $scope.isLogSubmitted = false;
+          });
+        }
+
+        $scope.DateChanged = function(){
+          var today = new Date();
+          if (today < $scope.JSDate) {
+            $scope.JSDate = today;
+          }
+          $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.JSDate);
+        }
+
+        $scope.JSDate = new Date();
+        $scope.DateChanged();
+        $scope.statusNote = "";
+      }]);
+    </script>
+  </head>
+  <body ng-app="SEWPulseApp" ng-controller="RRKDeleteEverythingController">
+    <div class="well">
+      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+      <h2 class="text-center">RRK Mass Deletion</h2>
+      <div id="statusNote" ng-bind="statusNote"></div>
+    </div>
+    <div class="container-fluid">
+      <div ng-show="working">
+        <img class="center-block" src="/static/img/working.gif" />
+      </div>
+      <div ng-show="!isLogSubmitted">
+      <div ng-show="!working">
+        <div class="row">
+          <span class="col-xs-offset-3 col-xs-6 col-sm-offset-4 col-sm-4 col-lg-offset-5 col-lg-2">
+            <div class="input-group">
+              <input required class="center-block form-control" autofocus="true" title="Delete eveythign before date" type="date" ng-model="JSDate" ng-change="DateChanged()" />
+              <span class="input-group-btn">
+                <button class="btn btn-danger" type="button" ng-click="InvokeDeletion()">Go!</button>
+              </span>
+            </div><!-- /input-group -->
+          </span>
+        </div>
+      </div> <!-- !working -->
+    </div>
+
+      <div ng-show="isLogSubmitted">
+        <div class="alert alert-success" role="alert">
+          <div class="text-center">
+            The entries have been deleted successfully.
+          </div>
+        </div>
+      </div>
+    </div> <!-- container -->
+  </body>
+</html>

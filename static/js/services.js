@@ -72,6 +72,11 @@ bomServices.factory('RRKStockPosition', ['$resource', function($resource){
     } );
   }]);
 
+bomServices.factory('RRKDeleteAllBeforeAndIncludingDate', ['$resource', function($resource){
+    return $resource('/a/api/rrk/mass-deletion-before-and-including-date/:id',{},{
+    } );
+  }]);
+
 bomServices.factory('RRKStockPristineDate', ['$resource', function($resource){
     return $resource('/api/rrk/stock-pristine-date',{},{
     } );

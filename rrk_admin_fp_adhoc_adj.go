@@ -156,9 +156,7 @@ func (x *RRKFPAAInvoice) SendMailForFPAAInvoice(r *http.Request) error {
 }
 
 func RRKGetAllFPAAInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKFPAAInvoice, error) {
-	singleDate := StripTimeKeepDate(date)
-	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
-	return RRKGetAllFPAAInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+	return RRKGetAllFPAAInvoicesBetweenTheseDatesInclusive(r, BOD(date), EOD(date))
 }
 
 func RRKGetAllFPAAInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKFPAAInvoice, error) {
@@ -183,4 +181,10 @@ func RRKGetAllFPAAInvoicesBetweenTheseDatesInclusive(r *http.Request, starting t
 	}
 
 	return invoices, nil
+}
+
+func RRKGetAllFPAAInvoicesBeforeThisDateInclusiveKeysOnly(r *http.Request, date time.Time) ([]*datastore.Key, error) {
+	q := datastore.NewQuery(RRKFinProAdhocAdjInvoiceKind).
+		Filter("DateValue <=", EOD(date)).KeysOnly()
+	return q.GetAll(appengine.NewContext(r), nil)
 }

@@ -112,6 +112,7 @@ func RRKUnconditionalSaveDD(r *http.Request, dv time.Time) error {
 //===================================================================
 type RRKStockAsString struct {
 	StringData string `datastore:"noindex"`
+	DateValue  time.Time
 }
 
 func RRKBlankStockStruct(r *http.Request) (*RRKStockPos, error) {
@@ -142,8 +143,10 @@ func RRKBlankStockStruct(r *http.Request) (*RRKStockPos, error) {
 
 }
 
+const RRKStockAsStringKind = "RRKStockAsString"
+
 func (rrksas *RRKStockAsString) _KeyDS(r *http.Request, uid string) *datastore.Key {
-	return RRK_SEWNewKey("RRKStockAsString", "RRKStock_"+uid, 0, r)
+	return RRK_SEWNewKey(RRKStockAsStringKind, "RRKStock_"+uid, 0, r)
 }
 
 func (rrksas *RRKStockAsString) _GetOrCreateInDS(r *http.Request, uid string) (*RRKStockPos, error) {
@@ -188,7 +191,7 @@ func (rrksas *RRKStockAsString) _SaveInDS(r *http.Request, rrksp *RRKStockPos) e
 	}
 	c := appengine.NewContext(r)
 	k := rrksas._KeyDS(r, rrksp.UID())
-	e := &RRKStockAsString{StringData: *data}
+	e := &RRKStockAsString{StringData: *data, DateValue: rrksp.DateValue}
 	//myDebug(r, "\nSaving RRKStockPos for %v \n %#v \nas RRKStockAsString \n %v", rrksp.DD_MMM_YY, rrksp, *data)
 	if _, err := datastore.Put(c, k, e); err != nil {
 		return err
@@ -291,38 +294,9 @@ func rrkStockPositionForDateSlashApiHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func GetRRKstockForThisDDMMMYY(r *http.Request, DD_MMM_YY string) (*RRKStockPos, error) {
-	if err := RRKRecalculateStockSinceDirtyDate(r); err != nil {
-		myDebug(r, "Error from: RRKRecalculateStockSinceDirtyDate():"+err.Error())
-		return nil, err
-	}
-	rrkStockPosition := new(RRKStockPos)
-	rrkStockPosition.DD_MMM_YY = DD_MMM_YY
-	err := rrkStockPosition._GetOrCreateInDS(r)
-	if err != nil {
-		myDebug(r, "Error from: rrkStockPosition._GetOrCreateInDS():"+err.Error())
-		return nil, err
-	}
-	return rrkStockPosition, nil
-}
-
 //===================================================================
-//       RRKUtility Functions
+//       RRKStockPristineDate
 //===================================================================
-func RRKRecalculateStockSinceDirtyDate(r *http.Request) error {
-	dd, err := GetRRKDD(r)
-	if err != nil {
-		return err
-	}
-	dd = StripTimeKeepDate(dd)
-	today := StripTimeKeepDate(time.Now())
-	for ; !dd.After(today); dd = dd.Add(24 * time.Hour) {
-		if err := _CalculateAndSaveRRKStockForDate(r, dd); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func rrkStockPristineDateApiHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -346,6 +320,40 @@ func rrkStockPristineDateApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func GetRRKstockForThisDDMMMYY(r *http.Request, DD_MMM_YY string) (*RRKStockPos, error) {
+	if err := RRKDigestAsMuchStockAsPossibleSinceDirtyDate(r); err != nil {
+		myDebug(r, "Error from: RRKDigestAsMuchStockAsPossibleSinceDirtyDate():"+err.Error())
+		return nil, err
+	}
+	rrkStockPosition := new(RRKStockPos)
+	rrkStockPosition.DD_MMM_YY = DD_MMM_YY
+	err := rrkStockPosition._GetOrCreateInDS(r)
+	if err != nil {
+		myDebug(r, "Error from: rrkStockPosition._GetOrCreateInDS():"+err.Error())
+		return nil, err
+	}
+	return rrkStockPosition, nil
+}
+
+//===================================================================
+//       RRKUtility Functions
+//===================================================================
+func RRKDigestAsMuchStockAsPossibleSinceDirtyDate(r *http.Request) error {
+	dd, err := GetRRKDD(r)
+	if err != nil {
+		return err
+	}
+	dd = StripTimeKeepDate(dd)
+	today := StripTimeKeepDate(time.Now())
+	for ; !dd.After(today); dd = dd.Add(24 * time.Hour) {
+		if err := _CalculateAndSaveRRKStockForDate(r, dd); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) error {
 	//Think about how task ques can be used.
 
@@ -522,4 +530,11 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 		return nil
 	}, nil) //Transaction ends
 	return err1
+}
+
+func RRKGetAllSTockPosAsStringBeforeThisDateInclusiveKeysOnly(r *http.Request, date time.Time) ([]*datastore.Key, error) {
+	q := datastore.NewQuery(RRKStockAsStringKind).
+		Filter("DateValue <=", EOD(date)).
+		KeysOnly()
+	return q.GetAll(appengine.NewContext(r), nil)
 }

@@ -153,9 +153,7 @@ func (x *RRKRMISTInvoice) SendMailForRMISTInvoice(r *http.Request) error {
 }
 
 func RRKGetAllRMISTInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKRMISTInvoice, error) {
-	singleDate := StripTimeKeepDate(date)
-	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
-	return RRKGetAllRMISTInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+	return RRKGetAllRMISTInvoicesBetweenTheseDatesInclusive(r, BOD(date), EOD(date))
 }
 
 func RRKGetAllRMISTInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKRMISTInvoice, error) {
@@ -180,4 +178,10 @@ func RRKGetAllRMISTInvoicesBetweenTheseDatesInclusive(r *http.Request, starting 
 	}
 
 	return rmists, nil
+}
+
+func RRKGetAllRMISTInvoicesBeforeThisDateInclusiveKeysOnly(r *http.Request, date time.Time) ([]*datastore.Key, error) {
+	q := datastore.NewQuery(RRKRawMatInwardStockTransferInvoiceKind).
+		Filter("DateValue <=", EOD(date)).KeysOnly()
+	return q.GetAll(appengine.NewContext(r), nil)
 }

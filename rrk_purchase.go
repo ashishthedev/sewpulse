@@ -270,9 +270,7 @@ func HTTPSinglePurchaseInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RRKGetAllPurchaseInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKPurchaseInvoice, error) {
-	singleDate := StripTimeKeepDate(date)
-	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
-	return RRKGetAllPurchaseInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+	return RRKGetAllPurchaseInvoicesBetweenTheseDatesInclusive(r, BOD(date), EOD(date))
 }
 func RRKGetAllPurchaseInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKPurchaseInvoice, error) {
 
@@ -296,4 +294,10 @@ func RRKGetAllPurchaseInvoicesBetweenTheseDatesInclusive(r *http.Request, starti
 	}
 
 	return pis, nil
+}
+
+func RRKGetAllPurchaseItemsBeforeThisDateInclusiveKeysOnly(r *http.Request, date time.Time) ([]*datastore.Key, error) {
+	q := datastore.NewQuery(RRKPurchaseInvoiceKeyKind).
+		Filter("DateValue <=", EOD(date)).KeysOnly()
+	return q.GetAll(appengine.NewContext(r), nil)
 }

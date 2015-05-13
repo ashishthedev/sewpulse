@@ -177,6 +177,16 @@ func RemoveDuplicates(xs *[]string) {
 	*xs = (*xs)[:j]
 }
 
+func BOD(dt time.Time) time.Time {
+	//Strip the time= you get end of the day time.
+	return StripTimeKeepDate(dt)
+}
+
+func EOD(dt time.Time) time.Time {
+	//Strip the time, add a day, subtract a second = you get end of the day time.
+	return StripTimeKeepDate(dt).Add(1*24*time.Hour - time.Second)
+}
+
 func StripTimeKeepDate(dt time.Time) time.Time {
 	return time.Date(dt.Year(), dt.Month(), dt.Day(), 0, 0, 0, 0, time.UTC)
 }

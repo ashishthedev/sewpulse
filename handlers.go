@@ -49,6 +49,8 @@ const API_RRK_STOCK_POSITION_FOR_DATE_SLASH_END = "/api/rrk/stock-position-for-d
 const API_RRK_RM_ADHOC_ADJ_END = "/a/api/rrk/rmAAInvoice"
 const API_RRK_FP_ADHOC_ADJ_END = "/a/api/rrk/fpAAInvoice"
 
+const API_ADMIN_MASS_DELETION_BEFORE_AND_INCLUDING_DATE_SLASH_END = "/a/api/rrk/mass-deletion-before-and-including-date/"
+
 func initDynamicHTMLUrlMaps() {
 
 	http.HandleFunc(HTTP_RRK_SALE_INVOICE_SLASH_END, HTTPSingleSaleInvoiceHandler)
@@ -68,6 +70,7 @@ func initStaticAdminHTMLUrlMaps() {
 		"/a/rrk/view-unsettled-advance":             {generalPageHandler, "templates/admin/rrk_admin_view_unsettled_advance.html"},
 		"/a/rrk/raw-material-adhoc-adjustment":      {generalPageHandler, "templates/admin/rrk_admin_rm_adhoc_adj.html"},
 		"/a/rrk/finished-products-adhoc-adjustment": {generalPageHandler, "templates/admin/rrk_admin_fp_adhoc_adj.html"},
+		"/a/rrk/delete-everything-before-date":      {generalPageHandler, "templates/admin/rrk_mass_deletion.html"},
 	}
 
 	for path, urlBlob := range urlMaps {
@@ -113,40 +116,41 @@ func initStaticHTMLUrlMaps() {
 
 func initRootApiMaps() {
 	apiMaps := map[string]apiStruct{
-		"/a/api/bom/reset":                         {bomResetAPIHandler},
-		"/a/api/bom/resetToSampleBOM":              {bomResetToSampleState},
-		API_BOM_MODEL_END:                          {bomModelWithoutSlashAPIHandler},
-		API_BOM_MODEL_SLASH_END:                    {bomModelWithSlashAPIHandler},
-		API_BOM_ARTICLE_END:                        {bomArticleWithoutSalshAPIHandler},
-		API_BOM_ARTICLE_SLASH_END:                  {bomArticleWithSlashAPIHandler},
-		"/api/bom":                                 {bomAPIHandler},
-		"/api/gzbCashBookStoreAndEmailApi":         {gzbCashBookStoreAndEmailApiHandler},
-		"/api/gzbDailyCashOpeningBalanceApi":       {gzbDailyCashGetOpeningBalanceHandler},
-		"/api/gzbDailyCashGetUnsettledAdvancesApi": {gzbDailyCashGetUnsettledAdvancesHandler},
-		"/api/gzbDailyCashSettleAccForOneEntryApi": {gzbDailyCashSettleAccForOneEntryApiHandler},
-		"/api/gzbDailyMfgSaleEmailSendApi":         {gzbDailyMfgSaleEmailSendApiHandler},
-		"/api/gzbDailyTradingSaleEmailSendApi":     {gzbDailyTradingSaleEmailSendApiHandler},
-		"/gzb/update":                              {gzbDailyCashUpdateModelApiHandler},
-		"/api/rrkDailyPolishEmailSendApi":          {rrkDailyPolishEmailSendApiHandler},
-		"/api/rrkDailyAssemblySubmissionApi":       {rrkDailyAssemblySubmissionApiHandler},
-		API_RRK_SALE_INVOICE_END:                   {rrkSaleInvoiceApiHandler},
-		API_RRK_SALE_INVOICE_SALSH_END:             {rrkSaleInvoiceWithSalshApiHandler},
-		API_RRK_PURCHASE_INVOICE_END:               {rrkPurchaseInvoiceApiHandler},
-		API_RRK_PURCHASE_INVOICE_SALSH_END:         {rrkPurchaseInvoiceWithSalshApiHandler},
-		"/api/rrkCashBookStoreAndEmailApi":         {rrkCashBookStoreAndEmailApiHandler},
-		"/api/rrkDailyCashOpeningBalanceApi":       {rrkDailyCashGetOpeningBalanceHandler},
-		"/api/rrkDailyCashGetUnsettledAdvancesApi": {rrkDailyCashGetUnsettledAdvancesHandler},
-		"/api/rrkDailyCashSettleAccForOneEntryApi": {rrkDailyCashSettleAccForOneEntryApiHandler},
-		"/api/rrk/stock-pristine-date":             {rrkStockPristineDateApiHandler},
-		API_RRK_RM_OUTWARD_STK_TRFR_END:            {RRKRMOSTInvoiceNoSalshApiHandler},
-		API_RRK_RM_INWARD_STK_TRFR_END:             {RRKRMISTInvoiceNoSalshApiHandler},
-		API_RRK_FP_INWARD_STK_TRFR_END:             {RRKFPISTInvoiceNoSalshApiHandler},
-		API_RRK_FP_OUTWARD_STK_TRFR_END:            {RRKFPOSTInvoiceNoSalshApiHandler},
-		API_RRK_RM_ADHOC_ADJ_END:                   {RRKRMAAInvoiceNoSalshApiHandler},
-		API_RRK_FP_ADHOC_ADJ_END:                   {RRKFPAAInvoiceNoSalshApiHandler},
-		"/rrk/update":                              {rrkDailyCashUpdateModelApiHandler},
-		"/api/":                                    {apiNotImplementedHandler},
-		"/a/api/":                                  {apiNotImplementedHandler},
+		"/a/api/bom/reset":                                          {bomResetAPIHandler},
+		"/a/api/bom/resetToSampleBOM":                               {bomResetToSampleState},
+		API_ADMIN_MASS_DELETION_BEFORE_AND_INCLUDING_DATE_SLASH_END: {rrkDeleteEverythingBeforeAndIncludingDateSlashApiHandler},
+		API_BOM_MODEL_END:                                           {bomModelWithoutSlashAPIHandler},
+		API_BOM_MODEL_SLASH_END:                                     {bomModelWithSlashAPIHandler},
+		API_BOM_ARTICLE_END:                                         {bomArticleWithoutSalshAPIHandler},
+		API_BOM_ARTICLE_SLASH_END:                                   {bomArticleWithSlashAPIHandler},
+		"/api/bom":                                                  {bomAPIHandler},
+		"/api/gzbCashBookStoreAndEmailApi":                          {gzbCashBookStoreAndEmailApiHandler},
+		"/api/gzbDailyCashOpeningBalanceApi":                        {gzbDailyCashGetOpeningBalanceHandler},
+		"/api/gzbDailyCashGetUnsettledAdvancesApi":                  {gzbDailyCashGetUnsettledAdvancesHandler},
+		"/api/gzbDailyCashSettleAccForOneEntryApi":                  {gzbDailyCashSettleAccForOneEntryApiHandler},
+		"/api/gzbDailyMfgSaleEmailSendApi":                          {gzbDailyMfgSaleEmailSendApiHandler},
+		"/api/gzbDailyTradingSaleEmailSendApi":                      {gzbDailyTradingSaleEmailSendApiHandler},
+		"/gzb/update":                                               {gzbDailyCashUpdateModelApiHandler},
+		"/api/rrkDailyPolishEmailSendApi":                           {rrkDailyPolishEmailSendApiHandler},
+		"/api/rrkDailyAssemblySubmissionApi":                        {rrkDailyAssemblySubmissionApiHandler},
+		API_RRK_SALE_INVOICE_END:                                    {rrkSaleInvoiceApiHandler},
+		API_RRK_SALE_INVOICE_SALSH_END:                              {rrkSaleInvoiceWithSalshApiHandler},
+		API_RRK_PURCHASE_INVOICE_END:                                {rrkPurchaseInvoiceApiHandler},
+		API_RRK_PURCHASE_INVOICE_SALSH_END:                          {rrkPurchaseInvoiceWithSalshApiHandler},
+		"/api/rrkCashBookStoreAndEmailApi":                          {rrkCashBookStoreAndEmailApiHandler},
+		"/api/rrkDailyCashOpeningBalanceApi":                        {rrkDailyCashGetOpeningBalanceHandler},
+		"/api/rrkDailyCashGetUnsettledAdvancesApi":                  {rrkDailyCashGetUnsettledAdvancesHandler},
+		"/api/rrkDailyCashSettleAccForOneEntryApi":                  {rrkDailyCashSettleAccForOneEntryApiHandler},
+		"/api/rrk/stock-pristine-date":                              {rrkStockPristineDateApiHandler},
+		API_RRK_RM_OUTWARD_STK_TRFR_END:                             {RRKRMOSTInvoiceNoSalshApiHandler},
+		API_RRK_RM_INWARD_STK_TRFR_END:                              {RRKRMISTInvoiceNoSalshApiHandler},
+		API_RRK_FP_INWARD_STK_TRFR_END:                              {RRKFPISTInvoiceNoSalshApiHandler},
+		API_RRK_FP_OUTWARD_STK_TRFR_END:                             {RRKFPOSTInvoiceNoSalshApiHandler},
+		API_RRK_RM_ADHOC_ADJ_END:                                    {RRKRMAAInvoiceNoSalshApiHandler},
+		API_RRK_FP_ADHOC_ADJ_END:                                    {RRKFPAAInvoiceNoSalshApiHandler},
+		"/rrk/update":                                               {rrkDailyCashUpdateModelApiHandler},
+		"/api/":                                                     {apiNotImplementedHandler},
+		"/a/api/":                                                   {apiNotImplementedHandler},
 	}
 	for path, apiBlob := range apiMaps {
 		http.HandleFunc(path, apiBlob.handler)

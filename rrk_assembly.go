@@ -171,10 +171,16 @@ func SendEmailForDailyAssembly(ais *RRKAssembledItems, r *http.Request) error {
 }
 
 func RRKGetAllAssembledItemsOnSingleDay(r *http.Request, date time.Time) ([]RRKAssembledItem, error) {
-	singleDate := StripTimeKeepDate(date)
-	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
-	return RRKGetAllAssembledItemsBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+	dayBeginning := StripTimeKeepDate(date)
+	return RRKGetAllAssembledItemsBetweenTheseDatesInclusive(r, dayBeginning, EOD(dayBeginning))
 }
+
+func RRKGetAllAssembledItemsBeforeThisDateInclusiveKeysOnly(r *http.Request, date time.Time) ([]*datastore.Key, error) {
+	q := datastore.NewQuery(RRKAssembledItemKind).
+		Filter("DateValue <=", EOD(date)).KeysOnly()
+	return q.GetAll(appengine.NewContext(r), nil)
+}
+
 func RRKGetAllAssembledItemsBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKAssembledItem, error) {
 	q := datastore.NewQuery(RRKAssembledItemKind).
 		Filter("DateValue >=", starting).

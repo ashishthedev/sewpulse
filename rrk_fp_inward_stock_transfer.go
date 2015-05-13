@@ -153,9 +153,7 @@ func (x *RRKFPISTInvoice) SendMailForFPISTInvoice(r *http.Request) error {
 }
 
 func RRKGetAllFPISTInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKFPISTInvoice, error) {
-	singleDate := StripTimeKeepDate(date)
-	justBeforeNextDay := singleDate.Add(1*24*time.Hour - time.Second)
-	return RRKGetAllFPISTInvoicesBetweenTheseDatesInclusive(r, singleDate, justBeforeNextDay)
+	return RRKGetAllFPISTInvoicesBetweenTheseDatesInclusive(r, BOD(date), EOD(date))
 }
 
 func RRKGetAllFPISTInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKFPISTInvoice, error) {
@@ -180,4 +178,10 @@ func RRKGetAllFPISTInvoicesBetweenTheseDatesInclusive(r *http.Request, starting 
 	}
 
 	return fpists, nil
+}
+
+func RRKGetAllFPISTInvoicesBeforeThisDateInclusiveKeysOnly(r *http.Request, date time.Time) ([]*datastore.Key, error) {
+	q := datastore.NewQuery(RRKFinProdInwardStockTransferInvoiceKind).
+		Filter("DateValue <=", EOD(date)).KeysOnly()
+	return q.GetAll(appengine.NewContext(r), nil)
 }
