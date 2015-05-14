@@ -263,20 +263,18 @@ func RRKGetAllSaleInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RRKSal
 }
 
 func GetAllRRKSaleInvoicesFromDS(r *http.Request) ([]RRKSaleInvoice, error) {
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery(RRKSaleInvoiceKind)
-	//https://cloud.google.com/appengine/docs/go/datastore/reference
+	keys, err := RRKGetAllSaleInvoicesBeforeThisDateInclusiveKeysOnly(r, time.Now())
+	if err != nil {
+		return nil, err
+	}
 	var sis []RRKSaleInvoice
-	for t := q.Run(c); ; {
-		var si RRKSaleInvoice
-		_, err := t.Next(&si)
-		if err == datastore.Done {
-			break
-		}
-		if err != nil {
+	c := appengine.NewContext(r)
+	for _, k := range keys {
+		e := new(RRKSaleInvoice)
+		if err := datastore.Get(c, k, e); err != nil {
 			return nil, err
 		}
-		sis = append(sis, si)
+		sis = append(sis, *e)
 	}
 
 	return sis, nil
