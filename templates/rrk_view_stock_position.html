@@ -89,7 +89,7 @@
           <div class="input-group">
             <input required class="center-block form-control" autofocus="true" title="View Stock for this date" type="date" ng-model="JSDate" ng-change="DateChanged()" />
             <span class="input-group-btn">
-              <button class="btn btn-info" type="button" ng-click="FetchRRKStockPositionFromServer()">Go!</button>
+              <button class="btn btn-info" ng-disabled="working" type="button" ng-click="FetchRRKStockPositionFromServer()">Go!</button>
             </span>
           </div><!-- /input-group -->
         </span>

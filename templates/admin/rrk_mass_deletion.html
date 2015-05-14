@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Roorkee Mass Deletion</title>
+    <title>Roorkee Massive Cleanup</title>
     <script src="/static/lib/angular/angular.min.js"></script>
     <script src="/static/lib/angular/angular-resource.min.js"></script>
     <script src="/static/js/services.js"></script>
@@ -49,6 +49,7 @@
             $scope.JSDate = today;
           }
           $scope.dateDiffFromTodayAsText = GetDateDiffAsText($scope.JSDate);
+          $scope.requestedDateDDMMYY = DDMMMYYFromUnixTime(JSDateToUnixTime($scope.JSDate));
         }
 
         $scope.JSDate = new Date();
@@ -60,7 +61,7 @@
   <body ng-app="SEWPulseApp" ng-controller="RRKDeleteEverythingController">
     <div class="well">
       <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
-      <h2 class="text-center">RRK Mass Deletion</h2>
+      <h2 class="text-center">RRK Massive Cleanup</h2>
       <div id="statusNote" ng-bind="statusNote"></div>
     </div>
     <div class="container-fluid">
@@ -74,7 +75,7 @@
             <div class="input-group">
               <input required class="center-block form-control" autofocus="true" title="Delete eveythign before date" type="date" ng-model="JSDate" ng-change="DateChanged()" />
               <span class="input-group-btn">
-                <button class="btn btn-danger" type="button" ng-click="InvokeDeletion()">Go!</button>
+                <button class="btn btn-danger" type="button" ng-disabled="working" ng-click="InvokeDeletion()">Go!</button>
               </span>
             </div><!-- /input-group -->
           </span>
@@ -85,10 +86,11 @@
       <div ng-show="isLogSubmitted">
         <div class="alert alert-success" role="alert">
           <div class="text-center">
-            The entries have been deleted successfully.
+            All data before <span ng-bind="requestedDateDDMMYY"></span> has been deleted successfully.
           </div>
         </div>
       </div>
+
     </div> <!-- container -->
   </body>
 </html>

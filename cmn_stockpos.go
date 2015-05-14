@@ -1,10 +1,11 @@
 package sewpulse
 
-//import "fmt"
 import (
 	"appengine"
 	"appengine/datastore"
+	"appengine/memcache"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -337,6 +338,33 @@ func GetRRKstockForThisDDMMMYY(r *http.Request, DD_MMM_YY string) (*RRKStockPos,
 }
 
 //===================================================================
+// RRKStockDigestion()
+//===================================================================
+const RRKDigestionMemCacheKey = "RRKDigestionInProcessBool"
+
+func IsDigestionInProcess(r *http.Request) bool {
+	c := appengine.NewContext(r)
+	item, err := memcache.Get(c, RRKDigestionMemCacheKey)
+	if err == nil {
+		b, err := strconv.ParseBool(string(item.Value))
+		if err == nil {
+			return b
+		}
+	}
+	return false
+}
+
+func SetLockOnDigestion(r *http.Request) error {
+	c := appengine.NewContext(r)
+	return memcache.Set(c, &memcache.Item{Key: RRKDigestionMemCacheKey, Value: []byte(strconv.FormatBool(true))})
+}
+
+func ReleaseLockOnDigestion(r *http.Request) error {
+	c := appengine.NewContext(r)
+	return memcache.Set(c, &memcache.Item{Key: RRKDigestionMemCacheKey, Value: []byte(strconv.FormatBool(false))})
+}
+
+//===================================================================
 //       RRKUtility Functions
 //===================================================================
 func RRKDigestAsMuchStockAsPossibleSinceDirtyDate(r *http.Request) error {
@@ -344,6 +372,22 @@ func RRKDigestAsMuchStockAsPossibleSinceDirtyDate(r *http.Request) error {
 	if err != nil {
 		return err
 	}
+
+	if IsDigestionInProcess(r) {
+		dd, err := GetRRKDD(r)
+		if err != nil {
+			return err
+		}
+		return errors.New(fmt.Sprintf("Stock Digestion is currently in progress at %v. Please try again after some time.", DDMMMYYFromGoTime(dd)))
+	}
+
+	if err := SetLockOnDigestion(r); err != nil {
+		return err
+	}
+
+	defer func() error {
+		return ReleaseLockOnDigestion(r)
+	}()
 	dd = StripTimeKeepDate(dd)
 	today := StripTimeKeepDate(time.Now())
 	for ; !dd.After(today); dd = dd.Add(24 * time.Hour) {
