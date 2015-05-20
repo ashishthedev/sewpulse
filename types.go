@@ -114,18 +114,9 @@ type SoldItem struct {
 //======================================================
 
 type _SaleInvoice struct {
-	Items                []SoldItem
-	Number               string
-	DateValue            time.Time
-	JSDateValueAsSeconds int64 `datastore:"-"`
-	GoodsValue           float64
-	GrandTotal           float64
-	CustomerName         string
-	TotalTax             float64
-	TotalFreight         float64
-	Remarks              string
-	UID                  string
-	DD_MMM_YY            string
+	_BillFields
+	Items        []SoldItem
+	CustomerName string
 }
 
 //======================================================

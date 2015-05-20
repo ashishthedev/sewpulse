@@ -88,13 +88,13 @@ func rrkPurchaseInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-const RRKPurchaseInvoiceKeyKind = "RRKPurchaseInvoiceKey"
+const RRKPurchaseInvoiceKind = "RRKPurchaseInvoice"
 
 func RRKPurchaseInvoiceKey(r *http.Request, piUID string) *datastore.Key {
-	return RRK_SEWNewKey(RRKPurchaseInvoiceKeyKind, piUID, 0, r)
+	return RRK_SEWNewKey(RRKPurchaseInvoiceKind, piUID, 0, r)
 }
 
-func (pi *RRKPurchaseInvoice) UID() string {
+func (pi *RRKPurchaseInvoice) GetUID() string {
 	return fmt.Sprintf("%s-%s-%s", pi.DD_MMM_YY, pi.SupplierName, pi.Number)
 }
 
@@ -103,8 +103,9 @@ func (pi *RRKPurchaseInvoice) SaveInDS(r *http.Request) error {
 	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
 		pi.DateValue = time.Unix(pi.JSDateValueAsSeconds, 0)
 		pi.DD_MMM_YY = DDMMMYYFromGoTime(pi.DateValue)
+		pi.UID = pi.GetUID()
 
-		k := RRKPurchaseInvoiceKey(r, pi.UID())
+		k := RRKPurchaseInvoiceKey(r, pi.GetUID())
 		e := pi
 		if _, err1 := datastore.Put(c, k, e); err1 != nil {
 			return err1
@@ -119,7 +120,7 @@ func (pi *RRKPurchaseInvoice) SaveInDS(r *http.Request) error {
 
 func GetAllRRKPurchaseInvoicesFromDS(r *http.Request) ([]RRKPurchaseInvoice, error) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("RRKPurchaseInvoice").
+	q := datastore.NewQuery(RRKPurchaseInvoiceKind).
 		Order("-DateValue")
 	//https://cloud.google.com/appengine/docs/go/datastore/reference
 	var pis []RRKPurchaseInvoice
@@ -274,7 +275,7 @@ func RRKGetAllPurchaseInvoicesOnSingleDay(r *http.Request, date time.Time) ([]RR
 }
 func RRKGetAllPurchaseInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKPurchaseInvoice, error) {
 
-	q := datastore.NewQuery(RRKPurchaseInvoiceKeyKind).
+	q := datastore.NewQuery(RRKPurchaseInvoiceKind).
 		Filter("DateValue >=", starting).
 		Filter("DateValue <=", ending).
 		Order("-DateValue")
@@ -297,7 +298,7 @@ func RRKGetAllPurchaseInvoicesBetweenTheseDatesInclusive(r *http.Request, starti
 }
 
 func RRKGetAllPurchaseItemsBeforeThisDateInclusiveKeysOnly(r *http.Request, date time.Time) ([]*datastore.Key, error) {
-	q := datastore.NewQuery(RRKPurchaseInvoiceKeyKind).
+	q := datastore.NewQuery(RRKPurchaseInvoiceKind).
 		Filter("DateValue <=", EOD(date)).KeysOnly()
 	return q.GetAll(appengine.NewContext(r), nil)
 }
