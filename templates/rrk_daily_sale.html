@@ -37,7 +37,6 @@
           $scope.statusNote = "Submitting...";
           $scope.SaleInvoice.JSDateValueAsSeconds = Math.floor($scope.SaleInvoice.JSDateValue.getTime()/1000);
           RRKSaleInvoice.save($scope.SaleInvoice, function(data){
-            $scope.statusNote = "Submitting...";
             if (Debug()){
               $scope.statusNote = "Posted";
               $scope.isLogSubmitted = false;

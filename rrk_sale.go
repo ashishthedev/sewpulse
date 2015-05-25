@@ -285,6 +285,7 @@ func RRKGetAllSaleInvoicesBeforeThisDateInclusiveKeysOnly(r *http.Request, endin
 		Filter("DateValue <=", ending).KeysOnly()
 	return q.GetAll(appengine.NewContext(r), nil)
 }
+
 func RRKGetAllSaleInvoicesBetweenTheseDatesInclusive(r *http.Request, starting time.Time, ending time.Time) ([]RRKSaleInvoice, error) {
 	q := datastore.NewQuery(RRKSaleInvoiceKind).
 		Filter("DateValue >=", starting).

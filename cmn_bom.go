@@ -31,54 +31,6 @@ func bomResetAPIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func bomModelWithSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "POST":
-		newMod, err := ExtractModelFromRequest(r)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		newMod.Name = r.URL.Path[len(API_BOM_MODEL_SLASH_END):]
-		if err := CreateDecodedNewModel(newMod, r); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	default:
-		http.Error(w, r.Method+" Not implemented", http.StatusNotImplemented)
-		return
-	}
-}
-
-func bomModelWithoutSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		models, err := GetAllModelsFromBOM(r)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if err := json.NewEncoder(w).Encode(models); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		return
-	case "POST":
-		newMod, err := ExtractModelFromRequest(r)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if err := CreateDecodedNewModel(newMod, r); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	default:
-		http.Error(w, r.Method+" Not implemented", http.StatusNotImplemented)
-		return
-	}
-}
-
 func bomArticleWithoutSalshAPIHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":

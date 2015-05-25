@@ -1,6 +1,8 @@
 package sewpulse
 
 import (
+	"appengine"
+	"appengine/datastore"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -107,16 +109,22 @@ func CreateDecodedNewArticle(article *Article, r *http.Request) error {
 		return errors.New("Article `" + an + "` already created.")
 	}
 
-	//Add it to article_master_list
-	if err := AddArticleToMasterList(r, article); err != nil {
-		return err
-	}
+	tx := func(c appengine.Context) error {
 
-	if err := AddArticleToExistingModels(r, article); err != nil {
+		//Add it to article_master_list
+		if err := AddArticleToMasterList(r, article); err != nil {
+			return err
+		}
+
+		if err := AddArticleToExistingModels(r, article); err != nil {
+			return err
+		}
+		return nil
+	}
+	c := appengine.NewContext(r)
+	if err := datastore.RunInTransaction(c, tx, nil); err == nil {
 		return err
 	}
-	//TODO:
-	//Bug: Do in a transaction
 	return nil
 }
 

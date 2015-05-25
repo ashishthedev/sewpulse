@@ -39,6 +39,10 @@ func DDMMMYYToGoTime(DD_MMM_YY string) (time.Time, error) {
 	return time.Parse("02-Jan-06", DD_MMM_YY)
 }
 
+func ClockTimeFromoGoTime(goTime time.Time) string {
+	return goTime.Format("3:04pm (MST)")
+}
+
 func Reverse(s string) string {
 	runes := []rune(s)
 	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
@@ -204,4 +208,40 @@ func logErr(r *http.Request, err error, fnName string) error {
 	s := "Error returned from " + fnName + "() :\n" + err.Error()
 	appengine.NewContext(r).Errorf("\n>>>>|" + s + "|<<<<")
 	return err
+}
+
+func DecodeBodyToStruct(r *http.Request, s interface{}) error {
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ServeError(w http.ResponseWriter, err error, httpStatusCode int, r *http.Request) {
+	//Report error through mail.
+	c := appengine.NewContext(r)
+	ver := appengine.VersionID(c)
+	appID := appengine.AppID(c)
+	lines := []string{
+		DDMMMYYFromGoTime(time.Now().Local()),
+		ClockTimeFromoGoTime(time.Now().Local()),
+		ver,
+		err.Error(),
+		"while accessing: ",
+		r.URL.Path,
+	}
+	errMsg := ""
+	for _, x := range lines {
+		errMsg += "<br><br>" + x
+	}
+	emailSubject := appID + " faced error in version: " + ver + " | " + time.Now().Local().String()
+	SEWReportErrorThroughMail(r, emailSubject, errMsg) //Eat any errors here.
+
+	//Report error in logs.
+
+	appengine.NewContext(r).Errorf("\n>>>>|" + err.Error() + "|<<<<")
+
+	//Report error on ResponseWriter.
+	http.Error(w, err.Error(), httpStatusCode)
+	return
 }
