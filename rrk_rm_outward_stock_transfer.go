@@ -43,7 +43,6 @@ func RRKRMOSTInvoiceNoSalshApiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		rmost.DateValue = time.Unix(rmost.JSDateValueAsSeconds, 0)
 
 		c := appengine.NewContext(r)
 		err := datastore.RunInTransaction(c, func(c appengine.Context) error {

@@ -19,7 +19,7 @@ type PolishedItem struct {
 }
 
 type PolishedItems struct {
-	JSDateValueAsSeconds int64
+	JSDateValueAsSeconds int64 `datastore:"-"`
 	Items                []PolishedItem
 }
 
@@ -107,7 +107,7 @@ func rrkDailyPolishEmailSendApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := mail.Send(c, msg); err != nil {
-		c.Errorf("Couldn't send email: %v", err)
+		c.Errorf("Couldn't send email: %v", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
