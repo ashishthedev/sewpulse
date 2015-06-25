@@ -64,7 +64,6 @@ func rrkSaleInvoiceApiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		myDebug(r, "Just decoded new SI from Web: \n%#v", si)
 
 		c := appengine.NewContext(r)
 		err := datastore.RunInTransaction(c, func(c appengine.Context) error {

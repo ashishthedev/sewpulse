@@ -84,7 +84,20 @@ func noTestSimpleDSTest(t *testing.T) {
 	return
 }
 
-func expectedBomAtThisStage(r *http.Request, t *testing.T, expectedBOM *BOM, expectedArticles *ArticleMasterList, stage string) {
+func expectedStockAtThisStage(r *http.Request, t *testing.T, expectedStock *RRKStockPos, stage string) {
+	rrkStock, err := GetRRKstockForThisDDMMMYY(r, DDMMMYYFromGoTime(time.Now()))
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	if !AreTwoStocksSame(rrkStock, expectedStock, t, stage) {
+		t.Errorf(stage + fmt.Sprintf(":\nExpectedStock:\n%v\nGot Stock:\n%v", expectedStock, rrkStock))
+		return
+	}
+
+	return
+}
+
+func expectedBomAndArticlesAtThisStage(r *http.Request, t *testing.T, expectedBOM *BOM, stage string) {
 	bomFromDS, err := GetOrCreateBOMFromDS(r)
 	if err != nil {
 		t.Error(err)
@@ -106,13 +119,8 @@ func expectedBomAtThisStage(r *http.Request, t *testing.T, expectedBOM *BOM, exp
 		return
 	}
 
-	amlDS, err := GetorCreateArticleMasterListFromDS(r)
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
-	if !AreTwoArticleListsSame(amlDS, expectedArticles, t, stage) {
-		t.Errorf(fmt.Sprintf(stage+": "+"\nWanted: %v,\n Got %v", expectedArticles, amlDS))
+	if !AreTwoArticleListsSame(bomFromDS.AML, expectedBOM.AML, t, stage) {
+		t.Errorf(fmt.Sprintf(stage+": "+"\nWanted: %v,\n Got %v", bomFromDS.AML, expectedBOM.AML))
 		return
 	}
 
@@ -140,6 +148,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		MinimumAlarmPoint: 500,
 		MaximumAlarmPoint: 3500,
 	}
+
 	KNOB := Article{
 		Name:              "KNOB",
 		Unit:              "pc",
@@ -161,16 +170,17 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		}
 
 		aetest.Login(u, r)
-		//if err := CreateArticle(r); err != nil {
-		//	t.Error(err)
-		//}
 		w := httptest.NewRecorder()
 		bomArticleWithoutSalshAPIHandler(w, r)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("Body:%v", w.Body.String())
+		} else {
+			fmt.Println("Created article: ", article.Name)
 		}
+
 	}
+
 	r, err := inst.NewRequest("POST", API_BOM_ARTICLE_SLASH_END, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -179,20 +189,17 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//======================================================
 	// Compare with expected list
 	//======================================================
-	expectedArticles := &ArticleMasterList{
-		Articles: map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER},
-	}
 	expectedBOM := NewBOM()
-	expectedBOM.AML.Articles = map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER}
+	expectedBOM.AML = ArticleMap{KNOB.Name: KNOB, BURNER.Name: BURNER}
 
-	expectedBomAtThisStage(r, t, expectedBOM, expectedArticles, "Just created two articles")
+	expectedBomAndArticlesAtThisStage(r, t, expectedBOM, "Just created two articles")
 
 	//======================================================
-	// Create new models 
+	// Create new models
 	//======================================================
 
-	PREMIUM_PLUS := Model{Name: "PremiumPlus", Unit: "pc", ArticleAndQty: QtyMap{BURNER.Name: 3, KNOB.Name: 3}}
-	SAPPHIRE := Model{Name: "Sapphire", Unit: "pc", ArticleAndQty: QtyMap{BURNER.Name: 2, KNOB.Name: 2}}
+	PREMIUM_PLUS := Model{Name: "PremiumPlus", Unit: "pc", ArticleAndQty: QtyMap{BURNER.Name: 0, KNOB.Name: 0}}
+	SAPPHIRE := Model{Name: "Sapphire", Unit: "pc", ArticleAndQty: QtyMap{BURNER.Name: 0, KNOB.Name: 0}}
 
 	for _, singleModel := range []Model{PREMIUM_PLUS, SAPPHIRE} {
 		var b bytes.Buffer
@@ -206,9 +213,6 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		}
 
 		aetest.Login(u, r)
-		//if err := CreateNewModel(r); err != nil {
-		//	t.Error(err)
-		//}
 		w := httptest.NewRecorder()
 		bomModelWithoutSlashAPIHandler(w, r)
 
@@ -219,24 +223,21 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//======================================================
 	// Compare with expected list
 	//======================================================
-	expectedArticles = &ArticleMasterList{
-		Articles: map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER},
-	}
 	expectedBOM = NewBOM()
-	expectedBOM.AML.Articles = map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER}
+	expectedBOM.AML = ArticleMap{KNOB.Name: KNOB, BURNER.Name: BURNER}
 	expectedBOM.Models = map[string]Model{
 		"PremiumPlus": {
 			Name:          "PremiumPlus",
 			Unit:          "pc",
-			ArticleAndQty: QtyMap{KNOB.Name: 3, BURNER.Name: 3},
+			ArticleAndQty: QtyMap{KNOB.Name: 0, BURNER.Name: 0},
 		},
 		"Sapphire": {
 			Name:          "Sapphire",
 			Unit:          "pc",
-			ArticleAndQty: QtyMap{KNOB.Name: 2, BURNER.Name: 2},
+			ArticleAndQty: QtyMap{KNOB.Name: 0, BURNER.Name: 0},
 		},
 	}
-	expectedBomAtThisStage(r, t, expectedBOM, expectedArticles, "stage2: models created after articles")
+	expectedBomAndArticlesAtThisStage(r, t, expectedBOM, "stage2: models created after articles")
 
 	//======================================================
 	// Create new articles again and see if they are added to existing models
@@ -278,25 +279,22 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		"PremiumPlus": {
 			Name:          "PremiumPlus",
 			Unit:          "pc",
-			ArticleAndQty: map[string]int{KNOB.Name: 3, BURNER.Name: 3, GUARD.Name: 0},
+			ArticleAndQty: QtyMap{KNOB.Name: 0.0, BURNER.Name: 0.0, GUARD.Name: 0.0},
 		},
 		"Sapphire": {
 			Name:          "Sapphire",
 			Unit:          "pc",
-			ArticleAndQty: map[string]int{KNOB.Name: 2, BURNER.Name: 2, GUARD.Name: 0},
+			ArticleAndQty: QtyMap{KNOB.Name: 0.0, BURNER.Name: 0.0, GUARD.Name: 0.0},
 		},
 	}
-	expectedBOM.AML.Articles = map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER, GUARD.Name: GUARD}
-	expectedArticles = &ArticleMasterList{
-		Articles: map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER, GUARD.Name: GUARD},
-	}
-	expectedBomAtThisStage(r, t, expectedBOM, expectedArticles, "stage3: Creating new articles again after models")
+	expectedBOM.AML = ArticleMap{KNOB.Name: KNOB, BURNER.Name: BURNER, GUARD.Name: GUARD}
+	expectedBomAndArticlesAtThisStage(r, t, expectedBOM, "stage3: Creating new articles again after models")
 
 	//======================================================
 	// Create new models again
 	//======================================================
 
-	RUBY := Model{Name: "Ruby", Unit: "pc", ArticleAndQty: map[string]int{BURNER.Name: 1, KNOB.Name: 1, GUARD.Name: 1}}
+	RUBY := Model{Name: "Ruby", Unit: "pc"}
 
 	for _, singleModel := range []Model{RUBY} {
 		var b bytes.Buffer
@@ -328,24 +326,21 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		"PremiumPlus": {
 			Name:          "PremiumPlus",
 			Unit:          "pc",
-			ArticleAndQty: map[string]int{KNOB.Name: 3, BURNER.Name: 3, GUARD.Name: 0},
+			ArticleAndQty: QtyMap{KNOB.Name: 0.0, BURNER.Name: 0.0, GUARD.Name: 0.0},
 		},
 		"Sapphire": {
 			Name:          "Sapphire",
 			Unit:          "pc",
-			ArticleAndQty: map[string]int{KNOB.Name: 2, BURNER.Name: 2, GUARD.Name: 0},
+			ArticleAndQty: QtyMap{KNOB.Name: 0.0, BURNER.Name: 0.0, GUARD.Name: 0.0},
 		},
 		"Ruby": {
 			Name:          "Ruby",
 			Unit:          "pc",
-			ArticleAndQty: map[string]int{KNOB.Name: 1, BURNER.Name: 1, GUARD.Name: 1},
+			ArticleAndQty: QtyMap{KNOB.Name: 0.0, BURNER.Name: 0.0, GUARD.Name: 0.0},
 		},
 	}
-	expectedBOM.AML.Articles = map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER, GUARD.Name: GUARD}
-	expectedArticles = &ArticleMasterList{
-		Articles: map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER, GUARD.Name: GUARD},
-	}
-	expectedBomAtThisStage(r, t, expectedBOM, expectedArticles, "stage4: Created a new model ruby")
+	expectedBOM.AML = ArticleMap{KNOB.Name: KNOB, BURNER.Name: BURNER, GUARD.Name: GUARD}
+	expectedBomAndArticlesAtThisStage(r, t, expectedBOM, "stage4: Created a new model ruby")
 
 	//======================================================
 	//TODO:Delete an article and test
@@ -372,24 +367,21 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 		"PremiumPlus": {
 			Name:          "PremiumPlus",
 			Unit:          "pc",
-			ArticleAndQty: map[string]int{KNOB.Name: 3, BURNER.Name: 3},
+			ArticleAndQty: QtyMap{KNOB.Name: 0.0, BURNER.Name: 0.0},
 		},
 		"Sapphire": {
 			Name:          "Sapphire",
 			Unit:          "pc",
-			ArticleAndQty: map[string]int{KNOB.Name: 2, BURNER.Name: 2},
+			ArticleAndQty: QtyMap{KNOB.Name: 0.0, BURNER.Name: 0.0},
 		},
 		"Ruby": {
 			Name:          "Ruby",
 			Unit:          "pc",
-			ArticleAndQty: map[string]int{KNOB.Name: 1, BURNER.Name: 1},
+			ArticleAndQty: QtyMap{KNOB.Name: 0.0, BURNER.Name: 0.0},
 		},
 	}
-	expectedBOM.AML.Articles = map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER}
-	expectedArticles = &ArticleMasterList{
-		Articles: map[string]Article{KNOB.Name: KNOB, BURNER.Name: BURNER},
-	}
-	expectedBomAtThisStage(r, t, expectedBOM, expectedArticles, "stage5: Deleted GUARD")
+	expectedBOM.AML = ArticleMap{KNOB.Name: KNOB, BURNER.Name: BURNER}
+	expectedBomAndArticlesAtThisStage(r, t, expectedBOM, "stage5: Deleted GUARD")
 
 	//======================================================
 	//TODO:Delete a model and test
@@ -414,9 +406,95 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//======================================================
 	//TODO:Create a sale invoice
 	//======================================================
+	ITEM_PP_2PC := SoldItem{NameRateQuantity{Name: "PremiumPlus", Rate: 22, Quantity: 2}, Model{}, ""}
+	ITEM_RUBY_4PC := SoldItem{NameRateQuantity{Name: "Ruby", Rate: 16, Quantity: 4}, Model{}, ""}
+	ITEMS_PP_2PC_RUBY_4PC := []SoldItem{ITEM_PP_2PC, ITEM_RUBY_4PC}
+	RRKSI_PP_2PC_RUBY_4PC := RRKSaleInvoice{
+		_SaleInvoice: _SaleInvoice{
+			_BillFields: _BillFields{
+				Number:               "111",
+				GoodsValue:           44,
+				GrandTotal:           55,
+				TotalTax:             5,
+				TotalFreight:         6,
+				Remarks:              "Some remarks",
+				DateValue:            time.Now(),
+				JSDateValueAsSeconds: time.Now().Unix(),
+			},
+			CustomerName: "Django",
+			Items:        ITEMS_PP_2PC_RUBY_4PC,
+		},
+	}
+
+	var b bytes.Buffer
+	if err := json.NewEncoder(&b).Encode(RRKSI_PP_2PC_RUBY_4PC); err != nil {
+		t.Fatal(err)
+	}
+	r, err = inst.NewRequest("POST", API_RRK_SALE_INVOICE_END, &b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	aetest.Login(u, r)
+	w := httptest.NewRecorder()
+	rrkSaleInvoiceApiHandler(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Body:%v", w.Body.String())
+	}
+
+	expectedStock := &RRKStockPos{
+		_StockPos: _StockPos{
+			ModelQtyMap: QtyMap{
+				PREMIUM_PLUS.Name: -2,
+				RUBY.Name:         -4,
+				SAPPHIRE.Name:     0,
+			},
+			ArticleQtyMap: QtyMap{
+				KNOB.Name:   0,
+				BURNER.Name: 0,
+			},
+			DateValue: StripTimeKeepDate(time.Now()),
+			DD_MMM_YY: DDMMMYYFromGoTime(time.Now()),
+		},
+	}
+
+	expectedStockAtThisStage(r, t, expectedStock, "Just created a sale invoice for 2 pc PremiumPlus and 4 pc ruby")
 
 	//======================================================
 	//TODO:Delete a sale invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Create a purchase invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Delete a sale invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Create a assembly invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Create a polish invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Create a raw-material ost invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Create a raw-material ist invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Create a finished stock ost invoice
+	//======================================================
+
+	//======================================================
+	//TODO:Create a finished stock ist invoice
 	//======================================================
 
 	return
@@ -544,6 +622,45 @@ func AreTwoArticleListsSame(al1 ArticleLister, al2 ArticleLister, t *testing.T, 
 		if found == false {
 			return false
 		}
+	}
+	return true
+}
+
+func AreTwoStocksSame(s1 *RRKStockPos, s2 *RRKStockPos, t *testing.T, stage string) bool {
+	if len(s1.ArticleQtyMap) != len(s2.ArticleQtyMap) {
+		t.Errorf(fmt.Sprintf(stage+":\nlength of s1 %v and s2 %v are not same", len(s1.ArticleQtyMap), len(s2.ArticleQtyMap)))
+		return false
+	}
+	for a1, q1 := range s1.ArticleQtyMap {
+		q2, ok := s2.ArticleQtyMap[a1]
+		if !ok {
+			t.Errorf(fmt.Sprintf(stage+":\n%s article not present in s2", a1))
+			return false
+		}
+		if q1 != q2 {
+			t.Errorf(fmt.Sprintf(stage+":\n%s article's quantity is not same in two stocks", a1))
+			return false
+		}
+	}
+
+	if len(s1.ModelQtyMap) != len(s2.ModelQtyMap) {
+		t.Errorf(fmt.Sprintf(stage+":\nlength of s1 %v and s2 %v are not same", len(s1.ModelQtyMap), len(s2.ModelQtyMap)))
+		return false
+	}
+	for a1, q1 := range s1.ModelQtyMap {
+		q2, ok := s2.ModelQtyMap[a1]
+		if !ok {
+			t.Errorf(fmt.Sprintf(stage+":\n%s model is not present in s2", a1))
+			return false
+		}
+		if q1 != q2 {
+			t.Errorf(fmt.Sprintf(stage+":\n%s model's quantity is not same in two stocks", a1))
+			return false
+		}
+	}
+	if s1.DD_MMM_YY != s2.DD_MMM_YY {
+		t.Errorf(fmt.Sprintf(stage+":\nStock dates are not same %s != %s", s1.DD_MMM_YY, s2.DD_MMM_YY))
+		return false
 	}
 	return true
 }

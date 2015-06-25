@@ -9,7 +9,7 @@ import (
 // The whole BOM can be visualized as a table with rows and columns being articles and models. Every individual cell represents the amount of articles used in that particular model.
 // Bom is central and contain all the models
 // Models contain articles
-// Article list has to be same across all models. We accomplish this by carefully monitoring add and delete operations on modesl
+// Article list has to be same across all models. We accomplish this by carefully monitoring add and delete operations on models
 // A master article list is maintained which serves as a reference point for any other article based operation.
 //
 //======================================================
@@ -28,28 +28,15 @@ type Article struct {
 
 type ArticleMap map[string]Article
 
-//======================================================
-// ArticleMasterList
-//======================================================
-type ArticleMasterList struct {
-	Articles ArticleMap
-}
-
-type QtyMap map[string]float64
-
-func NewArticleMasterList() *ArticleMasterList {
-	aml := new(ArticleMasterList)
-	aml.Articles = make(map[string]Article)
-	return aml
-}
-
-func (x *ArticleMasterList) ArticleList() []string {
+func (aml ArticleMap) ArticleList() []string {
 	var sl []string
-	for an, _ := range x.Articles {
-		sl = append(sl, an)
+	for articleName, _ := range aml {
+		sl = append(sl, articleName)
 	}
 	return sl
 }
+
+type QtyMap map[string]float64
 
 //======================================================
 // Model
@@ -82,13 +69,13 @@ func NewModel() *Model {
 //======================================================
 type BOM struct {
 	Models ModelMap
-	AML    *ArticleMasterList
+	AML    ArticleMap
 }
 
 func NewBOM() *BOM {
 	bom := new(BOM)
-	bom.Models = make(map[string]Model)
-	bom.AML = NewArticleMasterList()
+	bom.Models = make(ModelMap)
+	bom.AML = make(ArticleMap)
 	return bom
 }
 

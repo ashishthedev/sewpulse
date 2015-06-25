@@ -44,8 +44,8 @@
           $scope.stockAvailable = false;
           $scope.statusNote = "Fetching stock position ...";
           RRKStockPosition.get({id:JSDateToUnixTime($scope.JSDate)}, function(data){
-            $scope.Models = data.Models;
-            $scope.Articles = data.Articles;
+            $scope.Models = data.ModelQtyMap;
+            $scope.Articles = data.ArticleQtyMap;
             FetchRRKStockPristineDate();
             $scope.statusNote = "";
             $scope.working = false;

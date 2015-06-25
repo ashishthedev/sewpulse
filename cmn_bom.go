@@ -34,21 +34,22 @@ func bomResetAPIHandler(w http.ResponseWriter, r *http.Request) {
 func bomArticleWithoutSalshAPIHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		aml, err := GetorCreateArticleMasterListFromDS(r)
+		bom, err := GetOrCreateBOMFromDS(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		json.NewEncoder(w).Encode(*aml)
+		json.NewEncoder(w).Encode(bom.AML)
 		return
 	case "POST":
 		//Create and article with data inside post
-		article, err := ExtractArticleFromPostData(r)
-		if err != nil {
+		newArticle := new(Article)
+		if err := HTTPBodyToStruct(r, newArticle); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if err := CreateDecodedNewArticle(article, r); err != nil {
+
+		if err := CreateDecodedNewArticle(newArticle, r); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -67,7 +68,7 @@ func bomArticleWithSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		for _, article := range bom.AML.Articles {
+		for _, article := range bom.AML {
 			if article.Name == an {
 				json.NewEncoder(w).Encode(article)
 				return
@@ -77,15 +78,15 @@ func bomArticleWithSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case "POST":
-		article, err := ExtractArticleFromPostData(r)
-		if err != nil {
+		newArticle := new(Article)
+		if err := HTTPBodyToStruct(r, newArticle); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		article.Name = r.URL.Path[len(API_BOM_ARTICLE_SLASH_END):]
+		newArticle.Name = r.URL.Path[len(API_BOM_ARTICLE_SLASH_END):]
 
-		if err := CreateDecodedNewArticle(article, r); err != nil {
+		if err := CreateDecodedNewArticle(newArticle, r); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

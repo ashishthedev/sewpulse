@@ -59,7 +59,7 @@
         function FetchArticlesFromServer() {
           $scope.statusNote = "Fetching articles...";
           Article.query(function(data){
-            $scope.articles = data.Articles;
+            $scope.articles = data;
             $scope.statusNote = "";
             console.log("articles: " + $scope.articles);
             if($scope.articles.length === 0) {

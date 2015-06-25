@@ -210,7 +210,7 @@ func logErr(r *http.Request, err error, fnName string) error {
 	return err
 }
 
-func DecodeBodyToStruct(r *http.Request, s interface{}) error {
+func HTTPBodyToStruct(r *http.Request, s interface{}) error {
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 		return err
 	}

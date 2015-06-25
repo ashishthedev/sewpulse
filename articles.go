@@ -16,12 +16,12 @@ func DeleteArticle(r *http.Request) error {
 
 func DeleteDecodedArticle(articleName string, r *http.Request) error {
 	//If already is not present, return error
-	aml, err := GetorCreateArticleMasterListFromDS(r)
+	bom, err := GetOrCreateBOMFromDS(r)
 	if err != nil {
 		return err
 	}
 
-	_, present := aml.Articles[articleName]
+	_, present := bom.AML[articleName]
 	if !present {
 		return errors.New("Article `" + articleName + "` is not present in BOM.")
 	}
@@ -41,18 +41,15 @@ func DeleteDecodedArticle(articleName string, r *http.Request) error {
 }
 
 func DeleteArticleFromMasterList(r *http.Request, articleName string) error {
-	aml, err := GetorCreateArticleMasterListFromDS(r)
+	bom, err := GetOrCreateBOMFromDS(r)
 	if err != nil {
 		return err
 	}
 
-	for an, _ := range aml.Articles {
-		if articleName == an {
-			delete(aml.Articles, articleName)
-		}
-	}
+	//TODO: Check for pre-exitense of article and throw an error maybe?
+	delete(bom.AML, articleName)
 
-	if err := SaveArticleMasterList(aml, r); err != nil {
+	if err := SaveBomInDS(bom, r); err != nil {
 		return err
 	}
 
@@ -98,13 +95,13 @@ func CreateArticle(r *http.Request) error {
 
 func CreateDecodedNewArticle(article *Article, r *http.Request) error {
 
-	aml, err := GetorCreateArticleMasterListFromDS(r)
+	bom, err := GetOrCreateBOMFromDS(r)
 	if err != nil {
 		return err
 	}
 
 	an := article.Name
-	_, present := aml.Articles[an]
+	_, present := bom.AML[an]
 	if present {
 		return errors.New("Article `" + an + "` already created.")
 	}
@@ -112,14 +109,12 @@ func CreateDecodedNewArticle(article *Article, r *http.Request) error {
 	tx := func(c appengine.Context) error {
 
 		//Add it to article_master_list
-		if err := AddArticleToMasterList(r, article); err != nil {
+		bom.AML[article.Name] = *article
+		if err := SaveBomInDS(bom, r); err != nil {
 			return err
 		}
 
-		if err := AddArticleToExistingModels(r, article); err != nil {
-			return err
-		}
-		return nil
+		return AddArticleToExistingModels(r, article)
 	}
 	c := appengine.NewContext(r)
 	if err := datastore.RunInTransaction(c, tx, nil); err == nil {
@@ -146,60 +141,31 @@ func AddArticleToExistingModels(r *http.Request, article *Article) error {
 	return nil
 }
 
-func (aml *ArticleMasterList) String() string {
+func (aml ArticleMap) String() string {
 	if aml == nil {
 		return "nil"
 	}
-	s := "ArticleMasterList: "
-	for _, article := range aml.Articles {
+	s := "ArticleMap: "
+	for _, article := range aml {
 		s += fmt.Sprintf("\n %#v", article)
 	}
 	return s
 }
 
-func AddArticleToMasterList(r *http.Request, article *Article) error {
-	aml, err := GetorCreateArticleMasterListFromDS(r)
+func AddArticleAML(r *http.Request, article *Article) error {
+	bom, err := GetOrCreateBOMFromDS(r)
 	if err != nil {
 		return err
 	}
 
 	an := article.Name
-	_, present := aml.Articles[an]
+	_, present := bom.AML[an]
 	if present {
 		return errors.New("Article " + an + "already created.")
 	}
 
-	aml.Articles[an] = *article
+	bom.AML[an] = *article
 
-	if err := SaveArticleMasterList(aml, r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func GetorCreateArticleMasterListFromDS(r *http.Request) (*ArticleMasterList, error) {
-	bom, err := GetOrCreateBOMFromDS(r)
-	if err != nil {
-		return nil, err
-	}
-	return bom.AML, nil
-}
-
-func GetAllArticlesFromDS(r *http.Request) (ArticleMap, error) {
-	aml, err := GetorCreateArticleMasterListFromDS(r)
-	if err != nil {
-		return nil, err
-	}
-	return aml.Articles, nil
-}
-
-func SaveArticleMasterList(masterList *ArticleMasterList, r *http.Request) error {
-	bom, err := GetOrCreateBOMFromDS(r)
-	if err != nil {
-		return err
-	}
-
-	bom.AML = masterList
 	if err := SaveBomInDS(bom, r); err != nil {
 		return err
 	}
@@ -207,10 +173,10 @@ func SaveArticleMasterList(masterList *ArticleMasterList, r *http.Request) error
 }
 
 func PrintArticleMasterListFromDS(r *http.Request) error {
-	aml, err := GetorCreateArticleMasterListFromDS(r)
+	bom, err := GetOrCreateBOMFromDS(r)
 	if err != nil {
 		return err
 	}
-	myDebug(r, fmt.Sprintf("%#v", aml))
+	myDebug(r, fmt.Sprintf("%#v", bom.AML))
 	return nil
 }

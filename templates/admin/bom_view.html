@@ -1,35 +1,122 @@
-<html ng-app="SewBOMApp">
-  <head>
-    <title>SEW VIEW BOM</title>
-    <script src="/static/lib/angular/angular.min.js"></script>
-    <script src="/static/lib/angular/angular-resource.min.js"></script>
-    <script src="/static/lib/angular/angular-route.min.js"></script>
-    <script src="/static/js/services.js"></script>
-    <script src="/static/js/bomapp.js"></script>
-    <script src="/static/js/bomControllers.js"></script>
+<html>
+<head>
+  <title>SEW VIEW BOM</title>
+  <script src="/static/lib/angular/angular.min.js"></script>
+  <script src="/static/lib/angular/angular-resource.min.js"></script>
+  <script src="/static/lib/angular/angular-route.min.js"></script>
+  <script src="/static/js/services.js"></script>
 
-    <!-- Standard Favicon -->
-    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+  <!-- Standard Favicon -->
+  <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
 
-    <!-- For iPhone 4 Retina display: -->
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
+  <!-- For iPhone 4 Retina display: -->
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/img/sew114.png">
 
-    <!-- For iPad: -->
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
+  <!-- For iPad: -->
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/img/sew72.png">
 
-    <!-- For iPhone: -->
-    <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
+  <!-- For iPhone: -->
+  <link rel="apple-touch-icon-precomposed" href="/static/img/sew57.png">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
-    <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
-    <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
-  </head>
-    <body>
-    <div class="well">
-      <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
-      <h1 class="text-center">BOM</h1>
-      <div id="statusNote" ng-bind="statusNote"></div>
-    </div>
-    <div ng-view></div>
-  </body>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" >
+  <link rel="stylesheet" href="/static/css/bs_modified.css" type="text/css" >
+  <script>
+
+  var appMod = angular.module('SEWPulseApp', ['bomServices']);
+
+
+  appMod.controller('AdminBOMViewController', ['$scope', '$rootScope', 'BOM', function($scope, $rootScope, BOM) {
+    function FetchBom() {
+      $scope.statusNote = "Fetching BOM ...";
+      $scope.bom = BOM.get(
+        function(data){
+          $scope.statusNote = "";
+          var keys = [];
+          for(var key in $scope.bom.AML){
+            keys.push(key);
+          }
+          $scope.sortedArticleKeys = keys.sort();
+          $scope.bomFetched = true;
+        },
+        function(error){
+          $scope.statusNote = error.status + ": " + error.data;
+        });
+    }
+
+
+    $scope.SaveTheChangesOnServer = function() {
+      $scope.statusNote = "Saving changes on server";
+      $scope.bom.$save(function(data){
+        $scope.statusNote = "";
+        $scope.SetGridPristine();
+      }, function(error){
+        $scope.statusNote = error.status + ": " + error.data;
+      });
+    }
+
+    $scope.SetGridPristine = function() {
+      $rootScope.isGridDirty = false;
+    }
+    $scope.SetGridDirty = function() {
+      $rootScope.isGridDirty = true;
+    }
+
+    $scope.allDone = function()
+    {
+      return $scope.bomFetched;
+    }
+
+    function InitApp(){
+      $scope.bomFetched = false;
+
+      FetchBom();
+      $scope.SetGridPristine();
+    }
+    InitApp()
+  }]);
+</script>
+
+</head>
+<body ng-app="SEWPulseApp" ng-controller="AdminBOMViewController">
+  <div class="well">
+    <a href="/"><img class="center-block" src="/static/img/sew57.png" /></a>
+    <h1 class="text-center">BOM</h1>
+    <div id="statusNote" ng-bind="statusNote"></div>
+  </div>
+  <div ng-show=allDone()>
+    <div class="container-fluid">
+      <table class="table table-striped table-condensed">
+        <thead>
+          <tr>
+            <td></td>
+            <td ng-repeat="model in bom.Models">
+              <span ng-bind="model.Name"></span>
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="articleName in sortedArticleKeys">
+            <td><span ng-bind="articleName"></span></td>
+            <td ng-repeat="model in bom.Models">
+              <div ng-show=editingQty >
+                <input class="tooltipInput col-xs-7 " type="number" ng-model="model.ArticleAndQty[articleName]" />
+                <button ng-click="SetGridDirty(); editingQty=!editingQty" class="btn btn-success">Done</button>
+              </div>
+              <div ng-hide=editingQty >
+                <span ng-click="editingQty=!editingQty;" ng-bind="model.ArticleAndQty[articleName]"></span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div ng-show=isGridDirty >
+        <button type="submit" ng-click="SaveTheChangesOnServer()" class="btn btn-info center-block">Save the changes</button>
+      </div>
+    </div> <!-- container -->
+  </div>
+  <div ng-hide=allDone()>
+    <p class="text-center text-muted">Working...</p>
+  </div>
+</body>
 </html>

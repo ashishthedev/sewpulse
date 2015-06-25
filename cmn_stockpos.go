@@ -16,10 +16,10 @@ import (
 //===================================================================
 
 type _StockPos struct {
-	Models    QtyMap
-	Articles  QtyMap
-	DateValue time.Time
-	DD_MMM_YY string
+	ModelQtyMap   QtyMap
+	ArticleQtyMap QtyMap
+	DateValue     time.Time
+	DD_MMM_YY     string
 }
 
 //===================================================================
@@ -120,24 +120,20 @@ func RRKBlankStockStruct(r *http.Request) (*RRKStockPos, error) {
 	//TODO: This function is called many times. See if you can just return a copy of static blank stock struct.
 
 	rrksp := new(RRKStockPos)
-	models, err := GetAllModelsFromBOM(r)
+
+	bom, err := GetOrCreateBOMFromDS(r)
 	if err != nil {
 		return nil, err
 	}
 
-	rrksp.Models = make(QtyMap)
-	for _, model := range models {
-		rrksp.Models[model.Name] = 0
+	rrksp.ModelQtyMap = make(QtyMap)
+	for _, model := range bom.Models {
+		rrksp.ModelQtyMap[model.Name] = 0
 	}
 
-	rrksp.Articles = make(QtyMap)
-	articles, err := GetAllArticlesFromDS(r)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, article := range articles {
-		rrksp.Articles[article.Name] = 0
+	rrksp.ArticleQtyMap = make(QtyMap)
+	for _, article := range bom.AML {
+		rrksp.ArticleQtyMap[article.Name] = 0
 	}
 
 	return rrksp, nil
@@ -443,13 +439,13 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 		return err
 	}
 	for _, ai := range ais {
-		todaysStock.Models[ai.ModelName] += ai.Quantity
+		todaysStock.ModelQtyMap[ai.ModelName] += ai.Quantity
 
 		for articleName, articleQuantityUsed := range ai.ModelWithFullBOM.ArticleAndQty {
 			/////////////////////////////////////////////////////////////////////////
 			//2b. Subtract daily assembly consumed articles from articles
 			/////////////////////////////////////////////////////////////////////////
-			todaysStock.Articles[articleName] -= articleQuantityUsed * ai.Quantity
+			todaysStock.ArticleQtyMap[articleName] -= articleQuantityUsed * ai.Quantity
 		}
 	}
 
@@ -462,7 +458,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	}
 	for _, si := range asi {
 		for _, item := range si.Items {
-			todaysStock.Models[item.Name] -= item.Quantity
+			todaysStock.ModelQtyMap[item.Name] -= item.Quantity
 		}
 	}
 
@@ -475,7 +471,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	}
 	for _, rmost := range rmosts {
 		for _, item := range rmost.Items {
-			todaysStock.Articles[item.Name] -= item.Quantity
+			todaysStock.ArticleQtyMap[item.Name] -= item.Quantity
 		}
 	}
 
@@ -485,7 +481,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	}
 	for _, fpost := range fposts {
 		for _, item := range fpost.Items {
-			todaysStock.Models[item.Name] -= item.Quantity
+			todaysStock.ModelQtyMap[item.Name] -= item.Quantity
 		}
 	}
 
@@ -498,7 +494,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	}
 	for _, rmist := range rmists {
 		for _, item := range rmist.Items {
-			todaysStock.Articles[item.Name] += item.Quantity
+			todaysStock.ArticleQtyMap[item.Name] += item.Quantity
 		}
 	}
 	fpists, err := RRKGetAllFPISTInvoicesOnSingleDay(r, dirtyDate)
@@ -507,7 +503,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	}
 	for _, fpist := range fpists {
 		for _, item := range fpist.Items {
-			todaysStock.Models[item.Name] += item.Quantity
+			todaysStock.ModelQtyMap[item.Name] += item.Quantity
 		}
 	}
 
@@ -521,7 +517,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 
 	for _, pi := range rrkpis {
 		for _, item := range pi.Items {
-			todaysStock.Articles[item.Name] += item.Quantity
+			todaysStock.ArticleQtyMap[item.Name] += item.Quantity
 		}
 	}
 	/////////////////////////////////////////////////////////////////////////
@@ -537,7 +533,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	}
 	for _, invoice := range fpinvoices {
 		for _, item := range invoice.Items {
-			todaysStock.Models[item.Name] += item.Quantity
+			todaysStock.ModelQtyMap[item.Name] += item.Quantity
 		}
 	}
 
@@ -550,7 +546,7 @@ func _CalculateAndSaveRRKStockForDate(r *http.Request, dirtyDate time.Time) erro
 	}
 	for _, invoice := range invoices {
 		for _, item := range invoice.Items {
-			todaysStock.Articles[item.Name] += item.Quantity
+			todaysStock.ArticleQtyMap[item.Name] += item.Quantity
 		}
 	}
 

@@ -3,6 +3,7 @@ package sewpulse
 import (
 	"encoding/json"
 	"errors"
+	//"fmt"
 	"net/http"
 )
 
@@ -12,33 +13,19 @@ func CreateDecodedNewModel(newMod *Model, r *http.Request) error {
 		return err
 	}
 
-	aml, err := GetorCreateArticleMasterListFromDS(r)
-	if err != nil {
-		return err
-	}
-
-	for an, _ := range aml.Articles {
-		newMod.ArticleAndQty[an] = 0
-	}
-
-	_, present := bom.Models[newMod.Name]
-	if present {
+	if _, present := bom.Models[newMod.Name]; present {
 		return errors.New("Model `" + newMod.Name + "` is already created.")
 	}
 
-	bom.Models[newMod.Name] = *newMod
-	if err := SaveBomInDS(bom, r); err != nil {
-		return err
-	}
-	return nil
-}
+	newMod.ArticleAndQty = make(QtyMap)
 
-func GetAllModelsFromBOM(r *http.Request) (ModelMap, error) {
-	bom, err := GetOrCreateBOMFromDS(r)
-	if err != nil {
-		return nil, err
+	for an, _ := range bom.AML {
+		newMod.ArticleAndQty[an] = 0
 	}
-	return bom.Models, nil
+
+	bom.Models[newMod.Name] = *newMod
+
+	return SaveBomInDS(bom, r)
 }
 
 func GetModelWithName(r *http.Request, modelName string) (Model, error) {
@@ -59,7 +46,7 @@ func bomModelWithSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 		newMod := NewModel()
-		if err := DecodeBodyToStruct(r, newMod); err != nil {
+		if err := HTTPBodyToStruct(r, newMod); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -77,19 +64,19 @@ func bomModelWithSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 func bomModelWithoutSlashAPIHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		models, err := GetAllModelsFromBOM(r)
+		bom, err := GetOrCreateBOMFromDS(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if err := json.NewEncoder(w).Encode(models); err != nil {
+		if err := json.NewEncoder(w).Encode(bom.Models); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	case "POST":
 		newMod := NewModel()
-		if err := DecodeBodyToStruct(r, newMod); err != nil {
+		if err := HTTPBodyToStruct(r, newMod); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

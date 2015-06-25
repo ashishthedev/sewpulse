@@ -106,12 +106,17 @@ func (bom *BOM) String() string {
 	if bom == nil {
 		return "nil"
 	}
-	s := "BOM: "
+	s := "Models: "
 	for _, model := range bom.Models {
-		s += "\n" + model.Name + "\n"
+		s += "\n\n" + model.Name
 		for an, qty := range model.ArticleAndQty {
-			s += fmt.Sprintf("  %v:%v", an, qty)
+			s += fmt.Sprintf("\n%v:%v", an, qty)
 		}
+	}
+	s += "\n\nAML: "
+
+	for _, article := range bom.AML {
+		s += "\n" + article.Name
 	}
 	return s
 }
