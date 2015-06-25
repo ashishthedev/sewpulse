@@ -464,6 +464,39 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//======================================================
 	//TODO:Delete a sale invoice
 	//======================================================
+	RRKSI_PP_2PC_RUBY_4PC.DD_MMM_YY = DDMMMYYFromGoTime(time.Now()) //This is done internally in the code before saving the entity, so just simulating this.
+	rrksiUID := RRKSI_PP_2PC_RUBY_4PC.GetUID()
+	fmt.Println("rrksiUID = ", rrksiUID)
+	r, err = inst.NewRequest("DELETE", API_RRK_SALE_INVOICE_SALSH_END+rrksiUID, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	aetest.Login(u, r)
+	w = httptest.NewRecorder()
+	rrkSaleInvoiceWithSalshApiHandler(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Body:%v", w.Body.String())
+	}
+
+	expectedStock = &RRKStockPos{
+		_StockPos: _StockPos{
+			ModelQtyMap: QtyMap{
+				PREMIUM_PLUS.Name: 0,
+				RUBY.Name:         0,
+				SAPPHIRE.Name:     0,
+			},
+			ArticleQtyMap: QtyMap{
+				KNOB.Name:   0,
+				BURNER.Name: 0,
+			},
+			DateValue: StripTimeKeepDate(time.Now()),
+			DD_MMM_YY: DDMMMYYFromGoTime(time.Now()),
+		},
+	}
+
+	expectedStockAtThisStage(r, t, expectedStock, "Just the sale invoice for 2 pc PremiumPlus and 4 pc ruby")
 
 	//======================================================
 	//TODO:Create a purchase invoice

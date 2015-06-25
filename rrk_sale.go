@@ -126,9 +126,25 @@ func (si *RRKSaleInvoice) SaveRRKSaleInvoiceInDS(r *http.Request) error {
 }
 
 func DeleteRRKSaleInvoiceFromDS(siUID string, r *http.Request) error {
+	tx := func(c appengine.Context) error {
+		si, err := GetRRKSaleInvoiceFromDS(siUID, r)
+		if err != nil {
+			return err
+		}
+		dirtyDate := si.DateValue
+
+		k := RRKSaleInvoiceKey(r, siUID)
+		if err := datastore.Delete(c, k); err != nil {
+			return err
+		}
+		return RRKIntelligentlySetDD(r, dirtyDate)
+	}
+
 	c := appengine.NewContext(r)
-	k := RRKSaleInvoiceKey(r, siUID)
-	return datastore.Delete(c, k)
+	if err := datastore.RunInTransaction(c, tx, nil); err == nil {
+		return err
+	}
+	return nil
 }
 
 func GetRRKSaleInvoiceFromDS(siUID string, r *http.Request) (*RRKSaleInvoice, error) {
