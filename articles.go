@@ -117,10 +117,7 @@ func CreateDecodedNewArticle(article *Article, r *http.Request) error {
 		return AddArticleToExistingModels(r, article)
 	}
 	c := appengine.NewContext(r)
-	if err := datastore.RunInTransaction(c, tx, nil); err == nil {
-		return err
-	}
-	return nil
+	return datastore.RunInTransaction(c, tx, nil)
 }
 
 func AddArticleToExistingModels(r *http.Request, article *Article) error {

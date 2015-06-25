@@ -343,7 +343,7 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	expectedBomAndArticlesAtThisStage(r, t, expectedBOM, "stage4: Created a new model ruby")
 
 	//======================================================
-	//TODO:Delete an article and test
+	//Delete an article and test
 	//======================================================
 
 	for _, singleArticle := range []Article{GUARD} {
@@ -404,11 +404,11 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//======================================================
 
 	//======================================================
-	//TODO:Create a sale invoice
+	//Create a sale invoice
 	//======================================================
 	ITEM_PP_2PC := SoldItem{NameRateQuantity{Name: "PremiumPlus", Rate: 22, Quantity: 2}, Model{}, ""}
 	ITEM_RUBY_4PC := SoldItem{NameRateQuantity{Name: "Ruby", Rate: 16, Quantity: 4}, Model{}, ""}
-	ITEMS_PP_2PC_RUBY_4PC := []SoldItem{ITEM_PP_2PC, ITEM_RUBY_4PC}
+	ITEMS_MODELS_PP_2PC_RUBY_4PC := []SoldItem{ITEM_PP_2PC, ITEM_RUBY_4PC}
 	RRKSI_PP_2PC_RUBY_4PC := RRKSaleInvoice{
 		_SaleInvoice: _SaleInvoice{
 			_BillFields: _BillFields{
@@ -418,11 +418,10 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 				TotalTax:             5,
 				TotalFreight:         6,
 				Remarks:              "Some remarks",
-				DateValue:            time.Now(),
 				JSDateValueAsSeconds: time.Now().Unix(),
 			},
 			CustomerName: "Django",
-			Items:        ITEMS_PP_2PC_RUBY_4PC,
+			Items:        ITEMS_MODELS_PP_2PC_RUBY_4PC,
 		},
 	}
 
@@ -454,7 +453,6 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 				KNOB.Name:   0,
 				BURNER.Name: 0,
 			},
-			DateValue: StripTimeKeepDate(time.Now()),
 			DD_MMM_YY: DDMMMYYFromGoTime(time.Now()),
 		},
 	}
@@ -462,11 +460,10 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	expectedStockAtThisStage(r, t, expectedStock, "Just created a sale invoice for 2 pc PremiumPlus and 4 pc ruby")
 
 	//======================================================
-	//TODO:Delete a sale invoice
+	//Delete a sale invoice
 	//======================================================
 	RRKSI_PP_2PC_RUBY_4PC.DD_MMM_YY = DDMMMYYFromGoTime(time.Now()) //This is done internally in the code before saving the entity, so just simulating this.
 	rrksiUID := RRKSI_PP_2PC_RUBY_4PC.GetUID()
-	fmt.Println("rrksiUID = ", rrksiUID)
 	r, err = inst.NewRequest("DELETE", API_RRK_SALE_INVOICE_SALSH_END+rrksiUID, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -491,7 +488,6 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 				KNOB.Name:   0,
 				BURNER.Name: 0,
 			},
-			DateValue: StripTimeKeepDate(time.Now()),
 			DD_MMM_YY: DDMMMYYFromGoTime(time.Now()),
 		},
 	}
@@ -499,12 +495,94 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	expectedStockAtThisStage(r, t, expectedStock, "Just the sale invoice for 2 pc PremiumPlus and 4 pc ruby")
 
 	//======================================================
-	//TODO:Create a purchase invoice
+	//Create a purchase invoice
 	//======================================================
+	ARTICLE_2KNOB := NameRateQuantity{Name: KNOB.Name, Rate: 22, Quantity: 2}
+	ARTICLE_4BURNER := NameRateQuantity{Name: BURNER.Name, Rate: 22, Quantity: 4}
+	ITEMS_ARTICLES_2KNOB_4BURNER := []NameRateQuantity{ARTICLE_2KNOB, ARTICLE_4BURNER}
+	RRKPI_2KNOB_4BURNER := RRKPurchaseInvoice{
+		_PurchaseInvoice: _PurchaseInvoice{
+			_BillFields: _BillFields{
+				Number:               "111",
+				GoodsValue:           44,
+				GrandTotal:           55,
+				TotalTax:             5,
+				TotalFreight:         6,
+				Remarks:              "Some remarks",
+				JSDateValueAsSeconds: time.Now().Unix(),
+			},
+			SupplierName: "Django",
+			Items:        ITEMS_ARTICLES_2KNOB_4BURNER,
+		},
+	}
+
+	if err := json.NewEncoder(&b).Encode(RRKPI_2KNOB_4BURNER); err != nil {
+		t.Fatal(err)
+	}
+	r, err = inst.NewRequest("POST", API_RRK_PURCHASE_INVOICE_END, &b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	aetest.Login(u, r)
+	w = httptest.NewRecorder()
+	rrkPurchaseInvoiceApiHandler(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Body:%v", w.Body.String())
+	}
+
+	expectedStock = &RRKStockPos{
+		_StockPos: _StockPos{
+			ModelQtyMap: QtyMap{
+				PREMIUM_PLUS.Name: 0,
+				RUBY.Name:         0,
+				SAPPHIRE.Name:     0,
+			},
+			ArticleQtyMap: QtyMap{
+				KNOB.Name:   2,
+				BURNER.Name: 4,
+			},
+			DD_MMM_YY: DDMMMYYFromGoTime(time.Now()),
+		},
+	}
+
+	expectedStockAtThisStage(r, t, expectedStock, "Just created a purchase invoice for 2 pc knobs and 4 pc burners")
 
 	//======================================================
-	//TODO:Delete a sale invoice
+	// Delete a purchase invoice
 	//======================================================
+	RRKPI_2KNOB_4BURNER.DD_MMM_YY = DDMMMYYFromGoTime(time.Now())
+	rrkpiUID := RRKPI_2KNOB_4BURNER.GetUID()
+	r, err = inst.NewRequest("DELETE", API_RRK_PURCHASE_INVOICE_SALSH_END+rrkpiUID, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	aetest.Login(u, r)
+	w = httptest.NewRecorder()
+	rrkPurchaseInvoiceWithSalshApiHandler(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Body:%v", w.Body.String())
+	}
+
+	expectedStock = &RRKStockPos{
+		_StockPos: _StockPos{
+			ModelQtyMap: QtyMap{
+				PREMIUM_PLUS.Name: 0,
+				RUBY.Name:         0,
+				SAPPHIRE.Name:     0,
+			},
+			ArticleQtyMap: QtyMap{
+				KNOB.Name:   0,
+				BURNER.Name: 0,
+			},
+			DD_MMM_YY: DDMMMYYFromGoTime(time.Now()),
+		},
+	}
+
+	expectedStockAtThisStage(r, t, expectedStock, "Just deleted the purchase invoice for 2 pc knobs and 4 pc burner")
 
 	//======================================================
 	//TODO:Create a assembly invoice

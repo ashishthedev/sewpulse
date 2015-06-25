@@ -100,7 +100,7 @@ func (pi *RRKPurchaseInvoice) GetUID() string {
 
 func (pi *RRKPurchaseInvoice) SaveInDS(r *http.Request) error {
 	c := appengine.NewContext(r)
-	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
+	tx := func(c appengine.Context) error {
 		pi.DateValue = time.Unix(pi.JSDateValueAsSeconds, 0)
 		pi.DD_MMM_YY = DDMMMYYFromGoTime(pi.DateValue)
 		pi.UID = pi.GetUID()
@@ -111,8 +111,9 @@ func (pi *RRKPurchaseInvoice) SaveInDS(r *http.Request) error {
 			return err1
 		}
 		return RRKIntelligentlySetDD(r, pi.DateValue)
-	}, nil)
-	if err != nil {
+	}
+
+	if err := datastore.RunInTransaction(c, tx, nil); err != nil {
 		return logErr(r, err, "Inside (pi *RRKPurchaseInvoice) SaveInDS()")
 	}
 	return nil
@@ -140,9 +141,20 @@ func GetAllRRKPurchaseInvoicesFromDS(r *http.Request) ([]RRKPurchaseInvoice, err
 }
 
 func DeleteRRKPurchaseInvoiceFromDS(piUID string, r *http.Request) error {
+	tx := func(c appengine.Context) error {
+		pi, err := GetRRKPurchaseInvoiceFromDS(piUID, r)
+		if err != nil {
+			return err
+		}
+
+		k := RRKPurchaseInvoiceKey(r, piUID)
+		if err := datastore.Delete(c, k); err != nil {
+			return err
+		}
+		return RRKIntelligentlySetDD(r, pi.DateValue)
+	}
 	c := appengine.NewContext(r)
-	k := RRKPurchaseInvoiceKey(r, piUID)
-	return datastore.Delete(c, k)
+	return datastore.RunInTransaction(c, tx, nil)
 }
 
 func GetRRKPurchaseInvoiceFromDS(piUID string, r *http.Request) (*RRKPurchaseInvoice, error) {
