@@ -15,7 +15,7 @@ import (
 func (ai RRKAssembledItem) UID() string {
 	const layout = "02Jan2006_304pm_MST"
 	//10Nov2009_1100am_UTC
-	return fmt.Sprintf("%s-%s", ai.ModelName, ai.DateValue.Format(layout))
+	return fmt.Sprintf("%s-%s", ai.AssemblyLineName, ai.ModelName, ai.DateValue.Format(layout))
 }
 
 const RRKAssembledItemKind = "RRKAssembledItem"
@@ -136,7 +136,7 @@ func SendEmailForDailyAssembly(ais *RRKAssembledItems, r *http.Request) error {
 	<tr>
 	<td>%s</td>
 	<td>%s</td>
-	<td>%d</td>
+	<td>%v</td>
 	<td>%s</td>
 	<td>%s</td>
 	</tr>`, pi.ModelName, pi.AssemblyLineName, pi.Quantity, pi.Unit, pi.Remarks)

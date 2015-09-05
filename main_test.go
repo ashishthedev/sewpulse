@@ -587,6 +587,10 @@ func TestEndToEndCaseForBOMManipulation(t *testing.T) {
 	//======================================================
 	//TODO:Create a assembly invoice
 	//======================================================
+	rrkass := &RRKAssembledItems{
+		Items:                []RRKAssembledItem{},
+		JSDateValueAsSeconds: time.Now().Unix(),
+	}
 
 	//======================================================
 	//TODO:Create a polish invoice
