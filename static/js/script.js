@@ -61,6 +61,6 @@ function UpdateDateDiffAsText($scope) {
 }
 
 function Debug(){
-  return true;
   return false;
+  return true;
 }
