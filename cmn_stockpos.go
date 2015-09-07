@@ -112,7 +112,7 @@ func RRKUnconditionalSaveDD(r *http.Request, dv time.Time) error {
 //  RRKStockAsString
 //===================================================================
 type RRKStockAsString struct {
-	StringData string `datastore:"noindex"`
+	StringData string `datastore:",noindex"`
 	DateValue  time.Time
 }
 

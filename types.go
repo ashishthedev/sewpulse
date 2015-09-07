@@ -93,7 +93,7 @@ type ArticleLister interface {
 type SoldItem struct {
 	NameRateQuantity
 	ModelWithFullBOM         Model  `datastore:"-"` //TODO: This may not be necessary. Because we are saving the ArticleAndQty in assembled items.
-	ModelWithFullBOMAsString string `datastore:"noindex"`
+	ModelWithFullBOMAsString string `datastore:",noindex"`
 }
 
 //======================================================
@@ -125,7 +125,7 @@ type RRKSaleInvoice struct {
 // Stringer
 //======================================================
 type Stringer struct {
-	StringData string `datastore:"noindex"`
+	StringData string `datastore:",noindex"`
 }
 
 //======================================================
@@ -138,7 +138,7 @@ type RRKAssembledItem struct {
 	AssemblyLineName         string
 	Remarks                  string
 	ModelWithFullBOM         Model  `datastore:"-"`
-	ModelWithFullBOMAsString string `datastore:"noindex"`
+	ModelWithFullBOMAsString string `datastore:",noindex"`
 	DateValue                time.Time
 }
 
